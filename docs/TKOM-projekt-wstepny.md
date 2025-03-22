@@ -95,7 +95,7 @@ Każdy z operatorów ma wybrane typy, które wspiera. Poniższa tabela przedstaw
 
 Operatory działające na 2 argumentach **wymagają**, aby argumenty te były **tego samego typu**.
 #### Konwersja typów
-Wykorzystywana gdy zrzutować pewną wartość na inny typ. Aby nastąpiła konwersja typu, język wymaga aby programista jawnie ją zadeklarował.
+Wykorzystywana gdy chcemy zrzutować pewną wartość na inny typ. Aby nastąpiła konwersja typu, język wymaga aby programista jawnie ją zadeklarował.
 ##### Operator konwersji typu - `as`
 - Szablon wykorzystania: `{wartość} as {typ}`
 Przykłady:
