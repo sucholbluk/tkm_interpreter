@@ -1,3 +1,4 @@
+**Autor:** Łukasz Suchołbiak 325236
 ## Temat projektu
 Tematem projektu jest stworzenie języka, oraz :
 - Wymagane cechy języka:
@@ -30,28 +31,130 @@ Tematem projektu jest stworzenie języka, oraz :
 - **typ znakowy:** `string`
 - **reprezentacja niczego**: `none`
 ##### Złożone
+- **tablica:** `array<typ_elementu>`
 - **wektor**: `vector<typ_elementów>`
-- **mapa**: `map<typ_klucza, typ_wartości>`
 - **funkcja**: `function<typy_argumenów_po_przecinkach:typ_zwracacny>``
 ewentualnie:
 - **opcji**: `option<typ_możliwej_zawartości>` - option będzie dostępne tylko dla typów wbudowanych
 
 // może do ucięcia i zastąpienia przez: - PAMIĘTAĆ ŻEBY ZMIENIĆ W PRZYKŁADACH
-- **całkowity:** `i64`
+- **całkowity:** `int`
 	- wartości: od `9_223_372_036_854_775_808`, do `9_223_372_036_854_775_807`
-- **zmiennoprzecinkowy:** `f64`
+- **zmiennoprzecinkowy:** `float`
 - **logiczny:** `bool`
 	- przyjmuje wartość `true` lub `false`
 - **reprezentacja niczego:** `none`
 - **typ znakowy:** `string`
-- **funkcja**: `function<typy_argumenów_po_przecinkach:typ_zwracacny>``
+- **funkcja**: `function<{typy_argumenów_po_przecinkach}:{typ_zwracacny}>``
+	- np `function<i64, i64: i64>`
 
 - ewentualne rozwinięcie o typ **opcji**
 	- `option<typ_możliwej_zawartości>` - będzie dostępne tylko dla typów wbudowanych
 
-### Wbudowane operatory
+### Znaki specjalne
+### Operatory
 
-### Inicjowanie zmiennych
+##### Arytmetyczne
+- `*`  - mnożenie
+- `+`  - dodawanie
+- `-`  - odejmowanie
+- `/`  - dzielenie
+- `//` - dzielenie całkowito-liczbowe
+- `%`  - modulo
+##### Logiczne
+- `not` - negacja
+- `and` - logiczny and
+- `or` - logiczne or
+- `==` - równość
+- `!=` - nierówność
+- `>` - większość
+- `<` - mniejszość
+- `<=` - mniejsze lub równe
+- `>=` większe lub równe
+****
+#### Tabela Typów Wspieranych Przez Operatory
+Każdy z operatorów ma wybrane typy, które wspiera. Poniższa tabela przedstawia wsparcie operatorów dla typu
+
+| operator \\ typ | integer | float            | boolean               | string |
+| --------------- | ------- | ---------------- | --------------------- | ------ |
+| `*`             | TAK     | TAK              | NIE                   | NIE    |
+| `+`             | TAK     | TAK              | NIE                   | TAK    |
+| `-`             | TAK     | TAK              | NIE                   | NIE    |
+| `/`             | TAK     | TAK              | NIE                   | NIE    |
+| `//`            | TAK     | NIE              | NIE                   | NIE    |
+| `%`             | TAK     | NIE              | NIE                   | NIE    |
+| `==`            | TAK     | TAK(? powiedzmy) | TAK (ale redundancja) | TAK    |
+| `!=`            | TAK     | TAK              | TAK (ale redundancja) | TAK    |
+| `>`             | TAK     | TAK              | NIE                   | TAK    |
+| `<`             | TAK     | TAK              | NIE                   | TAK    |
+| `<=`            | TAK     | TAK              | NIE                   | TAK    |
+| `>=`            | TAK     | TAK              | NIE                   | TAK    |
+| `not`           | NIE     | NIE              | TAK                   | NIE    |
+| `and`           | NIE     | NIE              | TAK                   | NIE    |
+| `or`            | NIE     | NIE              | TAK                   | NIE    |
+
+Operatory działające na 2 argumentach **wymagają**, aby argumenty te były **tego samego typu**.
+#### Konwersja typów
+Wykorzystywana gdy zrzutować pewną wartość na inny typ. Aby nastąpiła konwersja typu, język wymaga aby programista jawnie ją zadeklarował.
+##### Operator konwersji typu - `as`
+- Szablon wykorzystania: `{wartość} as {typ}`
+Przykłady:
+- `4 as f64`
+- `"40000" as i32`
+- `70 as string` - rezultat: `"70"`
+##### Tabela Konwersji Typów
+| typ źródłowy\\typ docelowy | int | float | string | boolean | Możliwy błąd |
+| -------------------------- | --- | ----- | ------ | ------- | ------------ |
+| **int**                    | -   | TAK   | TAK    | NIE     | NIE          |
+| **float**                  | TAK | -     | TAK    | NIE     | TAK          |
+| **string**                 | TAK | TAK   | -      | TAK     | TAK          |
+| **boolean**                | NIE | NIE   | TAK    | -       | NIE          |
+**Realizacjia konwersji**
+- int
+	- -> float: prosta konwersja
+	- -> string: zapisanie liczby w postaci ciągu znaków (np `123 as string == "123"`)
+- float
+	- -> int: obcięcie wartości po przecinku (floor)
+		- możliwy błąd przekroczenia zakresu typu int
+	- -> string: zapis jeszcze do ustalenia
+- string
+	- -> int: zeskanowanie liczby w formacie dziesiętnym
+		- błąd gdy ciąg znaków nie jest poprawną liczbą całkowitą 
+	- -> float: zeskanowanie floata
+		- błąd gdy ciąg znaków nie jest poprawną liczbą zmiennoprzecinkową
+	- -> bool:
+		- błąd gdy ciąg znaków jest inny niż "true" lub "false"
+##### Operatory funkcji wyższego rzędu
+- `@` - operator dekoracji
+- `$` - bind front
+omówione dokładniej w [sekcji o funkcjach](#funkcje)
+####  String
+- `string`
+- zapisywany między `""`
+	- np. `"Hello World"t`
+- Do zapisu niektórych znaków wykorzystywany jest escaping
+- Dostępne sekwencje escape:
+	- `\n` - nowa linia
+	- `\t` - tabulacja
+	- `\"` - cudzysłów
+	- `\\` - backslash
+### Komentarze
+- komentaż zaczyna się od wartości `#`, od tego miejsca trwa do końca linii
+Przykład:
+```
+4 + 8;# ta część należy już do komentarza
+```
+*komentarz*
+
+W dalszej części komentarze będą używane do opisu konktretnych sytuacji w kodzie lub oznaczenia
+### Zmienne
+#### Nazywanie zmiennych
+- składają się ze znaków ze zbioru - `[a-zA-Z0-9_]`
+	- jendak pierwszy znak nie może być cyfrą
+Przykłady
+- poprawne nazwy: `_private`, `_`, `_1`, `numerek1`, `snake_case`, `camelCase`, `PascalCase`, `AAAAAAAA`, `_007`
+- niepoprawne nazwy: `0`, `0klient`, `9_8_7`, `8mila`, `with.dot`, `ca$h`, etc.
+#### Inicjowanie zmiennych
 - Zmienna tworzone poprzez `let {nazwa_zmiennej}: {typ_zmiennej} = wartość`
 - Domyślnie tworzone zmienne są niemutowalne, próba przypisania wartości do zmiennej spowoduje błąd 
 Przykłady:
@@ -59,13 +162,13 @@ Przykłady:
 let x: i32 = 12;
 x = 4; # BŁĄD
 ```
-*zmienna typu i32*
+*inicjacja zmiennej typu i32*
 
 ```
 let hello_world: string = "Hello World";
 hello_world = "foo"; # BŁĄD
 ```
-*zmienna typu string*
+*inicjacja zmiennej typu string*
 
 ##### Tworzenie zmiennej mutowalnej
 - Tworzenie zmiennej, której zawartość może być modyfikowana używane jest przez dodanie `mut` przed nazwą zmiennej podczas inicjalizacji
@@ -74,12 +177,13 @@ Przykład:
 let mut x: i32 = 12;
 x = 3; # OK
 ```
+*inicjacja zmiennej mutowalnej*
 ### Scope
-- `{}` określa zakres widoczności
+- `{}` określa zakres widoczności/scope
 - Zmienne zainicjowane w daneym zakresie są widoczne:
 	- na poziomie tego zakresu
 	- na poziomie zakresów potomnych (przestrzeni wewnątrz tej przestrzeni)
-- Kiedy kończy się przestrzeń zmienne zainicjowane w niej są niszczone
+- Kiedy kończy się zakres zmienne zainicjowane w niej są niszczone
 Przykład:
 ```
 def main() -> none {
@@ -105,6 +209,89 @@ a + 3; # 8 - w tym scopie widoczne a = 5
 
 let mut a: i32 = 10; # BŁĄD - próba przykrycia w tym samym scopie
 ```
+### Instrukcje warunkowe
+- Zrealizowane standardowo przy użyciu `if ({warunek}) {scope i kod wewnątrz} else {scope i kod wewnątrz}`
+- możliwe pominięcie zapewnienia `else`
+- jako warunek może być podany tylko statement zwijający się do wartości logicznej - `bool`
+- 
+Przykłady:
+```
+let mut a: i32 = 12;
+
+if (a < 13) {
+	a += 13;
+}
+```
+*pojedynczy if*
+
+```
+let animal: string = "cat";
+
+if (animal is "cat"){
+	print("meaow");
+} else {
+	print("bark");
+}
+```
+*if else*
+
+#### Łączenie instrukcji warunkowych
+- zrealizowane prosto przez dodanie `if ({warunek})` po else
+	- if nie musi być wewnątz `{}`
+Przykład:
+```
+let animal: string = "cat";
+
+if (animal is "cat"){
+	print("meaow");
+} else if (animal is "dog"){
+	print("bark");
+} else if (animal is "cow"){
+	print("muuu");
+} else {
+	print("*silence*");
+}
+
+```
+*połączone instrukcje warunkowe*
+### Pętle
+// jeśli będzie bez kolekcji
+- standardowe for ({zmienna}; {warunek}; {operacja na zmiennej})
+- jako uproszczenie składni zmienną określa się tylko przez nazwę, typ i wartość początkową
+	- pomijane słówka let i mut ponieważ wiadomo, że  inicjujemy zmienną, oraz, że musi być mutowalna
+Przykład:
+```
+for (i: int = 0; i < 7; i += 1) {
+	print(i);
+}
+```
+- Jednak nie można modyfikować wartości zmiennej na której operuje pętla wewnątrz jej ciała
+	- pomimo, że iterujemy po wartości, więc będzie modyfikowana, to wewnątrz ciała pętli traktowana jest jako zmienna niemutowalna
+Przykłady:
+```
+for (i: int = 0; i < 7; i += 1) {
+	i += 1; # BŁĄD
+}
+```
+
+// jeśli będzie z kolekcją - zostawie sobie tablice
+- jedyna dostępna pętla to iterowanie po kolekcji
+- szablon: 
+	1. `for {nazwa zmiennej tymczasowej}: {typ} in {kolekcja}
+	2. następnie scope `{}`, wewnątrz którego jest kod ciała pętli
+
+```
+let mut a: i32 = 0;
+
+for i: int in range(0, 4) { # range bedzie w bibliotece standardowej
+	a += i;
+}
+# to samo co
+for i: int in [0, 1, 2, 3] {
+	a += i;
+}
+```
+
 ### Funkcje
 #### Definiowanie funkcji
 - w definicji funkcji określana jest ilość, oraz typy przyjmowanych argumentów, oraz wartość zwracana przez tę funkcję
@@ -174,6 +361,20 @@ def make_greetings(name1: string, name2: string) -> string { # BŁĄD - redefini
 	return "Hello " + name1 + " and " + name2"; 
 }
 ```
+#### Rekursywne wołanie funkcji
+- możliwe wykonywanie przez podanie własnej nazwy wewnątrz funkcji z argumentem
+Przykład:
+```
+def factorial(num: i32) -> i32 {
+	if (num is 2) {
+		return 2;
+	}
+
+	return factorial(num - 1) * n;
+}
+```
+*rekursywne wołanie funkcji*
+
 #### Mechanizm funkcji wyższego rzędu
 - język zezwala na przekazywanie funkcji do funkcji
 - musi być zdefiniowany typ funkcji wejściowej: `function<{typy_zmiennych_po_przecinkach}:{typ_zwracanej_wartości}>`
@@ -240,13 +441,45 @@ add_12(5); # daje 17
 
 ```
 
-## EBNF
-#### Języka
-#### Strumieni I/O ????
-#### Danych konfiguracyjnych???
 
-## Sposób uruchomienia
+### Biblioteka standardowa języka - funkcje wbudowane
+#### Obsługa strumieni I/O
+- Relizowana przez funkcje **print()** oraz **input()**
+##### print
+- Typ: `function<string:none>`
+- Działanie: Wypisuje zawartość podanego stringa na wyjście standardowe
+##### input
+- Typ: `function<none:string>`
+- Działanie: Przyjmuje wartość podaną przez użytkownika z wejścia standardowego, czyta do wystąpienia pierwszego newline'a
+#### Obsługa stringów
+##### is_int
+- Typ: `function<string:bool>`
+- Działanie: Sprawdza czy podany string jest liczbą typu całkowitego, obsługuje również czytanie liczby ujemnej.
+##### is_float
+- Typ: `function<string:bool>`
+- Działanie: Sprawcza czy podany string jest liczbą typu zmiennoprzecinkowego
+- **czy ma obsługiwać notację matematyczną????** - chyba tak
+##### is_bool
+- Typ: `function<string:bool>`
+- Działanie: Sprawdza czy podany string jest wartością logiczną
+
+##### lower
+- Typ: `function<string:string>`
+- Działanie: Zwraca stringa wejściowego, ze wszystkimi literami zmienionymi na małe
+##### upper
+- Typ: `function<string:string>`
+- Działanie: Zwraca stringa wejściowego, ze wszystkimi literami zmienionymi na duże
+##### capitalize
+- Typ: `function<string:string>`
+- Działanie: Zmienia pierwszą literę stringa na dużą, a resztę na małe
+
+
+## EBNF
+## Obsługa - korzystanie z kompilatora
+#### Dane konfiguracyjne
+#### Sposób uruchomienia
 ## Wymagania funkcjonalne i niefunkcjonalne
 
-## Opis sposobu realizacji
-## Opis sposobu testowania
+## Sposób realizacji
+### Koncepcja realizacji
+### Testowanie
