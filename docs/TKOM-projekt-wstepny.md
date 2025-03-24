@@ -64,7 +64,7 @@ Każdy z operatorów ma wybrane typy, które wspiera. Poniższa tabela przedstaw
 
 Operatory działające na 2 argumentach **wymagają**, aby argumenty te były **tego samego typu**.
 #### Konwersja typów
-Wykorzystywana gdy chcemy zrzutować pewną wartość na inny typ. Aby nastąpiła konwersja typu, język wymaga aby programista jawnie ją zadeklarował.
+Wykorzystywana gdy zrzutować pewną wartość na inny typ. Aby nastąpiła konwersja typu, język wymaga aby programista jawnie ją zadeklarował.
 ##### Operator konwersji typu - `as`
 - Szablon wykorzystania: `{wartość} as {typ}`
 Przykłady:
@@ -434,6 +434,7 @@ statement = function_definition
           | ( expression, ";" )
           | assignment
           | if_statement
+          | for-loop
           | decoration
           ;
 
@@ -443,15 +444,19 @@ function_signature  = def, identifier, "(", parameter_list, ")", "->", type;
 
 bind_front = bindf, function_call;
 
-variable_declaration = let, [ mut ], typed_identifier, "=", expression, ";";
+variable_declaration = let, [ mut ], typed_identifier, assign ";";
 
 parameter_list   = {typed_identifier};
 typed_identifier = identifier, ":", type_not_none;
 
-assignment = identifier, assign, expression, ";";
+assignment = identifier, assign ";";
+assign = asgn, expression;
 
 if_statement = if, condition, code_block [else, code_block | if_statement];
 condition    = "(", expression, ")";
+
+for-loop        = for, "(", loop-var-decl, ";", expression, ";", assignment, ")", code_block;
+loop-var-decl   = typed_identifier, assign;
 
 decoration = dec, function_call;
 
@@ -545,7 +550,7 @@ minus   = "-";
 plus    = "+";
 mul     = "*";
 div     = "/";
-assign  = "=";
+asgn    = "=";
 
 eq      = "==";
 neq     = "!=";
@@ -560,6 +565,7 @@ mut      = "mut";
 as       = "as";
 if       = "if";
 else     = "else";
+for      = "for";
 
 int      = "int";
 float    = "float";
