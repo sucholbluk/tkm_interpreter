@@ -1,5 +1,6 @@
 #ifndef POSITION_H
 #define POSITION_H
+#include <ostream>
 #include <string>
 
 class Position {
@@ -7,20 +8,18 @@ class Position {
     int _column;
 
    public:
-    Position(int line = 1, int column = 1) : _line{line}, _column{column} {}
+    Position(int line = 1, int column = 1);
 
-    int get_line() const { return _line; };
-    int get_column() const { return _column; };
+    int get_line() const;
+    int get_column() const;
+    void next_column();
+    void next_line();
 
-    void next_column() { ++_column; }
-    void next_line() {
-        ++_line;
-        _column = 1;
-    }
-
-    std::string print() const {
-        return "[" + std::to_string(_column) + ":" + std::to_string(_line) + "]";
-    }
+    std::string print() const;
+    bool operator==(const Position& other) const;
+    bool operator!=(const Position& other) const;
 };
+
+std::ostream& operator<<(std::ostream& os, const Position& pos);
 
 #endif  // POSITION_H

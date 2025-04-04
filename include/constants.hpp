@@ -1,8 +1,8 @@
 #ifndef CONSTANTS_HPP
 
-#define EOF_CHAR '0x03'
-#define LF '\n'
-#define CR '\r'
+constexpr char EOF_CHAR{'\x03'};
+constexpr char LF_CHAR{'\n'};
+constexpr char CR_CHAR{'\r'};
 
 #define CONSTANTS_HPP
 #endif  // CONSTANTS_HPP
