@@ -218,14 +218,6 @@ for (i: int = 0; i < 7; i = i + 1) {
     print(i);
 }
 ```
-- Jednak nie można modyfikować wartości zmiennej na której operuje pętla wewnątrz jej ciała
-    - pomimo, że iterujemy po wartości, więc będzie modyfikowana, to wewnątrz ciała pętli traktowana jest jako zmienna niemutowalna
-Przykłady:
-```
-for (i: int = 0; i < 7; i = i + 1) {
-    i = i + 1; # BŁĄD
-}
-```
 ### Funkcje
 #### Definiowanie funkcji
 - w definicji funkcji określana jest ilość, oraz typy przyjmowanych argumentów, oraz wartość zwracana przez tę funkcję
@@ -423,18 +415,15 @@ comparison_expression   = term, { comparison_operator, term };
 term                    = factor, { additive_operator, factor };
 factor                  = cast, { multiplicative_operator, cast };
 cast                    = unary, [ as, type ];
-unary                   = primary | ( unary_operator, primary );
+unary                   = function_composition | ( unary_operator, function_composition );
+function_composition    = bind_front, { fcomp, bind_front };
+bind_front              = function_call | ( arg_list, bindf, function_call);
+function_call           = primary, [ arg_list ];
+
 primary                 = identifier
                         | literal
-                        | "(", expression, ")"
-                        | function_call
-                        | function_composition
-                        | bind_front;
+                        | "(", expression, ")";
 
-function_composition    = identifier, { fcomp, identifier };
-bind_front              = arg_list, bindf, identifier;
-
-function_call = identifier, arg_list;
 arg_list      = "(", [arguments], ")";
 arguments     = argument, {",", argument};
 argument      = expression; 
