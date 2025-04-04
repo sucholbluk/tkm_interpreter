@@ -1,0 +1,15 @@
+
+BasedOnStyle: Google
+IndentWidth: 4
+UseTab: Never
+ColumnLimit: 0
+PointerAlignment: Left
+SpacesBeforeTrailingComments: 2
+AllowShortFunctionsOnASingleLine: true
+NamespaceIndentation: None
+
+
+BraceWrapping:
+  AfterFunction: true
+  AfterControlStatement: true
+  AfterClass: true
