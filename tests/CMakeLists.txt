@@ -3,6 +3,7 @@ find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 
 add_subdirectory(position)
 add_subdirectory(source_handler)
+add_subdirectory(lexer)
 
 set(TEST_SOURCES
     test_main.cpp

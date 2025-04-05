@@ -19,8 +19,12 @@ void Position::next_line() {
     ++_line;
 }
 
-std::string Position::print() const {
+std::string Position::get_position() const {
     return "[" + std::to_string(_line) + ":" + std::to_string(_column) + "]";
+}
+
+std::string Position::print() const {
+    return "Position(" + std::to_string(_line) + "," + std::to_string(_column) + ")";
 }
 
 bool Position::operator==(const Position& other) const {
@@ -32,6 +36,6 @@ bool Position::operator!=(const Position& other) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const Position& pos) {
-    os << "Position(" + std::to_string(pos.get_line()) + "," + std::to_string(pos.get_column()) + ")";
+    os << pos.print();
     return os;
 }
