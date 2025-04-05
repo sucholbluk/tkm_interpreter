@@ -1,5 +1,5 @@
-#ifndef SOURCE_HANDLER_H
-#define SOURCE_HANDLER_H
+#ifndef SOURCE_HANDLER_HPP
+#define SOURCE_HANDLER_HPP
 #include <istream>
 #include <utility>
 
@@ -19,4 +19,4 @@ class SourceHandler {
     char _get_char();
 };
 
-#endif  // SOURCE_HANDLER_H
+#endif  // SOURCE_HANDLER_HPP

@@ -1,5 +1,5 @@
-#ifndef POSITION_H
-#define POSITION_H
+#ifndef POSITION_HPP
+#define POSITION_HPP
 #include <ostream>
 #include <string>
 
@@ -22,4 +22,4 @@ class Position {
 
 std::ostream& operator<<(std::ostream& os, const Position& pos);
 
-#endif  // POSITION_H
+#endif  // POSITION_HPP

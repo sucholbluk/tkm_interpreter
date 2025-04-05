@@ -1,2 +1,3 @@
 add_subdirectory(source_handler)
 add_subdirectory(position)
+add_subdirectory(lexer)
