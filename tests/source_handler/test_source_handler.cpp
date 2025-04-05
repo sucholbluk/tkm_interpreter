@@ -23,7 +23,7 @@ BOOST_DATA_TEST_CASE(read_values_test, bdata::make(read_values_test_cases), inpu
     SourceHandler handler{source};
     std::string handler_output{};
     char c;
-    while ((c = handler.get_char_and_position().first) != EOF_CHAR) {
+    while ((c = handler.get_char_and_position().first) != EOF) {
         handler_output += c;
     }
 
@@ -50,7 +50,7 @@ BOOST_DATA_TEST_CASE(eof_position_test, bdata::make(eof_position_test_cases), in
     SourceHandler handler{source};
     do {
         char_pos = handler.get_char_and_position();
-    } while (char_pos.first != EOF_CHAR);
+    } while (char_pos.first != EOF);
 
     BOOST_CHECK_EQUAL(char_pos.second, eof_position);
 }
@@ -75,7 +75,7 @@ BOOST_DATA_TEST_CASE(request_chars_after_eof_test, bdata::make(requests_after_eo
     SourceHandler handler{source};
     do {
         char_pos = handler.get_char_and_position();
-    } while (char_pos.first != EOF_CHAR);
+    } while (char_pos.first != EOF);
 
     for (int i = 0; i < n_times; i++) {
         char_pos = handler.get_char_and_position();
