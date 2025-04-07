@@ -38,6 +38,7 @@ BETTER_ENUM(TokenType, int,
             T_AS,
             T_IF,
             T_ELSE,
+            T_FOR,
             T_BREAK,
             T_CONTINUE,
             T_RETURN,
@@ -50,7 +51,7 @@ BETTER_ENUM(TokenType, int,
             T_SEMICOLON,
             T_COLON,
             T_ARROW,
-            T_QUOTE,
+            T_DOUBLE_QUOTE,
 
             T_TRUE,
             T_FALSE,
@@ -58,6 +59,7 @@ BETTER_ENUM(TokenType, int,
             T_LITERAL_INT,
             T_LITERAL_FLOAT,
 
+            T_COMMENT,
             T_EOF)
 
 #endif  // TOKEN_TYPE_HPP

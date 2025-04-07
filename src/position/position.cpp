@@ -19,7 +19,7 @@ void Position::next_line() {
     ++_line;
 }
 
-std::string Position::get_position() const {
+std::string Position::get_position_str() const {
     return "[" + std::to_string(_line) + ":" + std::to_string(_column) + "]";
 }
 

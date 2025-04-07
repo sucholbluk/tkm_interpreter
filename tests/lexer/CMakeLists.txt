@@ -1,5 +1,6 @@
 set(POSITION_TEST_SOURCES
     test_token.cpp
+    test_lexer.cpp
 )
 
 add_executable(lexer_tests ${POSITION_TEST_SOURCES})

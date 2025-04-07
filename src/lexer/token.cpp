@@ -39,9 +39,9 @@ void Token::_validate_token() const {
         case TokenType::T_LITERAL_FLOAT:
             throw InvalidTokenValueException(std::string("expected floating value for ") + _type._to_string() + ".");
         case TokenType::T_LITERAL_STRING:
-            throw InvalidTokenValueException(std::string("expected std::string value for") + _type._to_string() + ".");
+        case TokenType::T_COMMENT:
         case TokenType::T_IDENTIFIER:
-            throw InvalidTokenValueException(std::string("expected std::string value for ") + _type._to_string() + ".");
+            throw InvalidTokenValueException(std::string("expected std::string value for") + _type._to_string() + ".");
         default:
             throw InvalidTokenValueException(std::string("no value expected for ") + _type._to_string() + ".");
     };
@@ -54,6 +54,7 @@ bool Token::_type_matches_value() const {
         case TokenType::T_LITERAL_FLOAT:
             return _value.has_value() and std::holds_alternative<double>(*_value);
         case TokenType::T_IDENTIFIER:
+        case TokenType::T_COMMENT:
         case TokenType::T_LITERAL_STRING:
             return _value.has_value() and std::holds_alternative<std::string>(*_value);
         default:

@@ -15,7 +15,7 @@ char SourceHandler::_get_char() {
     char c;
 
     if (not _source.get(c))
-        return EOF;
+        return EOF_CHAR;
 
     if (c == CR_CHAR and _source.peek() == LF_CHAR)
         _source.get(c);
@@ -26,7 +26,7 @@ char SourceHandler::_get_char() {
 void SourceHandler::_adjust_position(char c) {
     if (c == LF_CHAR) {
         _position.next_line();
-    } else if (c != EOF) {
+    } else if (c != EOF_CHAR) {
         _position.next_column();
     }
 }

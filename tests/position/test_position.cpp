@@ -86,5 +86,5 @@ std::vector<std::tuple<Position, std::string>> print_test_cases{
 };
 
 BOOST_DATA_TEST_CASE(print_test, bdata::make(print_test_cases), position, expected_output) {
-    BOOST_CHECK_EQUAL(position.get_position(), expected_output);
+    BOOST_CHECK_EQUAL(position.get_position_str(), expected_output);
 }

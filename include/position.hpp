@@ -15,7 +15,7 @@ class Position {
     void next_column();
     void next_line();
 
-    std::string get_position() const;
+    std::string get_position_str() const;
     std::string print() const;
 
     bool operator==(const Position& other) const;
