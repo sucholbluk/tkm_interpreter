@@ -22,3 +22,9 @@ class UnexpectedCharacterException : public std::runtime_error {
     explicit UnexpectedCharacterException(const std::string& message)
         : std::runtime_error("Unexpected char at position: " + message) {}
 };
+
+class IntValueOverflowException : public std::runtime_error {
+   public:
+    explicit IntValueOverflowException(const std::string& message)
+        : std::runtime_error("Value too largeat : " + message) {}
+};

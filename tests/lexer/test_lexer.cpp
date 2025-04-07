@@ -22,60 +22,66 @@ BOOST_AUTO_TEST_CASE(constructor_test) {
     BOOST_CHECK_EQUAL(eof.get_position(), Position(1, 2));
 }
 
-std::vector<std::tuple<std::string, TokenType, Position>> simple_operator_test_cases{
-    {"->", TokenType::T_ARROW, Position{}},
-    {"==", TokenType::T_EQUAL, Position{}},
-    {"!=", TokenType::T_NOT_EQUAL, Position{}},
-    {"<=", TokenType::T_LESS_EQUAL, Position{}},
-    {">=", TokenType::T_GREATER_EQUAL, Position{}},
-    {"+", TokenType::T_PLUS, Position{}},
-    {"-", TokenType::T_MINUS, Position{}},
-    {"*", TokenType::T_MULTIPLY, Position{}},
-    {"/", TokenType::T_DIVIDE, Position{}},
-    {"=", TokenType::T_ASSIGN, Position{}},
-    {"(", TokenType::T_L_PAREN, Position{}},
-    {")", TokenType::T_R_PAREN, Position{}},
-    {"{", TokenType::T_L_BRACE, Position{}},
-    {"}", TokenType::T_R_BRACE, Position{}},
-    {"<", TokenType::T_LESS, Position{}},
-    {">", TokenType::T_GREATER, Position{}},
-    {"&", TokenType::T_FUNC_COMPOSITION, Position{}},
-    {">>", TokenType::T_BIND_FRONT, Position{}},
-    {";", TokenType::T_SEMICOLON, Position{}},
-    {":", TokenType::T_COLON, Position{}},
-    {"_example_variable", TokenType::T_IDENTIFIER, Position{}},
-    {"int", TokenType::T_INT, Position{}},
-    {"float", TokenType::T_FLOAT, Position{}},
-    {"bool", TokenType::T_BOOL, Position{}},
-    {"string", TokenType::T_STRING, Position{}},
-    {"function", TokenType::T_FUNCTION, Position{}},
-    {"none", TokenType::T_NONE, Position{}},
-    {"not", TokenType::T_NOT, Position{}},
-    {"and", TokenType::T_AND, Position{}},
-    {"or", TokenType::T_OR, Position{}},
-    {"def", TokenType::T_DEF, Position{}},
-    {"let", TokenType::T_LET, Position{}},
-    {"mut", TokenType::T_MUT, Position{}},
-    {"as", TokenType::T_AS, Position{}},
-    {"if", TokenType::T_IF, Position{}},
-    {"else", TokenType::T_ELSE, Position{}},
-    {"for", TokenType::T_FOR, Position{}},
-    {"break", TokenType::T_BREAK, Position{}},
-    {"continue", TokenType::T_CONTINUE, Position{}},
-    {"return", TokenType::T_RETURN, Position{}},
-    {"true", TokenType::T_TRUE, Position{}},
-    {"false", TokenType::T_FALSE, Position{}},
+std::vector<std::tuple<std::string, TokenType>> simple_test_cases{
+    {"->", TokenType::T_ARROW},
+    {"==", TokenType::T_EQUAL},
+    {"!=", TokenType::T_NOT_EQUAL},
+    {"<=", TokenType::T_LESS_EQUAL},
+    {">=", TokenType::T_GREATER_EQUAL},
+    {"+", TokenType::T_PLUS},
+    {"-", TokenType::T_MINUS},
+    {"*", TokenType::T_MULTIPLY},
+    {"/", TokenType::T_DIVIDE},
+    {"=", TokenType::T_ASSIGN},
+    {"(", TokenType::T_L_PAREN},
+    {")", TokenType::T_R_PAREN},
+    {"{", TokenType::T_L_BRACE},
+    {"}", TokenType::T_R_BRACE},
+    {"<", TokenType::T_LESS},
+    {">", TokenType::T_GREATER},
+    {"&", TokenType::T_FUNC_COMPOSITION},
+    {">>", TokenType::T_BIND_FRONT},
+    {";", TokenType::T_SEMICOLON},
+    {":", TokenType::T_COLON},
+    {"_example_variable", TokenType::T_IDENTIFIER},
+    {"int", TokenType::T_INT},
+    {"float", TokenType::T_FLOAT},
+    {"bool", TokenType::T_BOOL},
+    {"string", TokenType::T_STRING},
+    {"function", TokenType::T_FUNCTION},
+    {"none", TokenType::T_NONE},
+    {"not", TokenType::T_NOT},
+    {"and", TokenType::T_AND},
+    {"or", TokenType::T_OR},
+    {"def", TokenType::T_DEF},
+    {"let", TokenType::T_LET},
+    {"mut", TokenType::T_MUT},
+    {"as", TokenType::T_AS},
+    {"if", TokenType::T_IF},
+    {"else", TokenType::T_ELSE},
+    {"for", TokenType::T_FOR},
+    {"break", TokenType::T_BREAK},
+    {"continue", TokenType::T_CONTINUE},
+    {"return", TokenType::T_RETURN},
+    {"true", TokenType::T_TRUE},
+    {"false", TokenType::T_FALSE},
+    {"123456789", TokenType::T_LITERAL_INT},
+    {"123456789.1232392323283998493", TokenType::T_LITERAL_FLOAT},
+
 };
 
-BOOST_DATA_TEST_CASE(simple_operator_tests, bdata::make(simple_operator_test_cases), input, type, position) {
+BOOST_DATA_TEST_CASE(simple_tests, bdata::make(simple_test_cases), input, type) {
     std::stringstream source{input};
     auto handler = std::make_unique<SourceHandler>(source);
 
     Lexer lexer{std::move(handler)};
-    Token oper = lexer.get_next_token();
+    Token tk = lexer.get_next_token();
     Token eof = lexer.get_next_token();
 
-    BOOST_CHECK_EQUAL(oper.get_type(), type);
-    BOOST_CHECK_EQUAL(oper.get_position(), position);
+    std::cout << tk << std::endl;
+    std::cout << eof << std::endl;
+
+    BOOST_CHECK_EQUAL(tk.get_type(), type);
+    BOOST_CHECK_EQUAL(tk.get_position(), Position{});
     BOOST_CHECK(eof.get_type()._to_integral() == TokenType::T_EOF);
 }

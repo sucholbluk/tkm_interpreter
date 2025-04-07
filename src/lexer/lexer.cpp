@@ -1,5 +1,8 @@
 #include "lexer.hpp"
 
+#include <cmath>
+#include <limits>
+
 Lexer::Lexer(std::unique_ptr<SourceHandler> source_handler) : _source_handler{std::move(source_handler)} {
     _initialize_keywords_map();
     _initialize_operator_builders_map();
@@ -10,8 +13,12 @@ Token Lexer::get_next_token() {
     if (auto it = _operator_builders_map.find(_character); it != _operator_builders_map.end()) {
         return it->second();
     }
-    if (isalpha(_character) or _character == '_')
+
+    if (std::isalpha(_character) or _character == '_')
         return _build_identifier_or_keyword();
+
+    if (std::isdigit(_character))
+        return _build_literal_int_or_float();
 
     throw std::logic_error("Not implemented");
 }
@@ -37,6 +44,50 @@ Token Lexer::_build_identifier_or_keyword() {
         return Token{it->second, token_position};
     }
     return Token{TokenType::T_IDENTIFIER, token_position, token_value};
+}
+
+// probably to change
+Token Lexer::_build_literal_int_or_float() {
+    Position position{_position};
+    int digit{_character - '0'};
+    int integer_value{0};
+    _get_next_char();
+
+    // if zero skip and check for float
+    if (digit) {
+        while (std::isdigit(_character)) {
+            if (integer_value > (std::numeric_limits<int>::max() - digit) / 10) {  // equivalent to token_value * 10 + digit > INT_MAX
+                throw IntValueOverflowException(position.get_position_str());
+            }
+            integer_value = integer_value * 10 + digit;
+            digit = _character - '0';
+            _get_next_char();
+        }
+    }
+
+    if (_character != '.')
+        return Token{TokenType::T_LITERAL_INT, position, integer_value};
+    _get_next_char();
+
+    if (not std::isdigit(_character))
+        throw UnexpectedCharacterException(_position.get_position_str());
+
+    unsigned long fraction_value{0};
+    int fraction_digits{0};
+    digit = _character - '0';
+    while (std::isdigit(_character)) {
+        if (fraction_value > (std::numeric_limits<unsigned long>::max() - digit) / 10) {  // lets say 20 decimal nums will be enough
+            throw std::runtime_error("moze trzeba będzie to lepiej rozegrać");
+        }
+        fraction_value *= 10;
+        fraction_value += digit;
+        fraction_digits += 1;
+        digit = _character - '0';
+        _get_next_char();
+    }
+    double float_value = integer_value + (fraction_value / std::pow(10.0, fraction_digits));
+
+    return Token{TokenType::T_LITERAL_FLOAT, position, float_value};
 }
 
 void Lexer::_initialize_keywords_map() {
