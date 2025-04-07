@@ -155,7 +155,7 @@ BOOST_DATA_TEST_CASE(value_tokens_without_value_constructor_test, bdata::make(va
 BOOST_DATA_TEST_CASE(non_value_tokens_constructor_recieving_value, bdata::make(non_value_tokens_test_cases), type, position) {
     int random_num = rand() % 3;
 
-    std::variant<int, double, std::string> value;
+    std::variant<std::monostate, int, double, std::string> value;
 
     switch (rand() % 3) {
         case 1:

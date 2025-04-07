@@ -55,7 +55,6 @@ void Lexer::_initialize_operator_builders_map() {
         {',', _create_unequivocal_operator_builder(TokenType::T_COMMA)},
         {';', _create_unequivocal_operator_builder(TokenType::T_SEMICOLON)},
         {':', _create_unequivocal_operator_builder(TokenType::T_COLON)},
-        {'"', _create_unequivocal_operator_builder(TokenType::T_DOUBLE_QUOTE)},
         {'&', _create_unequivocal_operator_builder(TokenType::T_FUNC_COMPOSITION)},
         {'+', _create_unequivocal_operator_builder(TokenType::T_PLUS)},
         {'*', _create_unequivocal_operator_builder(TokenType::T_MULTIPLY)},

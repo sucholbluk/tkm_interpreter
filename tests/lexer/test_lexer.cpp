@@ -41,7 +41,6 @@ std::vector<std::tuple<std::string, TokenType, Position>> simple_operator_test_c
     {">>", TokenType::T_BIND_FRONT, Position()},
     {";", TokenType::T_SEMICOLON, Position()},
     {":", TokenType::T_COLON, Position()},
-    {"\"", TokenType::T_DOUBLE_QUOTE, Position()},
 };
 
 BOOST_DATA_TEST_CASE(simple_operator_tests, bdata::make(simple_operator_test_cases), input, type, position) {

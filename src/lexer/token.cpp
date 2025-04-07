@@ -3,6 +3,8 @@
 #include <set>
 #include <typeindex>
 
+Token::Token(TokenType type, Position position) : Token(type, position, std::monostate{}) {}
+
 Token::Token(TokenType type, Position position, optional_token_value value)
     : _type{type}, _position{position}, _value{value} {
     _validate_token();
@@ -18,7 +20,7 @@ Position Token::get_position() const {
 
 std::string Token::print() const {
     std::string repr{std::string("Token(") + _type._to_string() + "," + _position.print()};
-    if (_value.has_value()) {
+    if (not std::holds_alternative<std::monostate>(_value)) {
         repr += "," + _stringify_value();
     }
     return repr + ")";
@@ -50,25 +52,30 @@ void Token::_validate_token() const {
 bool Token::_type_matches_value() const {
     switch (_type) {
         case TokenType::T_LITERAL_INT:
-            return _value.has_value() and std::holds_alternative<int>(*_value);
+            return std::holds_alternative<int>(_value);
         case TokenType::T_LITERAL_FLOAT:
-            return _value.has_value() and std::holds_alternative<double>(*_value);
+            return std::holds_alternative<double>(_value);
         case TokenType::T_IDENTIFIER:
         case TokenType::T_COMMENT:
         case TokenType::T_LITERAL_STRING:
-            return _value.has_value() and std::holds_alternative<std::string>(*_value);
+            return std::holds_alternative<std::string>(_value);
         default:
-            return not _value.has_value();
+            return std::holds_alternative<std::monostate>(_value);
     }
 }
 
 std::string Token::_stringify_value() const {
-    switch (_type) {
-        case TokenType::T_LITERAL_INT:
-            return std::to_string(std::get<int>(*_value));
-        case TokenType::T_LITERAL_FLOAT:
-            return std::to_string(std::get<double>(*_value));
-        default:
-            return std::string{"\""} + std::get<std::string>(*_value) + "\"";
-    }
+    return std::visit(
+        [](const auto& value) -> std::string {
+            using T = std::decay_t<decltype(value)>;
+            if constexpr (std::is_same_v<T, int>)
+                return std::to_string(value);
+            else if constexpr (std::is_same_v<T, double>)
+                return std::to_string(value);
+            else if constexpr (std::is_same_v<T, std::string>)
+                return "\"" + value + "\"";
+            else
+                throw std::logic_error("It's after validation - should never be called.");
+        },
+        _value);
 }
