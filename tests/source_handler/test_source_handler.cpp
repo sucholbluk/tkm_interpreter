@@ -1,4 +1,4 @@
-#define BOOST_TEST_MODULE SourceHandler_UnitTests
+#define BOOST_TEST_MODULE SOURCE_HANDLER_TESTS
 
 #include <boost/test/data/monomorphic.hpp>
 #include <boost/test/data/test_case.hpp>

@@ -1,4 +1,4 @@
-#define BOOST_TEST_MODULE Position_UnitTests
+#define BOOST_TEST_MODULE POSITON_TESTS
 #include <boost/test/data/monomorphic.hpp>
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/included/unit_test.hpp>

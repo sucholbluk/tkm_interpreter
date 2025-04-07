@@ -7,10 +7,12 @@ Lexer::Lexer(std::unique_ptr<SourceHandler> source_handler) : _source_handler{st
 }
 
 Token Lexer::get_next_token() {
-    auto it = _operator_builders_map.find(_character);
-    if (it != _operator_builders_map.end()) {
+    if (auto it = _operator_builders_map.find(_character); it != _operator_builders_map.end()) {
         return it->second();
     }
+    if (isalpha(_character) or _character == '_')
+        return _build_identifier_or_keyword();
+
     throw std::logic_error("Not implemented");
 }
 
@@ -18,6 +20,23 @@ void Lexer::_get_next_char() {
     std::pair char_and_position = _source_handler.get()->get_char_and_position();
     _character = char_and_position.first;
     _position = char_and_position.second;
+}
+
+Token Lexer::_build_identifier_or_keyword() {
+    std::string token_value{""};
+    Position token_position = _position;
+
+    do {
+        token_value += _character;
+        _get_next_char();
+    } while (token_value.length() < MAX_IDENTIFIER_LEN and (isalnum(_character) or _character == '_'));
+    // zastanawiam się czy po prostu wymusić zbudowanie, czy rzucić wyjątkiem - tego akurat sobie nie zapisalem z wykladu :/
+    // póki co wymuszam skończenie budowy tokenu
+
+    if (auto it = _keywords_map.find(token_value); it != _keywords_map.end()) {
+        return Token{it->second, token_position};
+    }
+    return Token{TokenType::T_IDENTIFIER, token_position, token_value};
 }
 
 void Lexer::_initialize_keywords_map() {
