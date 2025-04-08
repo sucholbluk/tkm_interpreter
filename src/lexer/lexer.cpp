@@ -30,15 +30,13 @@ void Lexer::_get_next_char() {
 }
 
 Token Lexer::_build_identifier_or_keyword() {
-    std::string token_value{""};
+    std::string token_value{};
     Position token_position = _position;
 
     do {
         token_value += _character;
         _get_next_char();
-    } while (token_value.length() < MAX_IDENTIFIER_LEN and (isalnum(_character) or _character == '_'));
-    // zastanawiam się czy po prostu wymusić zbudowanie, czy rzucić wyjątkiem - tego akurat sobie nie zapisalem z wykladu :/
-    // póki co wymuszam skończenie budowy tokenu
+    } while (token_value.length() < MAX_IDENTIFIER_LEN and (std::isalnum(_character) or _character == '_'));
 
     if (auto it = _keywords_map.find(token_value); it != _keywords_map.end()) {
         return Token{it->second, token_position};
@@ -53,7 +51,6 @@ Token Lexer::_build_literal_int_or_float() {
     int integer_value{0};
     _get_next_char();
 
-    // if zero skip and check for float
     if (digit) {
         while (std::isdigit(_character)) {
             if (integer_value > (std::numeric_limits<int>::max() - digit) / 10) {  // equivalent to token_value * 10 + digit > INT_MAX
@@ -142,7 +139,17 @@ void Lexer::_initialize_operator_builders_map() {
              if (this->_character != '=')
                  throw UnexpectedCharacterException(position.get_position_str());
              this->_get_next_char();
-             return Token(TokenType::T_NOT_EQUAL, position);
+             return Token{TokenType::T_NOT_EQUAL, position};
+         }},
+        {'#', [this]() -> Token {
+             Position position = this->_position;
+             std::string token_value{};
+             _get_next_char();
+             while (token_value.length() < MAX_COMMENT_LEN and this->_character != '\n' and this->_character != EOF_CHAR) {
+                 token_value += _character;
+                 _get_next_char();
+             }
+             return Token{TokenType::T_COMMENT, position, token_value};
          }},
     };
 }
