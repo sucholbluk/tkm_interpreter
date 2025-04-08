@@ -31,7 +31,7 @@ void Lexer::_get_next_char() {
 
 Token Lexer::_build_identifier_or_keyword() {
     std::string token_value{};
-    Position token_position = _position;
+    Position token_position{_position};
 
     do {
         token_value += _character;
@@ -42,6 +42,44 @@ Token Lexer::_build_identifier_or_keyword() {
         return Token{it->second, token_position};
     }
     return Token{TokenType::T_IDENTIFIER, token_position, token_value};
+}
+
+Token Lexer::_build_literal_string() {
+    Position position{_position};
+    std::string token_value{};
+    _get_next_char();
+
+    while (token_value.length() < MAX_STR_LITERAL_LEN and _character != '\"') {
+        if (_character == '\n' or _character == EOF_CHAR)
+            throw UnfinishedStringException(_position.get_position_str());
+        if (_character == '\\') {
+            _get_next_char();
+            switch (_character) {
+                case 'n':
+                    token_value += '\n';
+                    break;
+                case 't':
+                    token_value += '\t';
+                    break;
+                case '\\':
+                    token_value += '\\';
+                    break;
+                case '\"':
+                    token_value += '\"';
+                    break;
+                default:
+                    token_value += _character;
+                    break;
+            }
+            _get_next_char();
+            continue;
+        }
+        token_value += _character;
+        _get_next_char();
+    }
+    _get_next_char();
+
+    return Token{TokenType::T_LITERAL_STRING, position, token_value};
 }
 
 // probably to change
@@ -133,6 +171,7 @@ void Lexer::_initialize_operator_builders_map() {
         {'<', _create_equivocal_operator_builder(TokenType::T_LESS, '=', TokenType::T_LESS_EQUAL)},
         {'>', _create_equivocal_operator_builder(TokenType::T_GREATER, '=', TokenType::T_GREATER_EQUAL,
                                                  '>', TokenType::T_BIND_FRONT)},
+        {'\"', [this]() -> Token { return this->_build_literal_string(); }},
         {'!', [this]() -> Token {
              Position position = this->_position;
              this->_get_next_char();

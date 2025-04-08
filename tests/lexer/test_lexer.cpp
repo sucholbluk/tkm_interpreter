@@ -68,7 +68,7 @@ std::vector<std::tuple<std::string, TokenType>> simple_test_cases{
     {"123456789", TokenType::T_LITERAL_INT},
     {"123456789.1232392323283998493", TokenType::T_LITERAL_FLOAT},
     {"# here is a comment", TokenType::T_COMMENT},
-    {"\"Here is the string$#@!@!er3343\"", TokenType::T_STRING},
+    {"\"Here is the string$#@!@!er3343\"", TokenType::T_LITERAL_STRING},
 
 };
 
