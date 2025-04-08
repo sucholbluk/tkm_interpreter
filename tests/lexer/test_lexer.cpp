@@ -22,6 +22,27 @@ BOOST_AUTO_TEST_CASE(constructor_test) {
     BOOST_CHECK_EQUAL(eof.get_position(), Position(1, 2));
 }
 
+BOOST_AUTO_TEST_CASE(bool_test) {
+    std::stringstream source{"true false"};
+    auto handler = std::make_unique<SourceHandler>(source);
+
+    Lexer lexer{std::move(handler)};
+    Token t_true{lexer.get_next_token()};
+    Token t_false{lexer.get_next_token()};
+    Token eof{lexer.get_next_token()};
+
+    BOOST_CHECK(t_true.get_type()._to_integral() == TokenType::T_LITERAL_BOOL);
+    BOOST_CHECK_EQUAL(t_true.get_value_as<bool>(), true);
+    BOOST_CHECK_EQUAL(t_true.get_position(), Position());
+
+    BOOST_CHECK(t_false.get_type()._to_integral() == TokenType::T_LITERAL_BOOL);
+    BOOST_CHECK_EQUAL(t_false.get_value_as<bool>(), false);
+    BOOST_CHECK_EQUAL(t_false.get_position(), Position(1, 6));
+
+    BOOST_CHECK(eof.get_type()._to_integral() == TokenType::T_EOF);
+    BOOST_CHECK_EQUAL(eof.get_position(), Position(1, 11));
+}
+
 std::vector<std::tuple<std::string, TokenType>> simple_test_cases{
     {"->", TokenType::T_ARROW},
     {"==", TokenType::T_EQUAL},
@@ -85,6 +106,26 @@ BOOST_DATA_TEST_CASE(simple_tests, bdata::make(simple_test_cases), input, type) 
     BOOST_CHECK_EQUAL(tk.get_position(), Position{});
     BOOST_CHECK(eof.get_type()._to_integral() == TokenType::T_EOF);
 }
+
+std::vector<std::tuple<std::string, std::string>> string_test_cases{
+    {"\"\\\"string\\\" \\nwith \\tescape\\\\s\"", "\"string\" \nwith \tescape\\s"},
+    {"\"string with spaces\"", "string with spaces"},
+    {"\"special characters !@#$%^&*()\"", "special characters !@#$%^&*()"},
+    {"\"string with trailing spaces   \"", "string with trailing spaces   "},
+};
+
+BOOST_DATA_TEST_CASE(string_values_test, bdata::make(string_test_cases), input, expected_value) {
+    std::stringstream source{input};
+    auto handler = std::make_unique<SourceHandler>(source);
+    Lexer lexer{std::move(handler)};
+    Token str{lexer.get_next_token()};
+    Token eof{lexer.get_next_token()};
+
+    BOOST_CHECK_EQUAL(str.get_type()._to_integral(), TokenType::T_LITERAL_STRING);
+    BOOST_CHECK_EQUAL(str.get_value_as<std::string>(), expected_value);
+    BOOST_CHECK_EQUAL(str.get_position(), Position{});
+}
+
 std::vector<std::tuple<std::string, int>> int_test_cases{
     {"0", 0},
     {"123", 123},
@@ -148,7 +189,7 @@ print("For " + n as string + " sequence number is " + nth_fibonacci(n) as string
 
     Token def{lexer.get_next_token()};
     BOOST_CHECK_EQUAL(def.get_type()._to_integral(), TokenType::T_DEF);
-    BOOST_CHECK_EQUAL(def.get_position(), Position(2, 1));
+    BOOST_CHECK_EQUAL(def.get_position(), Position(2, 1));  // 2,1 because 1,1 is \n
 
     Token nth_fibonacci{lexer.get_next_token()};
     BOOST_CHECK_EQUAL(nth_fibonacci.get_type()._to_integral(), TokenType::T_IDENTIFIER);

@@ -39,9 +39,12 @@ Token Lexer::_build_identifier_or_keyword() {
     Position token_position{_position};
 
     do {
+        if (lexeme.length() == MAX_IDENTIFIER_LEN)  // cur or report exception
+            throw IdentifierTooLongException(_position);
+
         lexeme += _character;
         _get_next_char();
-    } while (lexeme.length() < MAX_IDENTIFIER_LEN and (std::isalnum(_character) or _character == '_'));
+    } while (std::isalnum(_character) or _character == '_');
 
     if (auto it = _keywords_build_map.find(lexeme); it != _keywords_build_map.end()) {
         return it->second(token_position);

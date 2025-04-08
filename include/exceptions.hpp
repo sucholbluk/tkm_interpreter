@@ -5,11 +5,13 @@
 #include <stdexcept>
 #include <string>
 
+#include "constants.hpp"
+#include "position.hpp"
 #include "token_type.hpp"
 
 class InvalidTokenValueException : public std::logic_error {
    public:
-    explicit InvalidTokenValueException(TokenType type)
+    explicit InvalidTokenValueException(const TokenType type)
         : std::logic_error(std::string{"Invalid token value for"} + type._to_string()) {}
 };
 
@@ -35,4 +37,11 @@ class UnfinishedStringException : public std::runtime_error {
    public:
     explicit UnfinishedStringException(const std::string& message)
         : std::runtime_error("String literal build interrupted by newline at: " + message) {}
+};
+
+class IdentifierTooLongException : public std::runtime_error {
+   public:
+    explicit IdentifierTooLongException(const Position position)
+        : std::runtime_error(std::string{"Identifier at: "} + position.get_position_str() +
+                             +", exceeds max identifier len: " + std::to_string(MAX_IDENTIFIER_LEN)) {}
 };
