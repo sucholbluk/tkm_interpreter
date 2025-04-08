@@ -38,6 +38,7 @@ BOOST_DATA_TEST_CASE(non_value_token_constrctor_test, bdata::make(non_value_toke
     BOOST_CHECK_THROW(token.get_value_as<int>(), InvalidGetTokenValueException);
     BOOST_CHECK_THROW(token.get_value_as<double>(), InvalidGetTokenValueException);
     BOOST_CHECK_THROW(token.get_value_as<std::string>(), InvalidGetTokenValueException);
+    BOOST_CHECK_THROW(token.get_value_as<bool>(), InvalidGetTokenValueException);
 }
 
 std::vector<std::tuple<TokenType, Position, int>> int_tokens_test_cases{
@@ -61,6 +62,7 @@ BOOST_DATA_TEST_CASE(int_token_test, bdata::make(int_tokens_test_cases), type, p
     BOOST_CHECK_EQUAL(token.get_value_as<int>(), value);
     BOOST_CHECK_THROW(token.get_value_as<double>(), InvalidGetTokenValueException);
     BOOST_CHECK_THROW(token.get_value_as<std::string>(), InvalidGetTokenValueException);
+    BOOST_CHECK_THROW(token.get_value_as<bool>(), InvalidGetTokenValueException);
 }
 
 std::vector<std::tuple<TokenType, Position, double>> float_tokens_test_cases{
@@ -84,9 +86,10 @@ BOOST_DATA_TEST_CASE(float_token_test, bdata::make(float_tokens_test_cases), typ
     BOOST_CHECK_CLOSE(token.get_value_as<double>(), value, 0.001);
     BOOST_CHECK_THROW(token.get_value_as<int>(), InvalidGetTokenValueException);
     BOOST_CHECK_THROW(token.get_value_as<std::string>(), InvalidGetTokenValueException);
+    BOOST_CHECK_THROW(token.get_value_as<bool>(), InvalidGetTokenValueException);
 }
 
-std::vector<std::tuple<TokenType, Position, std::string>> string_tokens_test_cases{
+std::vector<std::tuple<TokenType, Position, std::string>> string_value_tokens_test_cases{
     {TokenType::T_LITERAL_STRING, Position{1, 2}, "Hello, World!"},
     {TokenType::T_LITERAL_STRING, Position{3, 4}, "^dhfjdffkjaabbd dfndsab sf"},
     {TokenType::T_LITERAL_STRING, Position{5, 6}, ""},
@@ -97,19 +100,6 @@ std::vector<std::tuple<TokenType, Position, std::string>> string_tokens_test_cas
     {TokenType::T_LITERAL_STRING, Position{15, 16}, "whites\t\n\r"},
     {TokenType::T_LITERAL_STRING, Position{17, 18}, "Foo Foo Foo"},
     {TokenType::T_LITERAL_STRING, Position{19, 20}, "fjdhsjghafjlkld''??"},
-};
-
-BOOST_DATA_TEST_CASE(string_token_test, bdata::make(string_tokens_test_cases), type, position, value) {
-    Token token{type, position, value};
-
-    BOOST_CHECK_EQUAL(token.get_type(), type);
-    BOOST_CHECK_EQUAL(token.get_position(), position);
-    BOOST_CHECK_EQUAL(token.get_value_as<std::string>(), value);
-    BOOST_CHECK_THROW(token.get_value_as<int>(), InvalidGetTokenValueException);
-    BOOST_CHECK_THROW(token.get_value_as<double>(), InvalidGetTokenValueException);
-}
-
-std::vector<std::tuple<TokenType, Position, std::string>> identifiers_tokens_test_cases{
     {TokenType::T_IDENTIFIER, Position{1, 2}, "identifier1"},
     {TokenType::T_IDENTIFIER, Position{3, 4}, "_private_ident"},
     {TokenType::T_IDENTIFIER, Position{5, 6}, "camelCase"},
@@ -120,9 +110,17 @@ std::vector<std::tuple<TokenType, Position, std::string>> identifiers_tokens_tes
     {TokenType::T_IDENTIFIER, Position{15, 16}, "___"},
     {TokenType::T_IDENTIFIER, Position{17, 18}, "fjdkfjd"},
     {TokenType::T_IDENTIFIER, Position{19, 20}, "other123"},
+    {TokenType::T_COMMENT, Position{1, 2}, "some commentd"},
+    {TokenType::T_COMMENT, Position{3, 4}, "her eandofjdjrjhd"},
+    {TokenType::T_COMMENT, Position{5, 6}, "some comment here !@#%$(#*&#$%)"},
+    {TokenType::T_COMMENT, Position{7, 8}, "{}:FKDLFDHJHDJS:SDFHSJ"},
+    {TokenType::T_COMMENT, Position{9, 10}, "another comment"},
+    {TokenType::T_COMMENT, Position{11, 12}, "TODO: finish lexer"},
+    {TokenType::T_COMMENT, Position{13, 14}, "TOO: add exception handling mechanism"},
+    {TokenType::T_COMMENT, Position{15, 16}, "fdhfjdhjfhdjfhj"},
 };
 
-BOOST_DATA_TEST_CASE(identifier_token_constructor_test, bdata::make(identifiers_tokens_test_cases), type, position, value) {
+BOOST_DATA_TEST_CASE(string_value_token_test, bdata::make(string_value_tokens_test_cases), type, position, value) {
     Token token{type, position, value};
 
     BOOST_CHECK_EQUAL(token.get_type(), type);
@@ -130,6 +128,22 @@ BOOST_DATA_TEST_CASE(identifier_token_constructor_test, bdata::make(identifiers_
     BOOST_CHECK_EQUAL(token.get_value_as<std::string>(), value);
     BOOST_CHECK_THROW(token.get_value_as<int>(), InvalidGetTokenValueException);
     BOOST_CHECK_THROW(token.get_value_as<double>(), InvalidGetTokenValueException);
+    BOOST_CHECK_THROW(token.get_value_as<bool>(), InvalidGetTokenValueException);
+}
+
+std::vector<std::tuple<Position, bool>> bool_values_test_cases{
+    {Position{4, 34}, true},
+    {Position{78, 123}, false},
+};
+BOOST_DATA_TEST_CASE(bool_values_test, bdata::make(bool_values_test_cases), position, value) {
+    Token token{TokenType::T_LITERAL_BOOL, position, value};
+
+    BOOST_CHECK_EQUAL(token.get_type()._to_integral(), TokenType::T_LITERAL_BOOL);
+    BOOST_CHECK_EQUAL(token.get_position(), position);
+    BOOST_CHECK_EQUAL(token.get_value_as<bool>(), value);
+    BOOST_CHECK_THROW(token.get_value_as<int>(), InvalidGetTokenValueException);
+    BOOST_CHECK_THROW(token.get_value_as<double>(), InvalidGetTokenValueException);
+    BOOST_CHECK_THROW(token.get_value_as<std::string>(), InvalidGetTokenValueException);
 }
 
 std::vector<std::tuple<TokenType, Position>> value_tokens_without_values_test_cases{
@@ -154,15 +168,19 @@ BOOST_DATA_TEST_CASE(value_tokens_without_value_constructor_test, bdata::make(va
 BOOST_DATA_TEST_CASE(non_value_tokens_constructor_recieving_value, bdata::make(non_value_tokens_test_cases), type, position) {
     int random_num = rand() % 3;
 
-    std::variant<std::monostate, int, double, std::string> value;
+    std::variant<std::monostate, int, double, bool, std::string> value;
 
-    switch (rand() % 3) {
+    switch (rand() % 5) {
         case 1:
             value = 42;
             break;
         case 2:
             value = 3.11434343;
             break;
+        case 3:
+            value = false;
+        case 4:
+            value = true;
         default:
             value = "some_string";
             break;
@@ -180,7 +198,6 @@ std::vector<std::tuple<Token, std::string>> token_print_test_case{
     {Token{TokenType::T_ASSIGN, Position{92, 11}}, "Token(T_ASSIGN,Position(92,11))"},
     {Token{TokenType::T_L_BRACE, Position{7, 14}}, "Token(T_L_BRACE,Position(7,14))"},
     {Token{TokenType::T_EOF, Position{1004, 1}}, "Token(T_EOF,Position(1004,1))"},
-    {Token{TokenType::T_FALSE, Position{6, 4}}, "Token(T_FALSE,Position(6,4))"},
     {Token{TokenType::T_COMMA, Position{62, 8}}, "Token(T_COMMA,Position(62,8))"},
     {Token{TokenType::T_LITERAL_INT, Position{34, 3}, 123456789}, "Token(T_LITERAL_INT,Position(34,3),123456789)"},
     {Token{TokenType::T_LITERAL_FLOAT, Position{90, 65}, 3.1422222}, "Token(T_LITERAL_FLOAT,Position(90,65),3.142222)"},

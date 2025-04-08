@@ -2,11 +2,11 @@
 
 Position::Position(int line, int column) : _line{line}, _column{column} {}
 
-int Position::get_line() const {
+int Position::get_line() const noexcept {
     return _line;
 }
 
-int Position::get_column() const {
+int Position::get_column() const noexcept {
     return _column;
 }
 
@@ -27,11 +27,11 @@ std::string Position::print() const {
     return "Position(" + std::to_string(_line) + "," + std::to_string(_column) + ")";
 }
 
-bool Position::operator==(const Position& other) const {
+bool Position::operator==(const Position& other) const noexcept {
     return this->_line == other._line && this->_column == other._column;
 }
 
-bool Position::operator!=(const Position& other) const {
+bool Position::operator!=(const Position& other) const noexcept {
     return not(*this == other);
 }
 

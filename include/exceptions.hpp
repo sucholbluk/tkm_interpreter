@@ -5,10 +5,12 @@
 #include <stdexcept>
 #include <string>
 
+#include "token_type.hpp"
+
 class InvalidTokenValueException : public std::logic_error {
    public:
-    explicit InvalidTokenValueException(const std::string& message)
-        : std::logic_error("Invalid token value: " + message) {}
+    explicit InvalidTokenValueException(TokenType type)
+        : std::logic_error(std::string{"Invalid token value for"} + type._to_string()) {}
 };
 
 class InvalidGetTokenValueException : public std::logic_error {

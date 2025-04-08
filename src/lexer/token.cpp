@@ -10,11 +10,11 @@ Token::Token(TokenType type, Position position, optional_token_value value)
     _validate_token();
 }
 
-TokenType Token::get_type() const {
+TokenType Token::get_type() const noexcept {
     return _type;
 }
 
-Position Token::get_position() const {
+Position Token::get_position() const noexcept {
     return _position;
 }
 
@@ -35,26 +35,17 @@ void Token::_validate_token() const {
     if (_type_matches_value())
         return;
 
-    switch (_type) {
-        case TokenType::T_LITERAL_INT:
-            throw InvalidTokenValueException(std::string("expected integer value for ") + _type._to_string() + ".");
-        case TokenType::T_LITERAL_FLOAT:
-            throw InvalidTokenValueException(std::string("expected floating value for ") + _type._to_string() + ".");
-        case TokenType::T_LITERAL_STRING:
-        case TokenType::T_COMMENT:
-        case TokenType::T_IDENTIFIER:
-            throw InvalidTokenValueException(std::string("expected std::string value for") + _type._to_string() + ".");
-        default:
-            throw InvalidTokenValueException(std::string("no value expected for ") + _type._to_string() + ".");
-    };
+    throw InvalidTokenValueException(_type);
 }
 
-bool Token::_type_matches_value() const {
+bool Token::_type_matches_value() const noexcept {
     switch (_type) {
         case TokenType::T_LITERAL_INT:
             return std::holds_alternative<int>(_value);
         case TokenType::T_LITERAL_FLOAT:
             return std::holds_alternative<double>(_value);
+        case TokenType::T_LITERAL_BOOL:
+            return std::holds_alternative<bool>(_value);
         case TokenType::T_IDENTIFIER:
         case TokenType::T_COMMENT:
         case TokenType::T_LITERAL_STRING:
@@ -74,6 +65,8 @@ std::string Token::_stringify_value() const {
                 return std::to_string(value);
             else if constexpr (std::is_same_v<T, std::string>)
                 return "\"" + value + "\"";
+            else if constexpr (std::is_same_v<T, bool>)
+                return std::to_string(value);
             else
                 throw std::logic_error("It's after validation - should never be called.");
         },
