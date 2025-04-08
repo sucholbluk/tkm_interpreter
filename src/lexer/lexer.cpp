@@ -2,6 +2,7 @@
 
 #include <cctype>
 #include <cmath>
+#include <iostream>
 #include <limits>
 
 Lexer::Lexer(std::unique_ptr<SourceHandler> source_handler) : _source_handler{std::move(source_handler)} {
@@ -116,18 +117,24 @@ Token Lexer::_build_literal_int_or_float() {
         throw UnexpectedCharacterException(_position.get_position_str());
 
     unsigned long fraction_value{0};
-    int fraction_digits{0};
+    int fraction_digits{1};
     digit = _character - '0';
+    fraction_value += digit;
+
+    _get_next_char();
     while (std::isdigit(_character)) {
-        if (fraction_value > (std::numeric_limits<unsigned long>::max() - digit) / 10) {  // lets say 20 decimal nums will be enough
+        digit = _character - '0';
+
+        if (fraction_value > (std::numeric_limits<unsigned long>::max() - digit) / 10)  // lets say 20 decimal nums will be enough
             throw std::runtime_error("moze trzeba będzie to lepiej rozegrać");
-        }
+
         fraction_value = fraction_value * 10 + digit;
         fraction_digits += 1;
-        digit = _character - '0';
         _get_next_char();
     }
-    double float_value = integer_value + (fraction_value / std::pow(10.0, fraction_digits));
+
+    std::cout << std::to_string(fraction_value) << std::endl;
+    double float_value = integer_value + ((double)fraction_value / std::pow(10.0, fraction_digits));
 
     return Token{TokenType::T_LITERAL_FLOAT, position, float_value};
 }

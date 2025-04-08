@@ -149,6 +149,8 @@ BOOST_DATA_TEST_CASE(int_tests, bdata::make(int_test_cases), input, expected_val
 
 std::vector<std::tuple<std::string, double>> float_test_cases{
     {"0.0", 0.0},
+    {"123.25", 123.25},
+    {"3.141592", 3.141592},
     {"12312.456222222", 12312.456222222},
     {"78912.0191233232", 78912.0191233232},
     {"31212.14159", 31212.14159},
@@ -163,7 +165,7 @@ BOOST_DATA_TEST_CASE(float_tests, bdata::make(float_test_cases), input, expected
     Token tk = lexer.get_next_token();
 
     BOOST_CHECK_EQUAL(tk.get_type()._to_integral(), TokenType::T_LITERAL_FLOAT);
-    BOOST_CHECK_CLOSE(tk.get_value_as<double>(), expected_value, 0.01);
+    BOOST_CHECK_CLOSE(tk.get_value_as<double>(), expected_value, 0.001);
 
     Token eof = lexer.get_next_token();
     BOOST_CHECK_EQUAL(eof.get_type()._to_integral(), TokenType::T_EOF);
