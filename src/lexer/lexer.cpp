@@ -1,5 +1,6 @@
 #include "lexer.hpp"
 
+#include <cctype>
 #include <cmath>
 #include <limits>
 
@@ -10,7 +11,7 @@ Lexer::Lexer(std::unique_ptr<SourceHandler> source_handler) : _source_handler{st
 }
 
 Token Lexer::get_next_token() {
-    if (auto it = _operator_builders_map.find(_character); it != _operator_builders_map.end()) {
+    if (auto it = _simple_builders_map.find(_character); it != _simple_builders_map.end()) {
         return it->second();
     }
 
@@ -20,6 +21,10 @@ Token Lexer::get_next_token() {
     if (std::isdigit(_character))
         return _build_literal_int_or_float();
 
+    if (std::isspace(_character)) {
+        _get_next_char();
+        return get_next_token();
+    }
     throw std::logic_error("Not implemented");
 }
 
@@ -86,7 +91,7 @@ Token Lexer::_build_literal_string() {
 Token Lexer::_build_literal_int_or_float() {
     Position position{_position};
     int digit{_character - '0'};
-    int integer_value{0};
+    int integer_value{digit};
     _get_next_char();
 
     if (digit) {
@@ -94,8 +99,8 @@ Token Lexer::_build_literal_int_or_float() {
             if (integer_value > (std::numeric_limits<int>::max() - digit) / 10) {  // equivalent to token_value * 10 + digit > INT_MAX
                 throw IntValueOverflowException(position.get_position_str());
             }
-            integer_value = integer_value * 10 + digit;
             digit = _character - '0';
+            integer_value = integer_value * 10 + digit;
             _get_next_char();
         }
     }
@@ -152,7 +157,7 @@ void Lexer::_initialize_keywords_map() {
 }
 
 void Lexer::_initialize_operator_builders_map() {
-    _operator_builders_map = {
+    _simple_builders_map = {
         {'(', _create_unequivocal_operator_builder(TokenType::T_L_PAREN)},
         {')', _create_unequivocal_operator_builder(TokenType::T_R_PAREN)},
         {'{', _create_unequivocal_operator_builder(TokenType::T_L_BRACE)},

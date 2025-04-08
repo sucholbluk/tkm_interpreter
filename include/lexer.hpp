@@ -17,7 +17,7 @@ class Lexer {
     std::unique_ptr<SourceHandler> _source_handler;
     char _character;
     Position _position;
-    std::unordered_map<char, std::function<Token()>> _operator_builders_map;
+    std::unordered_map<char, std::function<Token()>> _simple_builders_map;
     std::unordered_map<std::string, TokenType> _keywords_map;
 
     void _get_next_char();
