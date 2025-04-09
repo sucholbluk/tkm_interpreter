@@ -34,7 +34,7 @@ class Token {
 template <typename T>
 T Token::get_value_as() const {
     if (not std::holds_alternative<T>(_value))
-        throw InvalidGetTokenValueException("Token value does not match requested type.");
+        throw InvalidGetTokenValueError(this->print());
 
     return std::get<T>(_value);
 }

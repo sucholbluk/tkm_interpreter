@@ -35,7 +35,7 @@ void Token::_validate_token() const {
     if (_type_matches_value())
         return;
 
-    throw InvalidTokenValueException(_type);
+    throw InvalidTokenValueError(_type);
 }
 
 bool Token::_type_matches_value() const noexcept {
@@ -67,8 +67,8 @@ std::string Token::_stringify_value() const {
                 return "\"" + value + "\"";
             else if constexpr (std::is_same_v<T, bool>)
                 return std::to_string(value);
-            else
-                throw std::logic_error("It's after validation - should never be called.");
+            else  // should never be called - values are after validation and have no setters
+                throw ImplementationError("error in Token::stringify_value after validation");
         },
         _value);
 }

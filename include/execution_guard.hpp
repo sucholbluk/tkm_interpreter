@@ -4,7 +4,7 @@
 
 class ExecutionGuard {
    public:
-    static void run(const std::function<void()>& task) noexcept;
+    static void run_safe(const std::function<void()>& task) noexcept;
 };
 
 #endif  // EXECUTION_HUARD_HPP

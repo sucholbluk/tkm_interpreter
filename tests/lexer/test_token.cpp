@@ -35,10 +35,10 @@ BOOST_DATA_TEST_CASE(non_value_token_constrctor_test, bdata::make(non_value_toke
 
     BOOST_CHECK_EQUAL(token.get_type(), type);
     BOOST_CHECK_EQUAL(token.get_position(), position);
-    BOOST_CHECK_THROW(token.get_value_as<int>(), InvalidGetTokenValueException);
-    BOOST_CHECK_THROW(token.get_value_as<double>(), InvalidGetTokenValueException);
-    BOOST_CHECK_THROW(token.get_value_as<std::string>(), InvalidGetTokenValueException);
-    BOOST_CHECK_THROW(token.get_value_as<bool>(), InvalidGetTokenValueException);
+    BOOST_CHECK_THROW(token.get_value_as<int>(), InvalidGetTokenValueError);
+    BOOST_CHECK_THROW(token.get_value_as<double>(), InvalidGetTokenValueError);
+    BOOST_CHECK_THROW(token.get_value_as<std::string>(), InvalidGetTokenValueError);
+    BOOST_CHECK_THROW(token.get_value_as<bool>(), InvalidGetTokenValueError);
 }
 
 std::vector<std::tuple<TokenType, Position, int>> int_tokens_test_cases{
@@ -60,9 +60,9 @@ BOOST_DATA_TEST_CASE(int_token_test, bdata::make(int_tokens_test_cases), type, p
     BOOST_CHECK_EQUAL(token.get_type(), type);
     BOOST_CHECK_EQUAL(token.get_position(), position);
     BOOST_CHECK_EQUAL(token.get_value_as<int>(), value);
-    BOOST_CHECK_THROW(token.get_value_as<double>(), InvalidGetTokenValueException);
-    BOOST_CHECK_THROW(token.get_value_as<std::string>(), InvalidGetTokenValueException);
-    BOOST_CHECK_THROW(token.get_value_as<bool>(), InvalidGetTokenValueException);
+    BOOST_CHECK_THROW(token.get_value_as<double>(), InvalidGetTokenValueError);
+    BOOST_CHECK_THROW(token.get_value_as<std::string>(), InvalidGetTokenValueError);
+    BOOST_CHECK_THROW(token.get_value_as<bool>(), InvalidGetTokenValueError);
 }
 
 std::vector<std::tuple<TokenType, Position, double>> float_tokens_test_cases{
@@ -84,9 +84,9 @@ BOOST_DATA_TEST_CASE(float_token_test, bdata::make(float_tokens_test_cases), typ
     BOOST_CHECK_EQUAL(token.get_type(), type);
     BOOST_CHECK_EQUAL(token.get_position(), position);
     BOOST_CHECK_CLOSE(token.get_value_as<double>(), value, 0.001);
-    BOOST_CHECK_THROW(token.get_value_as<int>(), InvalidGetTokenValueException);
-    BOOST_CHECK_THROW(token.get_value_as<std::string>(), InvalidGetTokenValueException);
-    BOOST_CHECK_THROW(token.get_value_as<bool>(), InvalidGetTokenValueException);
+    BOOST_CHECK_THROW(token.get_value_as<int>(), InvalidGetTokenValueError);
+    BOOST_CHECK_THROW(token.get_value_as<std::string>(), InvalidGetTokenValueError);
+    BOOST_CHECK_THROW(token.get_value_as<bool>(), InvalidGetTokenValueError);
 }
 
 std::vector<std::tuple<TokenType, Position, std::string>> string_value_tokens_test_cases{
@@ -126,9 +126,9 @@ BOOST_DATA_TEST_CASE(string_value_token_test, bdata::make(string_value_tokens_te
     BOOST_CHECK_EQUAL(token.get_type(), type);
     BOOST_CHECK_EQUAL(token.get_position(), position);
     BOOST_CHECK_EQUAL(token.get_value_as<std::string>(), value);
-    BOOST_CHECK_THROW(token.get_value_as<int>(), InvalidGetTokenValueException);
-    BOOST_CHECK_THROW(token.get_value_as<double>(), InvalidGetTokenValueException);
-    BOOST_CHECK_THROW(token.get_value_as<bool>(), InvalidGetTokenValueException);
+    BOOST_CHECK_THROW(token.get_value_as<int>(), InvalidGetTokenValueError);
+    BOOST_CHECK_THROW(token.get_value_as<double>(), InvalidGetTokenValueError);
+    BOOST_CHECK_THROW(token.get_value_as<bool>(), InvalidGetTokenValueError);
 }
 
 std::vector<std::tuple<Position, bool>> bool_values_test_cases{
@@ -141,9 +141,9 @@ BOOST_DATA_TEST_CASE(bool_values_test, bdata::make(bool_values_test_cases), posi
     BOOST_CHECK_EQUAL(token.get_type()._to_integral(), TokenType::T_LITERAL_BOOL);
     BOOST_CHECK_EQUAL(token.get_position(), position);
     BOOST_CHECK_EQUAL(token.get_value_as<bool>(), value);
-    BOOST_CHECK_THROW(token.get_value_as<int>(), InvalidGetTokenValueException);
-    BOOST_CHECK_THROW(token.get_value_as<double>(), InvalidGetTokenValueException);
-    BOOST_CHECK_THROW(token.get_value_as<std::string>(), InvalidGetTokenValueException);
+    BOOST_CHECK_THROW(token.get_value_as<int>(), InvalidGetTokenValueError);
+    BOOST_CHECK_THROW(token.get_value_as<double>(), InvalidGetTokenValueError);
+    BOOST_CHECK_THROW(token.get_value_as<std::string>(), InvalidGetTokenValueError);
 }
 
 std::vector<std::tuple<TokenType, Position>> value_tokens_without_values_test_cases{
@@ -162,7 +162,7 @@ std::vector<std::tuple<TokenType, Position>> value_tokens_without_values_test_ca
 };
 
 BOOST_DATA_TEST_CASE(value_tokens_without_value_constructor_test, bdata::make(value_tokens_without_values_test_cases), type, position) {
-    BOOST_CHECK_THROW(Token token(type, position), InvalidTokenValueException);
+    BOOST_CHECK_THROW(Token token(type, position), InvalidTokenValueError);
 };
 
 BOOST_DATA_TEST_CASE(non_value_tokens_constructor_recieving_value, bdata::make(non_value_tokens_test_cases), type, position) {
@@ -185,7 +185,7 @@ BOOST_DATA_TEST_CASE(non_value_tokens_constructor_recieving_value, bdata::make(n
             value = "some_string";
             break;
     }
-    BOOST_CHECK_THROW(Token token(type, position, value), InvalidTokenValueException);
+    BOOST_CHECK_THROW(Token token(type, position, value), InvalidTokenValueError);
 };
 
 std::vector<std::tuple<Token, std::string>> token_print_test_case{

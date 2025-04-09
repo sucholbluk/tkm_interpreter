@@ -26,7 +26,7 @@ Token Lexer::get_next_token() {
         _get_next_char();
         return get_next_token();
     }
-    throw UnexpectedCharacterException(_position.get_position_str());
+    throw UnexpectedCharacterException(_position, _character);
 }
 
 void Lexer::_get_next_char() {
@@ -60,7 +60,7 @@ Token Lexer::_build_literal_string() {
 
     while (token_value.length() < MAX_STR_LITERAL_LEN and _character != '\"') {
         if (_character == '\n' or _character == EOF_CHAR)
-            throw UnfinishedStringException(_position.get_position_str());
+            throw UnfinishedStringException(_position);
         if (_character == '\\') {
             _get_next_char();
             switch (_character) {
@@ -100,7 +100,7 @@ Token Lexer::_build_literal_int_or_float() {
     if (integer_value) {
         while (std::isdigit(_character)) {
             if (integer_value > (std::numeric_limits<int>::max() - digit) / 10) {  // equivalent to token_value * 10 + digit > INT_MAX
-                throw IntValueOverflowException(position.get_position_str());
+                throw ParseIntOverflowException(position);
             }
             digit = _character - '0';
             integer_value = integer_value * 10 + digit;
@@ -113,7 +113,7 @@ Token Lexer::_build_literal_int_or_float() {
     _get_next_char();
 
     if (not std::isdigit(_character))
-        throw UnexpectedCharacterException(_position.get_position_str());
+        throw UnexpectedCharacterException(_position, _character);
 
     unsigned long fraction_value{0};
     int fraction_digits{1};
@@ -125,7 +125,7 @@ Token Lexer::_build_literal_int_or_float() {
         digit = _character - '0';
 
         if (fraction_value > (std::numeric_limits<unsigned long>::max() - digit) / 10)  // lets say 20 decimal nums will be enough
-            throw std::runtime_error("moze trzeba będzie to lepiej rozegrać");
+            throw ParseFractionRangeExceededException(position);
 
         fraction_value = fraction_value * 10 + digit;
         fraction_digits += 1;
@@ -200,7 +200,7 @@ void Lexer::_initialize_operator_builders_map() {
              Position position{this->_position};
              this->_get_next_char();
              if (this->_character != '=')
-                 throw UnexpectedCharacterException(position.get_position_str());
+                 throw UnexpectedCharacterException(position, _character);
              this->_get_next_char();
              return Token{TokenType::T_NOT_EQUAL, position};
          }},

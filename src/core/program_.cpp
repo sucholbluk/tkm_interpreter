@@ -52,12 +52,9 @@ void Program::_initialize_components() {
     if (_use_stdin) {
         input_stream = std::make_unique<std::istream>(std::cin.rdbuf());
     } else {
-        if (_input_filename.empty())
-            throw std::runtime_error("replace with custom err");
-
         auto file_stream = std::make_unique<std::ifstream>(_input_filename);
         if (!file_stream->is_open())
-            throw std::runtime_error("replace with custom err");
+            throw FileOpenException(_input_filename);
 
         input_stream = std::move(file_stream);
     }

@@ -4,7 +4,7 @@
 #include "program.hpp"
 
 int main(int argc, char* const argv[]) {
-    ExecutionGuard::run([argc, argv]() {
+    ExecutionGuard::run_safe([argc, argv]() {
         Program program(argc, argv);
         program.run();
     });
