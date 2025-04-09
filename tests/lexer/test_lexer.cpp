@@ -188,279 +188,88 @@ print("For " + n as string + " sequence number is " + nth_fibonacci(n) as string
 )EOF";
     auto handler = std::make_unique<SourceHandler>(mock_file);
     Lexer lexer{std::move(handler)};
-
-    Token def{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(def.get_type()._to_integral(), TokenType::T_DEF);
-    BOOST_CHECK_EQUAL(def.get_position(), Position(2, 1));  // 2,1 because 1,1 is \n
-
-    Token nth_fibonacci{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(nth_fibonacci.get_type()._to_integral(), TokenType::T_IDENTIFIER);
-    BOOST_CHECK_EQUAL(nth_fibonacci.get_position(), Position(2, 5));
-    BOOST_CHECK_EQUAL(nth_fibonacci.get_value_as<std::string>(), std::string("nth_fibonacci"));
-
-    Token l_paren{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(l_paren.get_type()._to_integral(), TokenType::T_L_PAREN);
-    BOOST_CHECK_EQUAL(l_paren.get_position(), Position(2, 18));
-
-    Token n{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(n.get_type()._to_integral(), TokenType::T_IDENTIFIER);
-    BOOST_CHECK_EQUAL(n.get_position(), Position(2, 19));
-    BOOST_CHECK_EQUAL(n.get_value_as<std::string>(), std::string("n"));
-
-    Token colon{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(colon.get_type()._to_integral(), TokenType::T_COLON);
-    BOOST_CHECK_EQUAL(colon.get_position(), Position(2, 20));
-
-    Token int_type{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(int_type.get_type()._to_integral(), TokenType::T_INT);
-    BOOST_CHECK_EQUAL(int_type.get_position(), Position(2, 22));
-
-    Token r_paren{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(r_paren.get_type()._to_integral(), TokenType::T_R_PAREN);
-    BOOST_CHECK_EQUAL(r_paren.get_position(), Position(2, 25));
-
-    Token arrow{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(arrow.get_type()._to_integral(), TokenType::T_ARROW);
-    BOOST_CHECK_EQUAL(arrow.get_position(), Position(2, 27));
-
-    Token int_return{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(int_return.get_type()._to_integral(), TokenType::T_INT);
-    BOOST_CHECK_EQUAL(int_return.get_position(), Position(2, 30));
-
-    Token l_brace{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(l_brace.get_type()._to_integral(), TokenType::T_L_BRACE);
-    BOOST_CHECK_EQUAL(l_brace.get_position(), Position(2, 34));
-
-    Token if_token{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(if_token.get_type()._to_integral(), TokenType::T_IF);
-    BOOST_CHECK_EQUAL(if_token.get_position(), Position(3, 5));
-
-    Token l_paren_if{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(l_paren_if.get_type()._to_integral(), TokenType::T_L_PAREN);
-    BOOST_CHECK_EQUAL(l_paren_if.get_position(), Position(3, 8));
-
-    Token n_if{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(n_if.get_type()._to_integral(), TokenType::T_IDENTIFIER);
-    BOOST_CHECK_EQUAL(n_if.get_position(), Position(3, 9));
-    BOOST_CHECK_EQUAL(n.get_value_as<std::string>(), std::string("n"));
-
-    Token less_equal{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(less_equal.get_type()._to_integral(), TokenType::T_LESS_EQUAL);
-    BOOST_CHECK_EQUAL(less_equal.get_position(), Position(3, 11));
-
-    Token one{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(one.get_type()._to_integral(), TokenType::T_LITERAL_INT);
-    BOOST_CHECK_EQUAL(one.get_position(), Position(3, 14));
-    BOOST_CHECK_EQUAL(one.get_value_as<int>(), 1);
-
-    Token r_paren_if{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(r_paren_if.get_type()._to_integral(), TokenType::T_R_PAREN);
-    BOOST_CHECK_EQUAL(r_paren_if.get_position(), Position(3, 15));
-
-    Token l_brace_if{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(l_brace_if.get_type()._to_integral(), TokenType::T_L_BRACE);
-    BOOST_CHECK_EQUAL(l_brace_if.get_position(), Position(3, 17));
-
-    Token return_token{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(return_token.get_type()._to_integral(), TokenType::T_RETURN);
-    BOOST_CHECK_EQUAL(return_token.get_position(), Position(4, 9));
-
-    Token n_return{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(n_return.get_type()._to_integral(), TokenType::T_IDENTIFIER);
-    BOOST_CHECK_EQUAL(n_return.get_position(), Position(4, 16));
-    BOOST_CHECK_EQUAL(n.get_value_as<std::string>(), std::string("n"));
-
-    Token semicolon{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(semicolon.get_type()._to_integral(), TokenType::T_SEMICOLON);
-    BOOST_CHECK_EQUAL(semicolon.get_position(), Position(4, 17));
-
-    Token r_brace{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(r_brace.get_type()._to_integral(), TokenType::T_R_BRACE);
-    BOOST_CHECK_EQUAL(r_brace.get_position(), Position(5, 5));
-
-    Token return_2nd{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(return_2nd.get_type()._to_integral(), TokenType::T_RETURN);
-    BOOST_CHECK_EQUAL(return_2nd.get_position(), Position(7, 5));
-
-    nth_fibonacci = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(nth_fibonacci.get_type()._to_integral(), TokenType::T_IDENTIFIER);
-    BOOST_CHECK_EQUAL(nth_fibonacci.get_position(), Position(7, 12));
-    BOOST_CHECK_EQUAL(nth_fibonacci.get_value_as<std::string>(), std::string("nth_fibonacci"));
-
-    l_paren = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(l_paren.get_type()._to_integral(), TokenType::T_L_PAREN);
-    BOOST_CHECK_EQUAL(l_paren.get_position(), Position(7, 25));
-
-    n = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(n.get_type()._to_integral(), TokenType::T_IDENTIFIER);
-    BOOST_CHECK_EQUAL(n.get_position(), Position(7, 26));
-    BOOST_CHECK_EQUAL(n.get_value_as<std::string>(), std::string("n"));
-
-    Token minus{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(minus.get_type()._to_integral(), TokenType::T_MINUS);
-    BOOST_CHECK_EQUAL(minus.get_position(), Position(7, 28));
-
-    one = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(one.get_type()._to_integral(), TokenType::T_LITERAL_INT);
-    BOOST_CHECK_EQUAL(one.get_position(), Position(7, 30));
-    BOOST_CHECK_EQUAL(one.get_value_as<int>(), 1);
-
-    r_paren = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(r_paren.get_type()._to_integral(), TokenType::T_R_PAREN);
-    BOOST_CHECK_EQUAL(r_paren.get_position(), Position(7, 31));
-
-    Token plus{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(plus.get_type()._to_integral(), TokenType::T_PLUS);
-    BOOST_CHECK_EQUAL(plus.get_position(), Position(7, 33));
-
-    nth_fibonacci = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(nth_fibonacci.get_type()._to_integral(), TokenType::T_IDENTIFIER);
-    BOOST_CHECK_EQUAL(nth_fibonacci.get_position(), Position(7, 35));
-    BOOST_CHECK_EQUAL(nth_fibonacci.get_value_as<std::string>(), std::string("nth_fibonacci"));
-
-    l_paren = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(l_paren.get_type()._to_integral(), TokenType::T_L_PAREN);
-    BOOST_CHECK_EQUAL(l_paren.get_position(), Position(7, 48));
-
-    n = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(n.get_type()._to_integral(), TokenType::T_IDENTIFIER);
-    BOOST_CHECK_EQUAL(n.get_position(), Position(7, 49));
-    BOOST_CHECK_EQUAL(n.get_value_as<std::string>(), std::string("n"));
-
-    minus = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(minus.get_type()._to_integral(), TokenType::T_MINUS);
-    BOOST_CHECK_EQUAL(minus.get_position(), Position(7, 51));
-
-    Token two{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(two.get_type()._to_integral(), TokenType::T_LITERAL_INT);
-    BOOST_CHECK_EQUAL(two.get_position(), Position(7, 53));
-    BOOST_CHECK_EQUAL(two.get_value_as<int>(), 2);
-
-    r_paren = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(r_paren.get_type()._to_integral(), TokenType::T_R_PAREN);
-    BOOST_CHECK_EQUAL(r_paren.get_position(), Position(7, 54));
-
-    semicolon = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(semicolon.get_type()._to_integral(), TokenType::T_SEMICOLON);
-    BOOST_CHECK_EQUAL(semicolon.get_position(), Position(7, 55));
-
-    r_brace = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(r_brace.get_type()._to_integral(), TokenType::T_R_BRACE);
-    BOOST_CHECK_EQUAL(r_brace.get_position(), Position(8, 1));
-
-    Token let{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(let.get_type()._to_integral(), TokenType::T_LET);
-    BOOST_CHECK_EQUAL(let.get_position(), Position(10, 1));
-
-    n = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(n.get_type()._to_integral(), TokenType::T_IDENTIFIER);
-    BOOST_CHECK_EQUAL(n.get_position(), Position(10, 5));
-    BOOST_CHECK_EQUAL(n.get_value_as<std::string>(), std::string("n"));
-
-    colon = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(colon.get_type()._to_integral(), TokenType::T_COLON);
-    BOOST_CHECK_EQUAL(colon.get_position(), Position(10, 6));
-
-    int_type = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(int_type.get_type()._to_integral(), TokenType::T_INT);
-    BOOST_CHECK_EQUAL(int_type.get_position(), Position(10, 8));
-
-    Token assign{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(assign.get_type()._to_integral(), TokenType::T_ASSIGN);
-    BOOST_CHECK_EQUAL(assign.get_position(), Position(10, 12));
-
-    Token five{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(five.get_type()._to_integral(), TokenType::T_LITERAL_INT);
-    BOOST_CHECK_EQUAL(five.get_position(), Position(10, 14));
-    BOOST_CHECK_EQUAL(five.get_value_as<int>(), 5);
-
-    semicolon = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(semicolon.get_type()._to_integral(), TokenType::T_SEMICOLON);
-    BOOST_CHECK_EQUAL(semicolon.get_position(), Position(10, 15));
-
-    Token print{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(print.get_type()._to_integral(), TokenType::T_IDENTIFIER);
-    BOOST_CHECK_EQUAL(print.get_position(), Position(12, 1));
-    BOOST_CHECK_EQUAL(print.get_value_as<std::string>(), std::string("print"));
-
-    l_paren = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(l_paren.get_type()._to_integral(), TokenType::T_L_PAREN);
-    BOOST_CHECK_EQUAL(l_paren.get_position(), Position(12, 6));
-
-    Token for_str{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(for_str.get_type()._to_integral(), TokenType::T_LITERAL_STRING);
-    BOOST_CHECK_EQUAL(for_str.get_position(), Position(12, 7));
-    BOOST_CHECK_EQUAL(for_str.get_value_as<std::string>(), std::string("For "));
-
-    plus = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(plus.get_type()._to_integral(), TokenType::T_PLUS);
-    BOOST_CHECK_EQUAL(plus.get_position(), Position(12, 14));
-
-    n = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(n.get_type()._to_integral(), TokenType::T_IDENTIFIER);
-    BOOST_CHECK_EQUAL(n.get_position(), Position(12, 16));
-    BOOST_CHECK_EQUAL(n.get_value_as<std::string>(), std::string("n"));
-
-    Token as{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(as.get_type()._to_integral(), TokenType::T_AS);
-    BOOST_CHECK_EQUAL(as.get_position(), Position(12, 18));
-
-    Token string_type{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(string_type.get_type()._to_integral(), TokenType::T_STRING);
-    BOOST_CHECK_EQUAL(string_type.get_position(), Position(12, 21));
-
-    plus = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(plus.get_type()._to_integral(), TokenType::T_PLUS);
-    BOOST_CHECK_EQUAL(plus.get_position(), Position(12, 28));
-
-    Token seq_string{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(seq_string.get_type()._to_integral(), TokenType::T_LITERAL_STRING);
-    BOOST_CHECK_EQUAL(seq_string.get_position(), Position(12, 30));
-    BOOST_CHECK_EQUAL(seq_string.get_value_as<std::string>(), std::string(" sequence number is "));
-
-    plus = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(plus.get_type()._to_integral(), TokenType::T_PLUS);
-    BOOST_CHECK_EQUAL(plus.get_position(), Position(12, 53));
-
-    nth_fibonacci = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(nth_fibonacci.get_type()._to_integral(), TokenType::T_IDENTIFIER);
-    BOOST_CHECK_EQUAL(nth_fibonacci.get_position(), Position(12, 55));
-    BOOST_CHECK_EQUAL(nth_fibonacci.get_value_as<std::string>(), std::string("nth_fibonacci"));
-
-    l_paren = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(l_paren.get_type()._to_integral(), TokenType::T_L_PAREN);
-    BOOST_CHECK_EQUAL(l_paren.get_position(), Position(12, 68));
-
-    n = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(n.get_type()._to_integral(), TokenType::T_IDENTIFIER);
-    BOOST_CHECK_EQUAL(n.get_position(), Position(12, 69));
-    BOOST_CHECK_EQUAL(n.get_value_as<std::string>(), std::string("n"));
-
-    r_paren = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(r_paren.get_type()._to_integral(), TokenType::T_R_PAREN);
-    BOOST_CHECK_EQUAL(r_paren.get_position(), Position(12, 70));
-
-    as = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(as.get_type()._to_integral(), TokenType::T_AS);
-    BOOST_CHECK_EQUAL(as.get_position(), Position(12, 72));
-
-    string_type = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(string_type.get_type()._to_integral(), TokenType::T_STRING);
-    BOOST_CHECK_EQUAL(string_type.get_position(), Position(12, 75));
-
-    r_paren = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(r_paren.get_type()._to_integral(), TokenType::T_R_PAREN);
-    BOOST_CHECK_EQUAL(r_paren.get_position(), Position(12, 81));
-
-    semicolon = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(semicolon.get_type()._to_integral(), TokenType::T_SEMICOLON);
-    BOOST_CHECK_EQUAL(semicolon.get_position(), Position(12, 82));
-
-    Token eof{lexer.get_next_token()};
-    BOOST_CHECK_EQUAL(eof.get_type()._to_integral(), TokenType::T_EOF);
-    BOOST_CHECK_EQUAL(eof.get_position(), Position(13, 1));
-
-    eof = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(eof.get_type()._to_integral(), TokenType::T_EOF);
-    BOOST_CHECK_EQUAL(eof.get_position(), Position(13, 1));
+    std::vector<Token> expected_tokens = {
+        Token{TokenType::T_DEF, Position(2, 1)},
+        Token{TokenType::T_IDENTIFIER, Position(2, 5), "nth_fibonacci"},
+        Token{TokenType::T_L_PAREN, Position(2, 18)},
+        Token{TokenType::T_IDENTIFIER, Position(2, 19), "n"},
+        Token{TokenType::T_COLON, Position(2, 20)},
+        Token{TokenType::T_INT, Position(2, 22)},
+        Token{TokenType::T_R_PAREN, Position(2, 25)},
+        Token{TokenType::T_ARROW, Position(2, 27)},
+        Token{TokenType::T_INT, Position(2, 30)},
+        Token{TokenType::T_L_BRACE, Position(2, 34)},
+        Token{TokenType::T_IF, Position(3, 5)},
+        Token{TokenType::T_L_PAREN, Position(3, 8)},
+        Token{TokenType::T_IDENTIFIER, Position(3, 9), "n"},
+        Token{TokenType::T_LESS_EQUAL, Position(3, 11)},
+        Token{TokenType::T_LITERAL_INT, Position(3, 14), 1},
+        Token{TokenType::T_R_PAREN, Position(3, 15)},
+        Token{TokenType::T_L_BRACE, Position(3, 17)},
+        Token{TokenType::T_RETURN, Position(4, 9)},
+        Token{TokenType::T_IDENTIFIER, Position(4, 16), "n"},
+        Token{TokenType::T_SEMICOLON, Position(4, 17)},
+        Token{TokenType::T_R_BRACE, Position(5, 5)},
+        Token{TokenType::T_RETURN, Position(7, 5)},
+        Token{TokenType::T_IDENTIFIER, Position(7, 12), "nth_fibonacci"},
+        Token{TokenType::T_L_PAREN, Position(7, 25)},
+        Token{TokenType::T_IDENTIFIER, Position(7, 26), "n"},
+        Token{TokenType::T_MINUS, Position(7, 28)},
+        Token{TokenType::T_LITERAL_INT, Position(7, 30), 1},
+        Token{TokenType::T_R_PAREN, Position(7, 31)},
+        Token{TokenType::T_PLUS, Position(7, 33)},
+        Token{TokenType::T_IDENTIFIER, Position(7, 35), "nth_fibonacci"},
+        Token{TokenType::T_L_PAREN, Position(7, 48)},
+        Token{TokenType::T_IDENTIFIER, Position(7, 49), "n"},
+        Token{TokenType::T_MINUS, Position(7, 51)},
+        Token{TokenType::T_LITERAL_INT, Position(7, 53), 2},
+        Token{TokenType::T_R_PAREN, Position(7, 54)},
+        Token{TokenType::T_SEMICOLON, Position(7, 55)},
+        Token{TokenType::T_R_BRACE, Position(8, 1)},
+        Token{TokenType::T_LET, Position(10, 1)},
+        Token{TokenType::T_IDENTIFIER, Position(10, 5), "n"},
+        Token{TokenType::T_COLON, Position(10, 6)},
+        Token{TokenType::T_INT, Position(10, 8)},
+        Token{TokenType::T_ASSIGN, Position(10, 12)},
+        Token{TokenType::T_LITERAL_INT, Position(10, 14), 5},
+        Token{TokenType::T_SEMICOLON, Position(10, 15)},
+        Token{TokenType::T_IDENTIFIER, Position(12, 1), "print"},
+        Token{TokenType::T_L_PAREN, Position(12, 6)},
+        Token{TokenType::T_LITERAL_STRING, Position(12, 7), "For "},
+        Token{TokenType::T_PLUS, Position(12, 14)},
+        Token{TokenType::T_IDENTIFIER, Position(12, 16), "n"},
+        Token{TokenType::T_AS, Position(12, 18)},
+        Token{TokenType::T_STRING, Position(12, 21)},
+        Token{TokenType::T_PLUS, Position(12, 28)},
+        Token{TokenType::T_LITERAL_STRING, Position(12, 30), " sequence number is "},
+        Token{TokenType::T_PLUS, Position(12, 53)},
+        Token{TokenType::T_IDENTIFIER, Position(12, 55), "nth_fibonacci"},
+        Token{TokenType::T_L_PAREN, Position(12, 68)},
+        Token{TokenType::T_IDENTIFIER, Position(12, 69), "n"},
+        Token{TokenType::T_R_PAREN, Position(12, 70)},
+        Token{TokenType::T_AS, Position(12, 72)},
+        Token{TokenType::T_STRING, Position(12, 75)},
+        Token{TokenType::T_R_PAREN, Position(12, 81)},
+        Token{TokenType::T_SEMICOLON, Position(12, 82)},
+        Token{TokenType::T_EOF, Position(13, 1)},
+    };
+
+    for (const auto& expected_token : expected_tokens) {
+        Token actual_token = lexer.get_next_token();
+        BOOST_CHECK_EQUAL(actual_token.get_type(), expected_token.get_type());
+        BOOST_CHECK_EQUAL(actual_token.get_position(), expected_token.get_position());
+
+        // sample code doesnt have any bool or float
+        switch (actual_token.get_type()) {
+            case TokenType::T_IDENTIFIER:
+            case TokenType::T_LITERAL_STRING:
+            case TokenType::T_COMMENT:
+                BOOST_CHECK_EQUAL(actual_token.get_value_as<std::string>(), expected_token.get_value_as<std::string>());
+                break;
+            case TokenType::T_LITERAL_INT:
+                BOOST_CHECK_EQUAL(actual_token.get_value_as<int>(), expected_token.get_value_as<int>());
+            default:
+                break;
+        }
+    }
 }
