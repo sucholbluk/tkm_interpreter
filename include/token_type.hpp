@@ -2,6 +2,11 @@
 #define TOKEN_TYPE_HPP
 #include "enum.h"
 
+/*
+ * @brief Class to represent token types
+ *
+ * BETTER_ENUM provides implementation of type conversion - mostly used to get string representation
+ */
 BETTER_ENUM(TokenType, int,
             T_IDENTIFIER,
 

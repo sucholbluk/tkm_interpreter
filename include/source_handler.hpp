@@ -7,6 +7,9 @@
 #include "constants.hpp"
 #include "position.hpp"
 
+/*
+ * @bref Class providing chars for @ref Lexer and controlling the positon in stream.
+ */
 class SourceHandler {
    public:
     explicit SourceHandler(std::unique_ptr<std::istream> source);

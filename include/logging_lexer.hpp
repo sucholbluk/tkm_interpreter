@@ -5,6 +5,9 @@
 
 #include "ilexer.hpp"
 
+/*
+ * @brief Decorator for a lexer that adds logging functionality.
+ */
 class LoggingLexer : public ILexer {
    public:
     explicit LoggingLexer(std::unique_ptr<ILexer> inner);

@@ -2,6 +2,9 @@
 #define ILEXER_HPP
 
 #include "token.hpp"
+/*
+ * @brief Interface for lexer component.
+ */
 class ILexer {
    public:
     virtual Token get_next_token() = 0;

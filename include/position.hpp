@@ -3,6 +3,9 @@
 #include <ostream>
 #include <string>
 
+/*
+ * @brief Position representation. Allowes to advance itself to the next column/line
+ */
 class Position {
    public:
     explicit Position(int line = 1, int column = 1);

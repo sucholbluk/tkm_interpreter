@@ -5,6 +5,11 @@
 
 #include "ilexer.hpp"
 
+/*
+ * @brief to represent program
+ *
+ * Perhaps to break into smaller pieces in future
+ */
 class Program {  // nazwa tymczasowa - potem moze do zmiany
    public:
     Program(int argc, char* const argv[]);
