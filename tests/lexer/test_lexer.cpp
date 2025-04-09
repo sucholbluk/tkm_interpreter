@@ -155,7 +155,7 @@ std::vector<std::tuple<std::string, double>> float_test_cases{
     {"78912.0191233232", 78912.0191233232},
     {"31212.14159", 31212.14159},
     {"120222.500", 120222.500},
-};
+    {"2147483647.18446744073709551615", 2147483647.18446744073709551615}};
 
 BOOST_DATA_TEST_CASE(float_tests, bdata::make(float_test_cases), input, expected_value) {
     std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>(input);
@@ -273,4 +273,47 @@ print("For " + n as string + " sequence number is " + nth_fibonacci(n) as string
                 break;
         }
     }
+}
+
+BOOST_AUTO_TEST_CASE(unfinished_string_test) {
+    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>("\"feferererdfhjdf7^ # ");
+    auto handler = std::make_unique<SourceHandler>(std::move(source));
+    Lexer lexer{std::move(handler)};
+
+    BOOST_CHECK_THROW(lexer.get_next_token(), UnfinishedStringException);
+}
+BOOST_AUTO_TEST_CASE(newline_interrupted_string_test) {
+    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>("\"erdfhjd\nf7^ # \"");
+    auto handler = std::make_unique<SourceHandler>(std::move(source));
+    Lexer lexer{std::move(handler)};
+
+    BOOST_CHECK_THROW(lexer.get_next_token(), UnfinishedStringException);
+}
+
+BOOST_AUTO_TEST_CASE(to_large_int_test) {
+    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>("1234567890123");
+    auto handler = std::make_unique<SourceHandler>(std::move(source));
+    Lexer lexer{std::move(handler)};
+
+    BOOST_CHECK_THROW(lexer.get_next_token(), ParseIntOverflowException);
+}
+
+BOOST_AUTO_TEST_CASE(to_many_fraction_nums) {
+    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>("1.18446744073709551616");
+    auto handler = std::make_unique<SourceHandler>(std::move(source));
+    Lexer lexer{std::move(handler)};
+
+    BOOST_CHECK_THROW(lexer.get_next_token(), ParseFractionRangeExceededException);
+}
+
+BOOST_AUTO_TEST_CASE(unexpected_character) {
+    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>("let mut x: @int = 8;");
+    auto handler = std::make_unique<SourceHandler>(std::move(source));
+    Lexer lexer{std::move(handler)};
+
+    for (int i = 0; i < 4; i++) {
+        lexer.get_next_token();
+    }
+
+    BOOST_CHECK_THROW(lexer.get_next_token(), UnexpectedCharacterException);
 }
