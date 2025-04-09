@@ -9,6 +9,8 @@
 #include "position.hpp"
 #include "token_type.hpp"
 
+// class ProgramImplementationError : public std::logic_error
+
 // if the written code is correct it should never be thrown
 class InvalidTokenValueException : public std::logic_error {
    public:

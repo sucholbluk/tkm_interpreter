@@ -1,5 +1,7 @@
-add_library(lexer STATIC lexer.cpp token.cpp)
+add_library(lexer STATIC lexer.cpp token.cpp logging_lexer.cpp)
 
 target_link_libraries(lexer PUBLIC source_handler)
 
 target_include_directories(lexer PUBLIC ${CMAKE_SOURCE_DIR}/include)
+
+target_link_libraries(lexer PRIVATE spdlog fmt)

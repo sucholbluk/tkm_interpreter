@@ -5,13 +5,13 @@
 #include <memory>
 #include <unordered_map>
 
+#include "ilexer.hpp"
 #include "source_handler.hpp"
-#include "token.hpp"
 
-class Lexer {
+class Lexer : public ILexer {
    public:
     explicit Lexer(std::unique_ptr<SourceHandler> source_handler);
-    Token get_next_token();
+    Token get_next_token() override;
 
    private:
     std::unique_ptr<SourceHandler> _source_handler;

@@ -18,9 +18,9 @@ std::vector<std::tuple<std::string, std::string>> read_values_test_cases = {
 };
 
 BOOST_DATA_TEST_CASE(read_values_test, bdata::make(read_values_test_cases), input_str, expected_output) {
-    std::stringstream source{input_str};
+    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>(input_str);
 
-    SourceHandler handler{source};
+    SourceHandler handler{std::move(source)};
     std::string handler_output{};
     char c;
     while ((c = handler.get_char_and_position().first) != EOF_CHAR) {
@@ -45,9 +45,9 @@ std::vector<std::tuple<std::string, Position>> eof_position_test_cases{
 };
 
 BOOST_DATA_TEST_CASE(eof_position_test, bdata::make(eof_position_test_cases), input_str, eof_position) {
-    std::stringstream source{input_str};
     std::pair<char, Position> char_pos;
-    SourceHandler handler{source};
+    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>(input_str);
+    SourceHandler handler{std::move(source)};
     do {
         char_pos = handler.get_char_and_position();
     } while (char_pos.first != EOF_CHAR);
@@ -70,9 +70,11 @@ std::vector<std::tuple<std::string, Position, int>> requests_after_eof_test_case
 };
 
 BOOST_DATA_TEST_CASE(request_chars_after_eof_test, bdata::make(requests_after_eof_test_cases), input_str, eof_position, n_times) {
-    std::stringstream source{input_str};
     std::pair<char, Position> char_pos;
-    SourceHandler handler{source};
+    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>(input_str);
+
+    SourceHandler handler{std::move(source)};
+
     do {
         char_pos = handler.get_char_and_position();
     } while (char_pos.first != EOF_CHAR);

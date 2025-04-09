@@ -171,15 +171,15 @@ BOOST_DATA_TEST_CASE(non_value_tokens_constructor_recieving_value, bdata::make(n
     std::variant<std::monostate, int, double, bool, std::string> value;
 
     switch (rand() % 5) {
-        case 1:
+        case 0:
             value = 42;
             break;
-        case 2:
+        case 1:
             value = 3.11434343;
             break;
-        case 3:
+        case 2:
             value = false;
-        case 4:
+        case 3:
             value = true;
         default:
             value = "some_string";

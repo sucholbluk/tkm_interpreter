@@ -9,8 +9,8 @@
 namespace bdata = boost::unit_test::data;
 
 BOOST_AUTO_TEST_CASE(constructor_test) {
-    std::stringstream source{"+"};
-    auto handler = std::make_unique<SourceHandler>(source);
+    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>("+");
+    auto handler = std::make_unique<SourceHandler>(std::move(source));
 
     Lexer lexer{std::move(handler)};
     Token plus{lexer.get_next_token()};
@@ -23,8 +23,8 @@ BOOST_AUTO_TEST_CASE(constructor_test) {
 }
 
 BOOST_AUTO_TEST_CASE(bool_test) {
-    std::stringstream source{"true false"};
-    auto handler = std::make_unique<SourceHandler>(source);
+    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>("true false");
+    auto handler = std::make_unique<SourceHandler>(std::move(source));
 
     Lexer lexer{std::move(handler)};
     Token t_true{lexer.get_next_token()};
@@ -95,8 +95,8 @@ std::vector<std::tuple<std::string, TokenType>> simple_test_cases{
 };
 
 BOOST_DATA_TEST_CASE(simple_tests, bdata::make(simple_test_cases), input, type) {
-    std::stringstream source{input};
-    auto handler = std::make_unique<SourceHandler>(source);
+    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>(input);
+    auto handler = std::make_unique<SourceHandler>(std::move(source));
 
     Lexer lexer{std::move(handler)};
     Token tk{lexer.get_next_token()};
@@ -115,8 +115,8 @@ std::vector<std::tuple<std::string, std::string>> string_test_cases{
 };
 
 BOOST_DATA_TEST_CASE(string_values_test, bdata::make(string_test_cases), input, expected_value) {
-    std::stringstream source{input};
-    auto handler = std::make_unique<SourceHandler>(source);
+    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>(input);
+    auto handler = std::make_unique<SourceHandler>(std::move(source));
     Lexer lexer{std::move(handler)};
     Token str{lexer.get_next_token()};
     Token eof{lexer.get_next_token()};
@@ -134,8 +134,8 @@ std::vector<std::tuple<std::string, int>> int_test_cases{
 };
 
 BOOST_DATA_TEST_CASE(int_tests, bdata::make(int_test_cases), input, expected_value) {
-    std::stringstream source{input};
-    auto handler = std::make_unique<SourceHandler>(source);
+    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>(input);
+    auto handler = std::make_unique<SourceHandler>(std::move(source));
 
     Lexer lexer{std::move(handler)};
     Token tk = lexer.get_next_token();
@@ -158,8 +158,8 @@ std::vector<std::tuple<std::string, double>> float_test_cases{
 };
 
 BOOST_DATA_TEST_CASE(float_tests, bdata::make(float_test_cases), input, expected_value) {
-    std::stringstream source{input};
-    auto handler = std::make_unique<SourceHandler>(source);
+    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>(input);
+    auto handler = std::make_unique<SourceHandler>(std::move(source));
 
     Lexer lexer{std::move(handler)};
     Token tk = lexer.get_next_token();
@@ -172,9 +172,8 @@ BOOST_DATA_TEST_CASE(float_tests, bdata::make(float_test_cases), input, expected
 }
 
 BOOST_AUTO_TEST_CASE(fibbonacci_test) {
-    std::stringstream mock_file;
-    mock_file << R"EOF(
-def nth_fibonacci(n: int) -> int {
+    std::string mock_file = R"EOF(
+def nth_fibonacci(n: int) -> int { #some comment here
     if (n <= 1) {
         return n;
     }
@@ -186,7 +185,8 @@ let n: int = 5;
 
 print("For " + n as string + " sequence number is " + nth_fibonacci(n) as string);
 )EOF";
-    auto handler = std::make_unique<SourceHandler>(mock_file);
+    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>(mock_file);
+    auto handler = std::make_unique<SourceHandler>(std::move(source));
     Lexer lexer{std::move(handler)};
     std::vector<Token> expected_tokens = {
         Token{TokenType::T_DEF, Position(2, 1)},
@@ -199,6 +199,7 @@ print("For " + n as string + " sequence number is " + nth_fibonacci(n) as string
         Token{TokenType::T_ARROW, Position(2, 27)},
         Token{TokenType::T_INT, Position(2, 30)},
         Token{TokenType::T_L_BRACE, Position(2, 34)},
+        Token{TokenType::T_COMMENT, Position(2, 36), "some comment here"},
         Token{TokenType::T_IF, Position(3, 5)},
         Token{TokenType::T_L_PAREN, Position(3, 8)},
         Token{TokenType::T_IDENTIFIER, Position(3, 9), "n"},
