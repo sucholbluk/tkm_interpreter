@@ -30,11 +30,6 @@ class Lexer {
     std::function<Token()> _create_unequivocal_operator_builder(TokenType type);
     std::function<Token()> _create_equivocal_operator_builder(TokenType type,
                                                               char lookahead_char, TokenType extended_type);
-    std::function<Token()> _create_equivocal_operator_builder(TokenType type,
-                                                              char lookahead_char_opt_1,
-                                                              TokenType extended_type_opt_1,
-                                                              char lookahead_char_opt_2,
-                                                              TokenType extended_type_opt_2);
 };
 
 #endif  // LEXER_HPP

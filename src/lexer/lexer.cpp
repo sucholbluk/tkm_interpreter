@@ -40,7 +40,7 @@ Token Lexer::_build_identifier_or_keyword() {
     Position token_position{_position};
 
     do {
-        if (lexeme.length() == MAX_IDENTIFIER_LEN)  // cur or report exception
+        if (lexeme.length() == MAX_IDENTIFIER_LEN)
             throw IdentifierTooLongException(_position);
 
         lexeme += _character;
@@ -91,7 +91,6 @@ Token Lexer::_build_literal_string() {
     return Token{TokenType::T_LITERAL_STRING, position, token_value};
 }
 
-// probably to change
 Token Lexer::_build_literal_int_or_float() {
     Position position{_position};
     int digit{_character - '0'};
@@ -183,9 +182,20 @@ void Lexer::_initialize_operator_builders_map() {
         {'-', _create_equivocal_operator_builder(TokenType::T_MINUS, '>', TokenType::T_ARROW)},
         {'=', _create_equivocal_operator_builder(TokenType::T_ASSIGN, '=', TokenType::T_EQUAL)},
         {'<', _create_equivocal_operator_builder(TokenType::T_LESS, '=', TokenType::T_LESS_EQUAL)},
-        {'>', _create_equivocal_operator_builder(TokenType::T_GREATER, '=', TokenType::T_GREATER_EQUAL,
-                                                 '>', TokenType::T_BIND_FRONT)},
         {'\"', [this]() -> Token { return this->_build_literal_string(); }},
+        {'>', [this]() -> Token {  // can be >, >= or >>
+             Position position{this->_position};
+             this->_get_next_char();
+
+             if (this->_character == '=') {
+                 this->_get_next_char();
+                 return Token{TokenType::T_GREATER_EQUAL, position};
+             } else if (this->_character == '>') {
+                 this->_get_next_char();
+                 return Token{TokenType::T_BIND_FRONT, position};
+             }
+             return Token{TokenType::T_GREATER, position};
+         }},
         {'!', [this]() -> Token {
              Position position{this->_position};
              this->_get_next_char();
@@ -219,37 +229,13 @@ std::function<Token()> Lexer::_create_equivocal_operator_builder(TokenType type,
                                                                  char lookahead_char,
                                                                  TokenType extended_type) {
     return [this, type, lookahead_char, extended_type]() -> Token {
-        Token built_token{type, this->_position};
+        Position position{this->_position};
         this->_get_next_char();
+
         if (this->_character == lookahead_char) {
-            built_token = Token{extended_type, built_token.get_position()};
             this->_get_next_char();
+            return Token{extended_type, position};
         }
-        return built_token;
-    };
-}
-
-std::function<Token()> Lexer::_create_equivocal_operator_builder(TokenType type,
-                                                                 char lookahead_char_opt_1,
-                                                                 TokenType extended_type_opt_1,
-                                                                 char lookahead_char_opt_2,
-                                                                 TokenType extended_type_opt_2) {
-    return [this,
-            type,
-            lookahead_char_opt_1,
-            extended_type_opt_1,
-            lookahead_char_opt_2,
-            extended_type_opt_2]() {
-        Token built_token{type, this->_position};
-        this->_get_next_char();
-
-        if (this->_character == lookahead_char_opt_1) {
-            built_token = Token{extended_type_opt_1, built_token.get_position()};
-            this->_get_next_char();
-        } else if (this->_character == lookahead_char_opt_2) {
-            built_token = Token{extended_type_opt_2, built_token.get_position()};
-            this->_get_next_char();
-        }
-        return built_token;
+        return Token{type, position};
     };
 }

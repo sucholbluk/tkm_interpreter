@@ -9,12 +9,14 @@
 #include "position.hpp"
 #include "token_type.hpp"
 
+// if the written code is correct it should never be thrown
 class InvalidTokenValueException : public std::logic_error {
    public:
     explicit InvalidTokenValueException(const TokenType type)
         : std::logic_error(std::string{"Invalid token value for"} + type._to_string()) {}
 };
 
+// if the written code is correct it should never be thrown
 class InvalidGetTokenValueException : public std::logic_error {
    public:
     explicit InvalidGetTokenValueException(const std::string& message)
