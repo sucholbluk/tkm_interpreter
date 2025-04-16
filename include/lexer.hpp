@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <unordered_map>
 
 #include "ilexer.hpp"
@@ -31,14 +32,14 @@ class Lexer : public ILexer {
      *
      * Used to compare if we have built keyword or identifier
      */
-    std::unordered_map<std::string, std::function<Token(Position)>> _keywords_build_map;
+    static const std::unordered_map<std::string, std::function<Token(Position)>> _keywords_build_map;
 
     void _get_next_char();
 
     void _initialize_operator_builders_map();
-    void _initialize_keywords_map();
-    Token _build_identifier_or_keyword();
-    Token _build_literal_int_or_float();
+    void _ignore_white_chars();
+    std::optional<Token> _try_build_identifier_or_keyword();
+    std::optional<Token> _try_build_literal_int_or_float();
     Token _build_literal_string();
     /*
      * @brief returns builder function/method that has only 1 correct @ref TokenType

@@ -27,18 +27,17 @@ class Token {
 
     TokenType get_type() const noexcept;
     Position get_position() const noexcept;
-    std::string print() const;
+    std::string repr() const;
 
     template <typename T>
     T get_value_as() const;
 
    private:
-    TokenType _type;
+    TokenType _type = TokenType::Invalid;
     Position _position;
     optional_token_value _value;
 
-    void _validate_token() const;
-    bool _type_matches_value() const noexcept;
+    static void _validate_token(const TokenType& type, const optional_token_value& value);
     std::string _stringify_value() const;
 };
 
@@ -49,10 +48,9 @@ class Token {
  */
 template <typename T>
 T Token::get_value_as() const {
-    if (not std::holds_alternative<T>(_value))
-        throw InvalidGetTokenValueError(this->print());
-
-    return std::get<T>(_value);
+    if (auto value = std::get_if<T>(&_value))
+        return *value;
+    throw InvalidGetTokenValueError(this->repr());
 }
 
 std::ostream& operator<<(std::ostream& os, const Token& token);

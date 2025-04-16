@@ -1,10 +1,10 @@
-#include "execution_guard.hpp"
+#include "safe_exec.hpp"
 
 #include <spdlog/spdlog.h>
 
 #include "exceptions.hpp"
 
-void ExecutionGuard::run_safe(const std::function<void()>& task) noexcept {
+void safe_exec::run_safe(const std::function<void()>& task) noexcept {
     try {
         spdlog::set_pattern("[%^%l%$] %v");
         task();

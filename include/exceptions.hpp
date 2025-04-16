@@ -36,7 +36,7 @@ class FileOpenException : public std::runtime_error {
  */
 class InvalidTokenValueError : public ImplementationError {
    public:
-    explicit InvalidTokenValueError(const TokenType type)
+    explicit InvalidTokenValueError(const TokenType& type)
         : ImplementationError(std::string{"Invalid token value for"} + type._to_string()) {}
 };
 
@@ -90,7 +90,7 @@ class UnfinishedStringException : public LexerException {
  */
 class IdentifierTooLongException : public LexerException {
    public:
-    explicit IdentifierTooLongException(const Position position)
+    explicit IdentifierTooLongException(const Position& position)
         : LexerException(std::string{"Identifier at: "} + position.get_position_str() +
                          +", exceeds max identifier len: " + std::to_string(MAX_IDENTIFIER_LEN)) {}
 };

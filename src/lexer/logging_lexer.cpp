@@ -18,7 +18,7 @@ Token LoggingLexer::get_next_token() {
 }
 
 void LoggingLexer::_log_token_creation(const Token& token) {
-    spdlog::info("{} Created Token: {}", _log_prefix, token.print());
+    spdlog::info("{} Created Token: {}", _log_prefix, token.repr());
 }
 
 void LoggingLexer::_log_encountered_error(const std::exception& e) {

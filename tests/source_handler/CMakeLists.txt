@@ -1,7 +1,7 @@
 set(SOURCE_HANDLER_TEST_SOURCES
     test_source_handler.cpp
 )
-
+find_package(Boost 1.88.0 REQUIRED COMPONENTS unit_test_framework)
 add_executable(source_handler_unit_tests ${SOURCE_HANDLER_TEST_SOURCES})
 target_link_libraries(source_handler_unit_tests
     Boost::unit_test_framework

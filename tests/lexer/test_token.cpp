@@ -206,5 +206,5 @@ std::vector<std::tuple<Token, std::string>> token_print_test_case{
 };
 
 BOOST_DATA_TEST_CASE(token_print_test, bdata::make(token_print_test_case), token, expected_output) {
-    BOOST_CHECK_EQUAL(token.print(), expected_output);
+    BOOST_CHECK_EQUAL(token.repr(), expected_output);
 }

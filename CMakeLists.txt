@@ -4,6 +4,10 @@ project(TKM_Compiler)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_compile_options(-stdlib=libc++)
+add_link_options(-stdlib=libc++ -lc++abi)
+
+link_directories(/usr/local/lib)
 
 find_package(spdlog REQUIRED)
 find_package(fmt REQUIRED)

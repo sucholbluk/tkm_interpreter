@@ -6,26 +6,22 @@
 #include <limits>
 
 Lexer::Lexer(std::unique_ptr<SourceHandler> source_handler) : _source_handler{std::move(source_handler)} {
-    _initialize_keywords_map();
     _initialize_operator_builders_map();
     _get_next_char();
 }
 
 Token Lexer::get_next_token() {
-    if (auto it = _simple_builders_map.find(_character); it != _simple_builders_map.end()) {
+    _ignore_white_chars();
+
+    if (auto it = _simple_builders_map.find(_character); it != _simple_builders_map.end())
         return it->second();
-    }
 
-    if (std::isalpha(_character) or _character == '_')
-        return _build_identifier_or_keyword();
+    if (auto token = _try_build_identifier_or_keyword())
+        return *token;
 
-    if (std::isdigit(_character))
-        return _build_literal_int_or_float();
+    if (auto token = _try_build_literal_int_or_float())
+        return *token;
 
-    if (std::isspace(_character)) {
-        _get_next_char();
-        return get_next_token();
-    }
     throw UnexpectedCharacterException(_position, _character);
 }
 
@@ -35,7 +31,15 @@ void Lexer::_get_next_char() {
     _position = char_and_position.second;
 }
 
-Token Lexer::_build_identifier_or_keyword() {
+void Lexer::_ignore_white_chars() {
+    while (std::isspace(_character))
+        _get_next_char();
+}
+
+std::optional<Token> Lexer::_try_build_identifier_or_keyword() {
+    if (not(std::isalpha(_character) or _character == '_'))
+        return std::nullopt;
+
     std::string lexeme{};
     Position token_position{_position};
 
@@ -91,7 +95,10 @@ Token Lexer::_build_literal_string() {
     return Token{TokenType::T_LITERAL_STRING, position, token_value};
 }
 
-Token Lexer::_build_literal_int_or_float() {
+std::optional<Token> Lexer::_try_build_literal_int_or_float() {
+    if (not std::isdigit(_character))
+        return std::nullopt;
+
     Position position{_position};
     int digit{_character - '0'};
     int integer_value{digit};
@@ -136,32 +143,6 @@ Token Lexer::_build_literal_int_or_float() {
     double float_value = integer_value + ((double)fraction_value / std::pow(10.0, fraction_digits));
 
     return Token{TokenType::T_LITERAL_FLOAT, position, float_value};
-}
-
-void Lexer::_initialize_keywords_map() {
-    _keywords_build_map = {
-        {"int", [](Position pos) { return Token{TokenType::T_INT, pos}; }},
-        {"float", [](Position pos) { return Token{TokenType::T_FLOAT, pos}; }},
-        {"bool", [](Position pos) { return Token{TokenType::T_BOOL, pos}; }},
-        {"string", [](Position pos) { return Token{TokenType::T_STRING, pos}; }},
-        {"function", [](Position pos) { return Token{TokenType::T_FUNCTION, pos}; }},
-        {"none", [](Position pos) { return Token{TokenType::T_NONE, pos}; }},
-        {"not", [](Position pos) { return Token{TokenType::T_NOT, pos}; }},
-        {"and", [](Position pos) { return Token{TokenType::T_AND, pos}; }},
-        {"or", [](Position pos) { return Token{TokenType::T_OR, pos}; }},
-        {"def", [](Position pos) { return Token{TokenType::T_DEF, pos}; }},
-        {"let", [](Position pos) { return Token{TokenType::T_LET, pos}; }},
-        {"mut", [](Position pos) { return Token{TokenType::T_MUT, pos}; }},
-        {"as", [](Position pos) { return Token{TokenType::T_AS, pos}; }},
-        {"if", [](Position pos) { return Token{TokenType::T_IF, pos}; }},
-        {"else", [](Position pos) { return Token{TokenType::T_ELSE, pos}; }},
-        {"break", [](Position pos) { return Token{TokenType::T_BREAK, pos}; }},
-        {"continue", [](Position pos) { return Token{TokenType::T_CONTINUE, pos}; }},
-        {"return", [](Position pos) { return Token{TokenType::T_RETURN, pos}; }},
-        {"for", [](Position pos) { return Token{TokenType::T_FOR, pos}; }},
-        {"true", [](Position pos) { return Token{TokenType::T_LITERAL_BOOL, pos, true}; }},
-        {"false", [](Position pos) { return Token{TokenType::T_LITERAL_BOOL, pos, false}; }},
-    };
 }
 
 void Lexer::_initialize_operator_builders_map() {
@@ -239,3 +220,27 @@ std::function<Token()> Lexer::_create_equivocal_operator_builder(TokenType type,
         return Token{type, position};
     };
 }
+
+const std::unordered_map<std::string, std::function<Token(Position)>> Lexer::_keywords_build_map = {
+    {"int", [](Position pos) { return Token{TokenType::T_INT, pos}; }},
+    {"float", [](Position pos) { return Token{TokenType::T_FLOAT, pos}; }},
+    {"bool", [](Position pos) { return Token{TokenType::T_BOOL, pos}; }},
+    {"string", [](Position pos) { return Token{TokenType::T_STRING, pos}; }},
+    {"function", [](Position pos) { return Token{TokenType::T_FUNCTION, pos}; }},
+    {"none", [](Position pos) { return Token{TokenType::T_NONE, pos}; }},
+    {"not", [](Position pos) { return Token{TokenType::T_NOT, pos}; }},
+    {"and", [](Position pos) { return Token{TokenType::T_AND, pos}; }},
+    {"or", [](Position pos) { return Token{TokenType::T_OR, pos}; }},
+    {"def", [](Position pos) { return Token{TokenType::T_DEF, pos}; }},
+    {"let", [](Position pos) { return Token{TokenType::T_LET, pos}; }},
+    {"mut", [](Position pos) { return Token{TokenType::T_MUT, pos}; }},
+    {"as", [](Position pos) { return Token{TokenType::T_AS, pos}; }},
+    {"if", [](Position pos) { return Token{TokenType::T_IF, pos}; }},
+    {"else", [](Position pos) { return Token{TokenType::T_ELSE, pos}; }},
+    {"break", [](Position pos) { return Token{TokenType::T_BREAK, pos}; }},
+    {"continue", [](Position pos) { return Token{TokenType::T_CONTINUE, pos}; }},
+    {"return", [](Position pos) { return Token{TokenType::T_RETURN, pos}; }},
+    {"for", [](Position pos) { return Token{TokenType::T_FOR, pos}; }},
+    {"true", [](Position pos) { return Token{TokenType::T_LITERAL_BOOL, pos, true}; }},
+    {"false", [](Position pos) { return Token{TokenType::T_LITERAL_BOOL, pos, false}; }},
+};

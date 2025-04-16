@@ -64,6 +64,7 @@ BETTER_ENUM(TokenType, int,
             T_LITERAL_FLOAT,
 
             T_COMMENT,
-            T_EOF)
+            T_EOF,
+            Invalid)
 
 #endif  // TOKEN_TYPE_HPP
