@@ -14,7 +14,6 @@ Program::Program(int argc, char* const argv[]) : _use_stdin{false}, _verbose{fal
 }
 
 void Program::run() {
-    // jeszcze brak obsługi --output wiec poki co wypisuje na cout
     Token current_token{_lexer->get_next_token()};
     do {
         current_token = _lexer->get_next_token();

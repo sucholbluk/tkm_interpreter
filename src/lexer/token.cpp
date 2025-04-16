@@ -66,6 +66,7 @@ void Token::_validate_token(const TokenType& type, const optional_token_value& v
             break;
         default:
             if (std::holds_alternative<std::monostate>(value)) return;
+        case TokenType::Invalid:
     }
 
     throw InvalidTokenValueError(type);
