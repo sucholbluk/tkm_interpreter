@@ -64,9 +64,10 @@ void Token::_validate_token(const TokenType& type, const optional_token_value& v
         case TokenType::T_LITERAL_STRING:
             if (std::holds_alternative<std::string>(value)) return;
             break;
+        case TokenType::Invalid:
+            break;
         default:
             if (std::holds_alternative<std::monostate>(value)) return;
-        case TokenType::Invalid:
     }
 
     throw InvalidTokenValueError(type);
