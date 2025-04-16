@@ -1,41 +1,23 @@
 #include "position.hpp"
 
-Position::Position(int line, int column) : _line{line}, _column{column} {}
-
-int Position::get_line() const noexcept {
-    return _line;
-}
-
-int Position::get_column() const noexcept {
-    return _column;
-}
-
 void Position::next_column() {
-    ++_column;
+    ++column;
 }
 
 void Position::next_line() {
-    _column = 1;
-    ++_line;
+    column = 1;
+    ++line;
 }
 
 std::string Position::get_position_str() const {
-    return "[" + std::to_string(_line) + ":" + std::to_string(_column) + "]";
+    return "[" + std::to_string(line) + ":" + std::to_string(column) + "]";
 }
 
-std::string Position::print() const {
-    return "Position(" + std::to_string(_line) + "," + std::to_string(_column) + ")";
-}
-
-bool Position::operator==(const Position& other) const noexcept {
-    return this->_line == other._line && this->_column == other._column;
-}
-
-bool Position::operator!=(const Position& other) const noexcept {
-    return not(*this == other);
+std::string Position::repr() const {
+    return "Position(" + std::to_string(line) + "," + std::to_string(column) + ")";
 }
 
 std::ostream& operator<<(std::ostream& os, const Position& pos) {
-    os << pos.print();
+    os << pos.repr();
     return os;
 }

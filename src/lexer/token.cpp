@@ -22,7 +22,7 @@ Position Token::get_position() const noexcept {
 }
 
 std::string Token::repr() const {
-    std::string repr{std::string("Token(") + _type._to_string() + "," + _position.print()};
+    std::string repr{std::string("Token(") + _type._to_string() + "," + _position.repr()};
     if (not std::holds_alternative<std::monostate>(_value)) {
         repr += "," + _stringify_value();
     }
