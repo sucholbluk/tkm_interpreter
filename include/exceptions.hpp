@@ -37,7 +37,7 @@ class FileOpenException : public std::runtime_error {
 class InvalidTokenValueError : public ImplementationError {
    public:
     explicit InvalidTokenValueError(const TokenType& type)
-        : ImplementationError(std::string{"Invalid token value for"} + type._to_string()) {}
+        : ImplementationError(std::string{"Invalid token value for"} + type_to_str(type)) {}
 };
 
 /*

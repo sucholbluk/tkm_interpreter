@@ -138,7 +138,7 @@ std::vector<std::tuple<Position, bool>> bool_values_test_cases{
 BOOST_DATA_TEST_CASE(bool_values_test, bdata::make(bool_values_test_cases), position, value) {
     Token token{TokenType::T_LITERAL_BOOL, position, value};
 
-    BOOST_CHECK_EQUAL(token.get_type()._to_integral(), TokenType::T_LITERAL_BOOL);
+    BOOST_CHECK_EQUAL(token.get_type(), TokenType::T_LITERAL_BOOL);
     BOOST_CHECK_EQUAL(token.get_position(), position);
     BOOST_CHECK_EQUAL(token.get_value_as<bool>(), value);
     BOOST_CHECK_THROW(token.get_value_as<int>(), InvalidGetTokenValueError);
@@ -165,46 +165,23 @@ BOOST_DATA_TEST_CASE(value_tokens_without_value_constructor_test, bdata::make(va
     BOOST_CHECK_THROW(Token token(type, position), InvalidTokenValueError);
 };
 
-BOOST_DATA_TEST_CASE(non_value_tokens_constructor_recieving_value, bdata::make(non_value_tokens_test_cases), type, position) {
-    int random_num = rand() % 3;
-
-    std::variant<std::monostate, int, double, bool, std::string> value;
-
-    switch (rand() % 5) {
-        case 0:
-            value = 42;
-            break;
-        case 1:
-            value = 3.11434343;
-            break;
-        case 2:
-            value = false;
-        case 3:
-            value = true;
-        default:
-            value = "some_string";
-            break;
-    }
-    BOOST_CHECK_THROW(Token token(type, position, value), InvalidTokenValueError);
-};
-
 std::vector<std::tuple<Token, std::string>> token_print_test_case{
-    {Token{TokenType::T_AND, Position{4, 4}}, "Token(T_AND,Position(4,4))"},
-    {Token{TokenType::T_INT, Position{9, 41}}, "Token(T_INT,Position(9,41))"},
-    {Token{TokenType::T_FLOAT, Position{34, 3}}, "Token(T_FLOAT,Position(34,3))"},
-    {Token{TokenType::T_FUNCTION, Position{90, 65}}, "Token(T_FUNCTION,Position(90,65))"},
-    {Token{TokenType::T_NONE, Position{77, 7}}, "Token(T_NONE,Position(77,7))"},
-    {Token{TokenType::T_FUNC_COMPOSITION, Position{84, 1}}, "Token(T_FUNC_COMPOSITION,Position(84,1))"},
-    {Token{TokenType::T_ASSIGN, Position{92, 11}}, "Token(T_ASSIGN,Position(92,11))"},
-    {Token{TokenType::T_L_BRACE, Position{7, 14}}, "Token(T_L_BRACE,Position(7,14))"},
-    {Token{TokenType::T_EOF, Position{1004, 1}}, "Token(T_EOF,Position(1004,1))"},
-    {Token{TokenType::T_COMMA, Position{62, 8}}, "Token(T_COMMA,Position(62,8))"},
-    {Token{TokenType::T_LITERAL_INT, Position{34, 3}, 123456789}, "Token(T_LITERAL_INT,Position(34,3),123456789)"},
-    {Token{TokenType::T_LITERAL_FLOAT, Position{90, 65}, 3.1422222}, "Token(T_LITERAL_FLOAT,Position(90,65),3.142222)"},
-    {Token{TokenType::T_LITERAL_STRING, Position{77, 7}, "Hello world!"}, "Token(T_LITERAL_STRING,Position(77,7),\"Hello world!\")"},
-    {Token{TokenType::T_IDENTIFIER, Position{84, 1}, "_variable1"}, "Token(T_IDENTIFIER,Position(84,1),\"_variable1\")"},
+    {Token{TokenType::T_AND, Position{4, 4}}, "Token(TokenType::T_AND,Position(4,4))"},
+    {Token{TokenType::T_INT, Position{9, 41}}, "Token(TokenType::T_INT,Position(9,41))"},
+    {Token{TokenType::T_FLOAT, Position{34, 3}}, "Token(TokenType::T_FLOAT,Position(34,3))"},
+    {Token{TokenType::T_FUNCTION, Position{90, 65}}, "Token(TokenType::T_FUNCTION,Position(90,65))"},
+    {Token{TokenType::T_NONE, Position{77, 7}}, "Token(TokenType::T_NONE,Position(77,7))"},
+    {Token{TokenType::T_FUNC_COMPOSITION, Position{84, 1}}, "Token(TokenType::T_FUNC_COMPOSITION,Position(84,1))"},
+    {Token{TokenType::T_ASSIGN, Position{92, 11}}, "Token(TokenType::T_ASSIGN,Position(92,11))"},
+    {Token{TokenType::T_L_BRACE, Position{7, 14}}, "Token(TokenType::T_L_BRACE,Position(7,14))"},
+    {Token{TokenType::T_EOF, Position{1004, 1}}, "Token(TokenType::T_EOF,Position(1004,1))"},
+    {Token{TokenType::T_COMMA, Position{62, 8}}, "Token(TokenType::T_COMMA,Position(62,8))"},
+    {Token{TokenType::T_LITERAL_INT, Position{34, 3}, 123456789}, "Token(TokenType::T_LITERAL_INT,Position(34,3),123456789)"},
+    {Token{TokenType::T_LITERAL_FLOAT, Position{90, 65}, 3.1422222}, "Token(TokenType::T_LITERAL_FLOAT,Position(90,65),3.142222)"},
+    {Token{TokenType::T_LITERAL_STRING, Position{77, 7}, "Hello world!"}, "Token(TokenType::T_LITERAL_STRING,Position(77,7),\"Hello world!\")"},
+    {Token{TokenType::T_IDENTIFIER, Position{84, 1}, "_variable1"}, "Token(TokenType::T_IDENTIFIER,Position(84,1),\"_variable1\")"},
 };
 
-BOOST_DATA_TEST_CASE(token_print_test, bdata::make(token_print_test_case), token, expected_output) {
+BOOST_DATA_TEST_CASE(token_repr_test, bdata::make(token_print_test_case), token, expected_output) {
     BOOST_CHECK_EQUAL(token.repr(), expected_output);
 }

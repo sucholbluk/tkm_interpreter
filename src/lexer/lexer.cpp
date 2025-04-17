@@ -6,7 +6,6 @@
 #include <limits>
 
 Lexer::Lexer(std::unique_ptr<SourceHandler> source_handler) : _source_handler{std::move(source_handler)} {
-    _initialize_operator_builders_map();
     _get_next_char();
 }
 
@@ -14,7 +13,7 @@ Token Lexer::get_next_token() {
     _ignore_white_chars();
 
     if (auto it = _simple_builders_map.find(_character); it != _simple_builders_map.end())
-        return it->second();
+        return std::invoke(it->second, *this);
 
     if (auto token = _try_build_identifier_or_keyword())
         return *token;
@@ -145,76 +144,23 @@ std::optional<Token> Lexer::_try_build_literal_int_or_float() {
     return Token{TokenType::T_LITERAL_FLOAT, position, float_value};
 }
 
-void Lexer::_initialize_operator_builders_map() {
-    _simple_builders_map = {
-        {'(', _create_unequivocal_operator_builder(TokenType::T_L_PAREN)},
-        {')', _create_unequivocal_operator_builder(TokenType::T_R_PAREN)},
-        {'{', _create_unequivocal_operator_builder(TokenType::T_L_BRACE)},
-        {'}', _create_unequivocal_operator_builder(TokenType::T_R_BRACE)},
-        {',', _create_unequivocal_operator_builder(TokenType::T_COMMA)},
-        {';', _create_unequivocal_operator_builder(TokenType::T_SEMICOLON)},
-        {':', _create_unequivocal_operator_builder(TokenType::T_COLON)},
-        {'&', _create_unequivocal_operator_builder(TokenType::T_FUNC_COMPOSITION)},
-        {'+', _create_unequivocal_operator_builder(TokenType::T_PLUS)},
-        {'*', _create_unequivocal_operator_builder(TokenType::T_MULTIPLY)},
-        {'/', _create_unequivocal_operator_builder(TokenType::T_DIVIDE)},
-        {EOF_CHAR, _create_unequivocal_operator_builder(TokenType::T_EOF)},
-
-        {'-', _create_equivocal_operator_builder(TokenType::T_MINUS, '>', TokenType::T_ARROW)},
-        {'=', _create_equivocal_operator_builder(TokenType::T_ASSIGN, '=', TokenType::T_EQUAL)},
-        {'<', _create_equivocal_operator_builder(TokenType::T_LESS, '=', TokenType::T_LESS_EQUAL)},
-        {'\"', [this]() -> Token { return this->_build_literal_string(); }},
-        {'>', [this]() -> Token {  // can be >, >= or >>
-             Position position{this->_position};
-             this->_get_next_char();
-
-             if (this->_character == '=') {
-                 this->_get_next_char();
-                 return Token{TokenType::T_GREATER_EQUAL, position};
-             } else if (this->_character == '>') {
-                 this->_get_next_char();
-                 return Token{TokenType::T_BIND_FRONT, position};
-             }
-             return Token{TokenType::T_GREATER, position};
-         }},
-        {'!', [this]() -> Token {
-             Position position{this->_position};
-             this->_get_next_char();
-             if (this->_character != '=')
-                 throw UnexpectedCharacterException(position, _character);
-             this->_get_next_char();
-             return Token{TokenType::T_NOT_EQUAL, position};
-         }},
-        {'#', [this]() -> Token {
-             Position position{this->_position};
-             std::string token_value{};
-             _get_next_char();
-             while (token_value.length() < MAX_COMMENT_LEN and this->_character != '\n' and this->_character != EOF_CHAR) {
-                 token_value += _character;
-                 _get_next_char();
-             }
-             return Token{TokenType::T_COMMENT, position, token_value};
-         }},
-    };
-}
-
-std::function<Token()> Lexer::_create_unequivocal_operator_builder(TokenType type) {
-    return [this, type]() -> Token {
-        Token single_operator_token{type, this->_position};
-        this->_get_next_char();
+std::function<Token(Lexer&)> Lexer::_create_unequivocal_operator_builder(TokenType type) {
+    return [type](Lexer& lexer) -> Token {
+        Token single_operator_token{type, lexer._position};
+        lexer._get_next_char();
         return single_operator_token;
     };
 }
 
-std::function<Token()> Lexer::_create_equivocal_operator_builder(TokenType type,
-                                                                 char lookahead_char,
-                                                                 TokenType extended_type) {
-    return [this, type, lookahead_char, extended_type]() -> Token {
-        Position position{this->_position};
-        this->_get_next_char();
+std::function<Token(Lexer&)> Lexer::_create_equivocal_operator_builder(TokenType type,
+                                                                       char lookahead_char,
+                                                                       TokenType extended_type) {
+    return [type, lookahead_char, extended_type](Lexer& lexer) -> Token {
+        Position position{lexer._position};
+        lexer._get_next_char();
 
-        if (this->_character == lookahead_char) {
-            this->_get_next_char();
+        if (lexer._character == lookahead_char) {
+            lexer._get_next_char();
             return Token{extended_type, position};
         }
         return Token{type, position};
@@ -243,4 +189,55 @@ const std::unordered_map<std::string, std::function<Token(Position)>> Lexer::_ke
     {"for", [](Position pos) { return Token{TokenType::T_FOR, pos}; }},
     {"true", [](Position pos) { return Token{TokenType::T_LITERAL_BOOL, pos, true}; }},
     {"false", [](Position pos) { return Token{TokenType::T_LITERAL_BOOL, pos, false}; }},
+};
+
+const std::unordered_map<char, std::function<Token(Lexer&)>> Lexer::_simple_builders_map = {
+    {'(', _create_unequivocal_operator_builder(TokenType::T_L_PAREN)},
+    {')', _create_unequivocal_operator_builder(TokenType::T_R_PAREN)},
+    {'{', _create_unequivocal_operator_builder(TokenType::T_L_BRACE)},
+    {'}', _create_unequivocal_operator_builder(TokenType::T_R_BRACE)},
+    {',', _create_unequivocal_operator_builder(TokenType::T_COMMA)},
+    {';', _create_unequivocal_operator_builder(TokenType::T_SEMICOLON)},
+    {':', _create_unequivocal_operator_builder(TokenType::T_COLON)},
+    {'&', _create_unequivocal_operator_builder(TokenType::T_FUNC_COMPOSITION)},
+    {'+', _create_unequivocal_operator_builder(TokenType::T_PLUS)},
+    {'*', _create_unequivocal_operator_builder(TokenType::T_MULTIPLY)},
+    {'/', _create_unequivocal_operator_builder(TokenType::T_DIVIDE)},
+    {EOF_CHAR, _create_unequivocal_operator_builder(TokenType::T_EOF)},
+
+    {'-', _create_equivocal_operator_builder(TokenType::T_MINUS, '>', TokenType::T_ARROW)},
+    {'=', _create_equivocal_operator_builder(TokenType::T_ASSIGN, '=', TokenType::T_EQUAL)},
+    {'<', _create_equivocal_operator_builder(TokenType::T_LESS, '=', TokenType::T_LESS_EQUAL)},
+    {'\"', [](Lexer& lexer) -> Token { return lexer._build_literal_string(); }},
+    {'>', [](Lexer& lexer) -> Token {  // can be >, >= or >>
+         Position position{lexer._position};
+         lexer._get_next_char();
+
+         if (lexer._character == '=') {
+             lexer._get_next_char();
+             return Token{TokenType::T_GREATER_EQUAL, position};
+         } else if (lexer._character == '>') {
+             lexer._get_next_char();
+             return Token{TokenType::T_BIND_FRONT, position};
+         }
+         return Token{TokenType::T_GREATER, position};
+     }},
+    {'!', [](Lexer& lexer) -> Token {
+         Position position{lexer._position};
+         lexer._get_next_char();
+         if (lexer._character != '=')
+             throw UnexpectedCharacterException(position, lexer._character);
+         lexer._get_next_char();
+         return Token{TokenType::T_NOT_EQUAL, position};
+     }},
+    {'#', [](Lexer& lexer) -> Token {
+         Position position{lexer._position};
+         std::string token_value{};
+         lexer._get_next_char();
+         while (token_value.length() < MAX_COMMENT_LEN and lexer._character != '\n' and lexer._character != EOF_CHAR) {
+             token_value += lexer._character;
+             lexer._get_next_char();
+         }
+         return Token{TokenType::T_COMMENT, position, token_value};
+     }},
 };

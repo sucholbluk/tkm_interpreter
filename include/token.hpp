@@ -33,7 +33,7 @@ class Token {
     T get_value_as() const;
 
    private:
-    TokenType _type = TokenType::Invalid;
+    TokenType _type;
     Position _position;
     optional_token_value _value;
 

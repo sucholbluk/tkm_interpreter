@@ -22,7 +22,7 @@ Position Token::get_position() const noexcept {
 }
 
 std::string Token::repr() const {
-    std::string repr{std::string("Token(") + _type._to_string() + "," + _position.repr()};
+    std::string repr{std::string("Token(") + type_to_str(_type) + "," + _position.repr()};
     if (not std::holds_alternative<std::monostate>(_value)) {
         repr += "," + _stringify_value();
     }
@@ -63,8 +63,6 @@ void Token::_validate_token(const TokenType& type, const optional_token_value& v
         case TokenType::T_COMMENT:
         case TokenType::T_LITERAL_STRING:
             if (std::holds_alternative<std::string>(value)) return;
-            break;
-        case TokenType::Invalid:
             break;
         default:
             if (std::holds_alternative<std::monostate>(value)) return;

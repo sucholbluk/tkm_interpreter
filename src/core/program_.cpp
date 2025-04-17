@@ -17,7 +17,7 @@ void Program::run() {
     Token current_token{_lexer->get_next_token()};
     do {
         current_token = _lexer->get_next_token();
-    } while (current_token.get_type()._to_integral() != TokenType::T_EOF);
+    } while (current_token.get_type() != TokenType::T_EOF);
 }
 
 void Program::_parse_args(int argc, char* const argv[]) {

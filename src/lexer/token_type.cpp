@@ -1,0 +1,107 @@
+#include "token_type.hpp"
+
+std::string type_to_str(const TokenType& token_type) {
+    switch (token_type) {
+        case TokenType::T_IDENTIFIER:
+            return "TokenType::T_IDENTIFIER";
+        case TokenType::T_INT:
+            return "TokenType::T_INT";
+        case TokenType::T_FLOAT:
+            return "TokenType::T_FLOAT";
+        case TokenType::T_BOOL:
+            return "TokenType::T_BOOL";
+        case TokenType::T_STRING:
+            return "TokenType::T_STRING";
+        case TokenType::T_FUNCTION:
+            return "TokenType::T_FUNCTION";
+        case TokenType::T_NONE:
+            return "TokenType::T_NONE";
+        case TokenType::T_PLUS:
+            return "TokenType::T_PLUS";
+        case TokenType::T_MINUS:
+            return "TokenType::T_MINUS";
+        case TokenType::T_MULTIPLY:
+            return "TokenType::T_MULTIPLY";
+        case TokenType::T_DIVIDE:
+            return "TokenType::T_DIVIDE";
+        case TokenType::T_ASSIGN:
+            return "TokenType::T_ASSIGN";
+        case TokenType::T_EQUAL:
+            return "TokenType::T_EQUAL";
+        case TokenType::T_NOT_EQUAL:
+            return "TokenType::T_NOT_EQUAL";
+        case TokenType::T_LESS_EQUAL:
+            return "TokenType::T_LESS_EQUAL";
+        case TokenType::T_GREATER_EQUAL:
+            return "TokenType::T_GREATER_EQUAL";
+        case TokenType::T_LESS:
+            return "TokenType::T_LESS";
+        case TokenType::T_GREATER:
+            return "TokenType::T_GREATER";
+        case TokenType::T_BIND_FRONT:
+            return "TokenType::T_BIND_FRONT";
+        case TokenType::T_FUNC_COMPOSITION:
+            return "TokenType::T_FUNC_COMPOSITION";
+        case TokenType::T_NOT:
+            return "TokenType::T_NOT";
+        case TokenType::T_AND:
+            return "TokenType::T_AND";
+        case TokenType::T_OR:
+            return "TokenType::T_OR";
+        case TokenType::T_DEF:
+            return "TokenType::T_DEF";
+        case TokenType::T_LET:
+            return "TokenType::T_LET";
+        case TokenType::T_MUT:
+            return "TokenType::T_MUT";
+        case TokenType::T_AS:
+            return "TokenType::T_AS";
+        case TokenType::T_IF:
+            return "TokenType::T_IF";
+        case TokenType::T_ELSE:
+            return "TokenType::T_ELSE";
+        case TokenType::T_FOR:
+            return "TokenType::T_FOR";
+        case TokenType::T_BREAK:
+            return "TokenType::T_BREAK";
+        case TokenType::T_CONTINUE:
+            return "TokenType::T_CONTINUE";
+        case TokenType::T_RETURN:
+            return "TokenType::T_RETURN";
+        case TokenType::T_L_PAREN:
+            return "TokenType::T_L_PAREN";
+        case TokenType::T_R_PAREN:
+            return "TokenType::T_R_PAREN";
+        case TokenType::T_L_BRACE:
+            return "TokenType::T_L_BRACE";
+        case TokenType::T_R_BRACE:
+            return "TokenType::T_R_BRACE";
+        case TokenType::T_COMMA:
+            return "TokenType::T_COMMA";
+        case TokenType::T_SEMICOLON:
+            return "TokenType::T_SEMICOLON";
+        case TokenType::T_COLON:
+            return "TokenType::T_COLON";
+        case TokenType::T_ARROW:
+            return "TokenType::T_ARROW";
+        case TokenType::T_DOUBLE_QUOTE:
+            return "TokenType::T_DOUBLE_QUOTE";
+        case TokenType::T_LITERAL_BOOL:
+            return "TokenType::T_LITERAL_BOOL";
+        case TokenType::T_LITERAL_STRING:
+            return "TokenType::T_LITERAL_STRING";
+        case TokenType::T_LITERAL_INT:
+            return "TokenType::T_LITERAL_INT";
+        case TokenType::T_LITERAL_FLOAT:
+            return "TokenType::T_LITERAL_FLOAT";
+        case TokenType::T_COMMENT:
+            return "TokenType::T_COMMENT";
+        case TokenType::T_EOF:
+            return "TokenType::T_EOF";
+    }
+}
+
+std::ostream& operator<<(std::ostream& os, const TokenType& token_type) {
+    os << type_to_str(token_type);
+    return os;
+};

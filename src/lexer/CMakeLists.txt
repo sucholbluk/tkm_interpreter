@@ -1,4 +1,4 @@
-add_library(lexer STATIC lexer.cpp token.cpp logging_lexer.cpp)
+add_library(lexer STATIC lexer.cpp token.cpp token_type.cpp logging_lexer.cpp)
 
 target_link_libraries(lexer PUBLIC source_handler)
 

@@ -15,10 +15,10 @@ BOOST_AUTO_TEST_CASE(constructor_test) {
     Lexer lexer{std::move(handler)};
     Token plus{lexer.get_next_token()};
     Token eof{lexer.get_next_token()};
-    BOOST_CHECK(plus.get_type()._to_integral() == TokenType::T_PLUS);
+    BOOST_CHECK(plus.get_type() == TokenType::T_PLUS);
     BOOST_CHECK_EQUAL(plus.get_position(), Position());
 
-    BOOST_CHECK(eof.get_type()._to_integral() == TokenType::T_EOF);
+    BOOST_CHECK(eof.get_type() == TokenType::T_EOF);
     BOOST_CHECK_EQUAL(eof.get_position(), Position(1, 2));
 }
 
@@ -31,15 +31,15 @@ BOOST_AUTO_TEST_CASE(bool_test) {
     Token t_false{lexer.get_next_token()};
     Token eof{lexer.get_next_token()};
 
-    BOOST_CHECK(t_true.get_type()._to_integral() == TokenType::T_LITERAL_BOOL);
+    BOOST_CHECK(t_true.get_type() == TokenType::T_LITERAL_BOOL);
     BOOST_CHECK_EQUAL(t_true.get_value_as<bool>(), true);
     BOOST_CHECK_EQUAL(t_true.get_position(), Position());
 
-    BOOST_CHECK(t_false.get_type()._to_integral() == TokenType::T_LITERAL_BOOL);
+    BOOST_CHECK(t_false.get_type() == TokenType::T_LITERAL_BOOL);
     BOOST_CHECK_EQUAL(t_false.get_value_as<bool>(), false);
     BOOST_CHECK_EQUAL(t_false.get_position(), Position(1, 6));
 
-    BOOST_CHECK(eof.get_type()._to_integral() == TokenType::T_EOF);
+    BOOST_CHECK(eof.get_type() == TokenType::T_EOF);
     BOOST_CHECK_EQUAL(eof.get_position(), Position(1, 11));
 }
 
@@ -104,7 +104,7 @@ BOOST_DATA_TEST_CASE(simple_tests, bdata::make(simple_test_cases), input, type) 
 
     BOOST_CHECK_EQUAL(tk.get_type(), type);
     BOOST_CHECK_EQUAL(tk.get_position(), Position{});
-    BOOST_CHECK(eof.get_type()._to_integral() == TokenType::T_EOF);
+    BOOST_CHECK(eof.get_type() == TokenType::T_EOF);
 }
 
 std::vector<std::tuple<std::string, std::string>> string_test_cases{
@@ -121,7 +121,7 @@ BOOST_DATA_TEST_CASE(string_values_test, bdata::make(string_test_cases), input, 
     Token str{lexer.get_next_token()};
     Token eof{lexer.get_next_token()};
 
-    BOOST_CHECK_EQUAL(str.get_type()._to_integral(), TokenType::T_LITERAL_STRING);
+    BOOST_CHECK_EQUAL(str.get_type(), TokenType::T_LITERAL_STRING);
     BOOST_CHECK_EQUAL(str.get_value_as<std::string>(), expected_value);
     BOOST_CHECK_EQUAL(str.get_position(), Position{});
 }
@@ -140,11 +140,11 @@ BOOST_DATA_TEST_CASE(int_tests, bdata::make(int_test_cases), input, expected_val
     Lexer lexer{std::move(handler)};
     Token tk = lexer.get_next_token();
 
-    BOOST_CHECK_EQUAL(tk.get_type()._to_integral(), TokenType::T_LITERAL_INT);
+    BOOST_CHECK_EQUAL(tk.get_type(), TokenType::T_LITERAL_INT);
     BOOST_CHECK_EQUAL(tk.get_value_as<int>(), expected_value);
 
     Token eof = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(eof.get_type()._to_integral(), TokenType::T_EOF);
+    BOOST_CHECK_EQUAL(eof.get_type(), TokenType::T_EOF);
 }
 
 std::vector<std::tuple<std::string, double>> float_test_cases{
@@ -164,11 +164,11 @@ BOOST_DATA_TEST_CASE(float_tests, bdata::make(float_test_cases), input, expected
     Lexer lexer{std::move(handler)};
     Token tk = lexer.get_next_token();
 
-    BOOST_CHECK_EQUAL(tk.get_type()._to_integral(), TokenType::T_LITERAL_FLOAT);
+    BOOST_CHECK_EQUAL(tk.get_type(), TokenType::T_LITERAL_FLOAT);
     BOOST_CHECK_CLOSE(tk.get_value_as<double>(), expected_value, 0.001);
 
     Token eof = lexer.get_next_token();
-    BOOST_CHECK_EQUAL(eof.get_type()._to_integral(), TokenType::T_EOF);
+    BOOST_CHECK_EQUAL(eof.get_type(), TokenType::T_EOF);
 }
 
 BOOST_AUTO_TEST_CASE(fibbonacci_test) {
