@@ -397,7 +397,7 @@ variable_declaration = let, [ mut ], typed_identifier, assign;
 assignment       = identifier, assign;
 assign           = asgn, expression;
 
-if_statement     = if, condition, code_block, [else, code_block | if_statement];
+if_statement     = if, condition, code_block, [else, ( code_block | if_statement )];
 condition        = "(", expression, ")";
 
 for_loop         = for, "(", loop_var_decl, ";", expression, ";", assignment, ")", code_block;
@@ -418,7 +418,7 @@ cast                    = unary, [ as, type ];
 unary                   = function_composition | ( unary_operator, function_composition );
 function_composition    = bind_front, { fcomp, bind_front };
 bind_front              = function_call | ( arg_list, bindf, function_call);
-function_call           = primary, [ arg_list ];
+function_call           = primary, { arg_list };
 
 primary                 = identifier
                         | literal
