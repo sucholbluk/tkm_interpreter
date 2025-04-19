@@ -25,8 +25,8 @@ char SourceHandler::_get_char() {
 
 void SourceHandler::_adjust_position(char c) {
     if (c == LF_CHAR) {
-        _position.next_line();
+        _position = _position.next_line();
     } else if (c != EOF_CHAR) {
-        _position.next_column();
+        _position = _position.next_column();
     }
 }
