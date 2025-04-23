@@ -1,4 +1,4 @@
-add_library(core STATIC safe_exec.cpp program_.cpp)
+add_library(core STATIC safe_exec.cpp cli_app.cpp)
 
 target_include_directories(lexer PUBLIC ${CMAKE_SOURCE_DIR}/include)
 find_package(Boost REQUIRED COMPONENTS program_options)

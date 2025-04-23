@@ -3,6 +3,7 @@
 add_subdirectory(position)
 add_subdirectory(source_handler)
 add_subdirectory(lexer)
+add_subdirectory(parser)
 
 set(TEST_SOURCES
     test_main.cpp

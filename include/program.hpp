@@ -2,29 +2,16 @@
 #define PROGRAM_HPP
 
 #include <memory>
+#include <vector>
 
-#include "ilexer.hpp"
+#include "ast_node.hpp"
+#include "statement.hpp"
 
-/*
- * @brief to represent program
- *
- * Perhaps to break into smaller pieces in future
- */
-class Program {  // nazwa tymczasowa - potem moze do zmiany
-   public:
-    Program(int argc, char* const argv[]);
-    void run();
+using up_statement_vec = std::vector<std::unique_ptr<Statement>>;
 
+class Program : public ASTNode {
    private:
-    std::unique_ptr<ILexer> _lexer;
-    // TODO: make struct for options
-    bool _verbose;
-    bool _use_stdin;
-    std::string _input_filename;
-    std::string _output_filename;
-
-    void _parse_args(int argc, char* const argv[]);
-    void _initialize_components();
+    up_statement_vec _statements;
 };
 
 #endif  // PROGRAM_HPP

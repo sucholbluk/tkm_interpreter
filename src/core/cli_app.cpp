@@ -1,26 +1,27 @@
+#include "cli_app.hpp"
+
 #include <boost/program_options.hpp>
 #include <fstream>
 #include <iostream>
 
 #include "lexer.hpp"
 #include "logging_lexer.hpp"
-#include "program.hpp"
 
 namespace p_opt = boost::program_options;
 
-Program::Program(int argc, char* const argv[]) : _use_stdin{false}, _verbose{false} {
+CLIApp::CLIApp(int argc, char* const argv[]) : _use_stdin{false}, _verbose{false} {
     _parse_args(argc, argv);
     _initialize_components();
 }
 
-void Program::run() {
+void CLIApp::run() {
     Token current_token{_lexer->get_next_token()};
     do {
         current_token = _lexer->get_next_token();
     } while (current_token.get_type() != TokenType::T_EOF);
 }
 
-void Program::_parse_args(int argc, char* const argv[]) {
+void CLIApp::_parse_args(int argc, char* const argv[]) {
     p_opt::options_description desc{"available options:"};
     p_opt::options_description hidden{"positional arguments:"};
     p_opt::positional_options_description p;
@@ -45,7 +46,7 @@ void Program::_parse_args(int argc, char* const argv[]) {
     }
 }
 
-void Program::_initialize_components() {
+void CLIApp::_initialize_components() {
     std::unique_ptr<std::istream> input_stream;
     // tymczasowe rozwiązanie
     if (_use_stdin) {
