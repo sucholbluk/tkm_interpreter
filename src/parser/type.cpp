@@ -1,72 +1,137 @@
 #include "type.hpp"
 
-#include <sstream>
-#include <typeindex>
+/* -----------------------------------------------------------------------------*
+ *                                      TYPE                                    *
+ *------------------------------------------------------------------------------*/
 
-std::string _basic_type_to_string(const BasicType& type) {
-    switch (type) {
-        case BasicType::INT:
-            return "int";
-        case BasicType::FLOAT:
-            return "float";
-        case BasicType::STRING:
-            return "string";
-        case BasicType::BOOL:
-            return "bool";
-        case BasicType::NONE:
-            return "none";
-    }
+Type::Type(TypeKind type_kind) {
+    if (type_kind == TypeKind::FUNCTION)
+        throw std::invalid_argument("function cannot be initialized without FunctionTypeInfo");
+    kind = type_kind;
 }
 
-std::string type_to_string(const Type& type) {
-    return std::visit(
-        []<typename T>(const T& _type) -> std::string {
-            if constexpr (std::same_as<std::shared_ptr<FunctionType>, T>) {
-                std::stringstream stream;
-                stream << "function<";
-                for (auto it = _type->param_types.begin(); it != _type->param_types.end(); ++it) {
-                    stream << type_to_string(*it);
-                    if (it != _type->param_types.end() - 1)
-                        stream << ",";
-                }
-                stream << ":";
-                stream << type_to_string(_type->return_type);
-                stream << ">";
-                return stream.str();
-            } else {
-                return _basic_type_to_string(_type);
-            }
-        },
-        type);
+Type::Type(FunctionTypeInfo fun_type_info)
+    : kind{TypeKind::FUNCTION}, function_type_info{std::make_shared<FunctionTypeInfo>(std::move(fun_type_info))} {}
+
+std::string Type::to_str() const {
+    std::string type_str{type_kind_to_string(kind)};
+
+    if (kind == TypeKind::FUNCTION)
+        type_str += function_type_info->to_str();
+    return type_str;
 }
 
 bool operator==(const Type& lhs, const Type& rhs) {
-    return std::visit(
-        []<typename T, typename U>(const T& left, const U& right) {
-            if constexpr (not std::same_as<T, U>)
-                return false;
+    if (lhs.kind != rhs.kind)
+        return false;
 
-            if constexpr (std::same_as<T, BasicType>)
-                return left == right;
+    if (lhs.kind != TypeKind::FUNCTION)
+        return true;
 
-            if constexpr (std::same_as<T, std::shared_ptr<FunctionType>> and std::same_as<U, std::shared_ptr<FunctionType>>) {
-                if (not left or not right)
-                    return left == right;
-                return *left == *right;
-            }
-            return false;
-        },
-        lhs, rhs);
+    return *lhs.function_type_info == *rhs.function_type_info;
 }
 
 bool operator!=(const Type& lhs, const Type& rhs) {
     return not(lhs == rhs);
 }
 
-bool operator==(const FunctionType& lhs, const FunctionType& rhs) {
+std::ostream& operator<<(std::ostream& os, const Type& type) {
+    os << type.to_str();
+    return os;
+}
+
+/* -----------------------------------------------------------------------------*
+ *                             FUNCTION_TYPE_INFO                               *
+ *------------------------------------------------------------------------------*/
+
+std::string FunctionTypeInfo::to_str() const {
+    std::string fun_type_info_str{"<"};
+    if (param_types.empty()) {
+        fun_type_info_str += "none";
+    } else {
+        for (auto it = param_types.begin(); it != param_types.end(); ++it) {
+            fun_type_info_str += it->to_str();
+            if (it != param_types.end() - 1)
+                fun_type_info_str += ",";
+        }
+    }
+
+    fun_type_info_str += ":";
+    if (return_type) {
+        fun_type_info_str += return_type.value().to_str();
+    } else {
+        fun_type_info_str += "none";
+    }
+
+    return fun_type_info_str + ">";
+}
+
+bool operator==(const FunctionTypeInfo& lhs, const FunctionTypeInfo& rhs) {
     return lhs.param_types == rhs.param_types and lhs.return_type == rhs.return_type;
 }
 
-bool operator!=(const FunctionType& lhs, const FunctionType& rhs) {
+bool operator!=(const FunctionTypeInfo& lhs, const FunctionTypeInfo& rhs) {
     return not(lhs == rhs);
+}
+
+std::ostream& operator<<(std::ostream& os, const FunctionTypeInfo& func_type_info) {
+    os << func_type_info.to_str();
+    return os;
+}
+
+/* -----------------------------------------------------------------------------*
+ *                                 PARAM_TYPE                                   *
+ *------------------------------------------------------------------------------*/
+
+ParamType::ParamType(Type type, bool is_mutable) {
+    if (type.kind == TypeKind::FUNCTION and is_mutable)
+        throw std::invalid_argument("function type parameter cannot be mutable");
+
+    this->type = type;
+    this->is_mutable = is_mutable;
+}
+
+std::string ParamType::to_str() const {
+    std::string param_type_str{};
+    if (is_mutable) {
+        param_type_str += "mut ";
+    }
+    return param_type_str + type.to_str();
+}
+
+bool operator==(const ParamType& lhs, const ParamType& rhs) {
+    return lhs.is_mutable == rhs.is_mutable and lhs.type == rhs.type;
+}
+
+bool operator!=(const ParamType& lhs, const ParamType& rhs) {
+    return not(lhs == rhs);
+}
+
+std::ostream& operator<<(std::ostream& os, const ParamType& param_type) {
+    os << param_type.to_str();
+    return os;
+}
+
+/* -----------------------------------------------------------------------------*
+ *                                 TYPE_KIND                                    *
+ *------------------------------------------------------------------------------*/
+
+std::string type_kind_to_string(const TypeKind& type_kind) {
+    switch (type_kind) {
+        case TypeKind::INT:
+            return "int";
+        case TypeKind::FLOAT:
+            return "float";
+        case TypeKind::BOOL:
+            return "bool";
+        case TypeKind::STRING:
+            return "string";
+        case TypeKind::FUNCTION:
+            return "function";
+    }
+}
+
+std::ostream& operator<<(std::ostream& os, const TypeKind& type_kind) {
+    os << type_kind_to_string(type_kind);
+    return os;
 }

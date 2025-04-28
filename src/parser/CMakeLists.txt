@@ -1,7 +1,7 @@
-add_library(parser STATIC "type.cpp")
+add_library(parser STATIC "type.cpp" "program.cpp")
 
-target_link_libraries(lexer PUBLIC source_handler)
+target_link_libraries(parser PUBLIC lexer)
 
-target_include_directories(lexer PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(parser PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
-target_link_libraries(lexer PRIVATE spdlog fmt)
+target_link_libraries(parser PRIVATE spdlog fmt)

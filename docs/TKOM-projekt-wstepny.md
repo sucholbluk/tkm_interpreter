@@ -390,9 +390,9 @@ function_definition  = function_signature, code_block;
 function_signature   = def, identifier, "(", parameter_list, ")", "->", return_type;
 
 parameter_list       = [ typed_identifier, { ",", typed_identifier } ];
-typed_identifier     = identifier, ":", type;
+typed_identifier     = [ mut ], identifier, ":", type;
 
-variable_declaration = let, [ mut ], typed_identifier, assign;
+variable_declaration = let, typed_identifier, assign;
 
 assignment       = identifier, assign;
 assign           = asgn, expression;
@@ -401,7 +401,7 @@ if_statement     = if, condition, code_block, [else, ( code_block | if_statement
 condition        = "(", expression, ")";
 
 for_loop         = for, "(", loop_var_decl, ";", expression, ";", assignment, ")", code_block;
-loop_var_decl    = typed_identifier, assign;
+loop_var_decl    = identifier, ":", type, assign;
 
 return_statement = return, [ expression ];
 
@@ -454,7 +454,7 @@ string_char     = letter | digit | special_chars;
 identifier      = "_" | letter, { "_" | letter | digit};
 
 function_type   = function, "<", argument_types, ":", return_type, ">";
-argument_types  = (type, {",", type}) 
+argument_types  = ([ mut ], type, {",", [ mut ], type}) 
                 | none;
 
 

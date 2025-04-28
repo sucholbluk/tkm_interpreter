@@ -1,4 +1,5 @@
 set(PARSER_TEST_SOURCES
+    test_parser.cpp
     test_type.cpp
 )
 find_package(Boost 1.88.0 REQUIRED COMPONENTS unit_test_framework)
