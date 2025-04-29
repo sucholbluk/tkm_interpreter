@@ -1,9 +1,20 @@
 #ifndef STATEMENT_HPP
 #define STATEMENT_HPP
 
-#include "ast_node.hpp"
+#include <memory>
 
-class Statement : public ASTNode {
+#include "expression.hpp"
+#include "node.hpp"
+
+struct Statement : public Node {
+    using Node::Node;
+};
+
+using up_statement = std::unique_ptr<Statement>;
+
+struct ReturnStatement : public Statement {
+    explicit ReturnStatement(const Position& position, up_expression expression = nullptr);
+    up_expression expression;
 };
 
 #endif  // STATEMENT_HPP

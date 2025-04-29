@@ -1,4 +1,10 @@
-add_library(parser STATIC "type.cpp" "program.cpp")
+add_library(parser STATIC 
+            "type.cpp" 
+            "program.cpp" 
+            parser.cpp
+            statement.cpp
+            node.cpp
+)
 
 target_link_libraries(parser PUBLIC lexer)
 

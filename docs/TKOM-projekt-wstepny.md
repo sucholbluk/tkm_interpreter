@@ -451,7 +451,7 @@ escape_sequence = "\", escape_chars;
 escape_chars    = '"', "n", "t", "\";
 string_char     = letter | digit | special_chars;
 
-identifier      = "_" | letter, { "_" | letter | digit};
+identifier      = ( "_" | letter ), { "_" | letter | digit};
 
 function_type   = function, "<", argument_types, ":", return_type, ">";
 argument_types  = ([ mut ], type, {",", [ mut ], type}) 
