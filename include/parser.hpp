@@ -31,6 +31,9 @@ class Parser {
 
     up_expression _try_parse_expression();
 
+    void _token_must_be(TokenType token_type) const;
+    bool _token_type_is(TokenType token_type) const;
+
     std::unique_ptr<ILexer> _lexer;
     Token _token;
     static const std::unordered_map<TokenType, std::function<up_statement(Parser&)>> _simple_statement_builders_map;

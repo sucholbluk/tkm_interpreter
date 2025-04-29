@@ -12,6 +12,14 @@ struct Statement : public Node {
 
 using up_statement = std::unique_ptr<Statement>;
 
+struct ContinueStatement : public Statement {
+    using Statement::Statement;
+};
+
+struct BreakStatement : public Statement {
+    using Statement::Statement;
+};
+
 struct ReturnStatement : public Statement {
     explicit ReturnStatement(const Position& position, up_expression expression = nullptr);
     up_expression expression;
