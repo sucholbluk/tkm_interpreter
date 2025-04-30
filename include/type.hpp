@@ -26,19 +26,19 @@ struct Type {
     std::string to_str() const;
 };
 
-struct ParamType {
+struct VariableType {
     Type type;
     bool is_mutable = false;
 
-    explicit ParamType(Type type, bool is_mutable = false);
+    explicit VariableType(Type type, bool is_mutable = false);
 
     std::string to_str() const;
 };
 
 // empty param_types vector means that function is of type function<none:XXX>
-// non-existant return_type means the function is of type function<XXX:none>
+// non-existent return_type means the function is of type function<XXX:none>
 struct FunctionTypeInfo {
-    std::vector<ParamType> param_types;
+    std::vector<VariableType> param_types;
     std::optional<Type> return_type;
 
     std::string to_str() const;
@@ -48,14 +48,14 @@ std::string type_kind_to_string(const TypeKind& type_kind);
 
 bool operator==(const Type& lhs, const Type& rhs);
 bool operator==(const FunctionTypeInfo& lhs, const FunctionTypeInfo& rhs);
-bool operator==(const ParamType& lhs, const ParamType& rhs);
+bool operator==(const VariableType& lhs, const VariableType& rhs);
 
 bool operator!=(const Type& lhs, const Type& rhs);
 bool operator!=(const FunctionTypeInfo& lhs, const FunctionTypeInfo& rhs);
-bool operator!=(const ParamType& lhs, const ParamType& rhs);
+bool operator!=(const VariableType& lhs, const VariableType& rhs);
 
 std::ostream& operator<<(std::ostream& os, const Type& type);
-std::ostream& operator<<(std::ostream& os, const ParamType& param_type);
+std::ostream& operator<<(std::ostream& os, const VariableType& param_type);
 std::ostream& operator<<(std::ostream& os, const FunctionTypeInfo& func_type_info);
 std::ostream& operator<<(std::ostream& os, const TypeKind& type_kind);
 

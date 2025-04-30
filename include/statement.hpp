@@ -5,6 +5,7 @@
 
 #include "expression.hpp"
 #include "node.hpp"
+#include "typed_identifier.hpp"
 
 struct Statement : public Node {
     using Node::Node;
@@ -23,6 +24,13 @@ struct BreakStatement : public Statement {
 struct ReturnStatement : public Statement {
     explicit ReturnStatement(const Position& position, up_expression expression = nullptr);
     up_expression expression;
+};
+
+struct VariableDeclarationStatement : public Statement {
+    up_typed_identifier typed_identifier;
+    up_expression assigned_expression;
+    explicit VariableDeclarationStatement(const Position& position, up_typed_identifier typed_identifier,
+                                          up_expression assigned_expression);
 };
 
 #endif  // STATEMENT_HPP

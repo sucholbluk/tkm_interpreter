@@ -18,6 +18,7 @@ class Parser {
     void _get_next_token();
 
     up_statement _try_parse_statement();
+
     up_statement _try_parse_variable_declaration();
     up_statement _try_parse_code_block();
     up_statement _try_parse_if_statement();
@@ -30,6 +31,13 @@ class Parser {
     up_statement _try_parse_expression_statement();
 
     up_expression _try_parse_expression();
+    up_expression _try_parse_assigned_expression();
+
+    up_typed_identifier _try_parse_typed_identifier();
+
+    std::optional<Type> _try_parse_type();
+    FunctionTypeInfo _try_parse_function_type_info();
+    std::optional<VariableType> _try_parse_function_param_type();
 
     void _token_must_be(TokenType token_type) const;
     bool _token_type_is(TokenType token_type) const;

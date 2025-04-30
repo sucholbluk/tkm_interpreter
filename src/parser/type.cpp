@@ -83,7 +83,7 @@ std::ostream& operator<<(std::ostream& os, const FunctionTypeInfo& func_type_inf
  *                                 PARAM_TYPE                                   *
  *------------------------------------------------------------------------------*/
 
-ParamType::ParamType(Type type, bool is_mutable) {
+VariableType::VariableType(Type type, bool is_mutable) {
     if (type.kind == TypeKind::FUNCTION and is_mutable)
         throw std::invalid_argument("function type parameter cannot be mutable");
 
@@ -91,7 +91,7 @@ ParamType::ParamType(Type type, bool is_mutable) {
     this->is_mutable = is_mutable;
 }
 
-std::string ParamType::to_str() const {
+std::string VariableType::to_str() const {
     std::string param_type_str{};
     if (is_mutable) {
         param_type_str += "mut ";
@@ -99,15 +99,15 @@ std::string ParamType::to_str() const {
     return param_type_str + type.to_str();
 }
 
-bool operator==(const ParamType& lhs, const ParamType& rhs) {
+bool operator==(const VariableType& lhs, const VariableType& rhs) {
     return lhs.is_mutable == rhs.is_mutable and lhs.type == rhs.type;
 }
 
-bool operator!=(const ParamType& lhs, const ParamType& rhs) {
+bool operator!=(const VariableType& lhs, const VariableType& rhs) {
     return not(lhs == rhs);
 }
 
-std::ostream& operator<<(std::ostream& os, const ParamType& param_type) {
+std::ostream& operator<<(std::ostream& os, const VariableType& param_type) {
     os << param_type.to_str();
     return os;
 }

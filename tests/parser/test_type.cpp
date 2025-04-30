@@ -35,42 +35,42 @@ std::vector<FunctionTypeInfo> function_type_infos = {
     // function<mut int,int:none>
     FunctionTypeInfo{
         {
-            ParamType{Type{TypeKind::INT}, true},
-            ParamType{Type{TypeKind::INT}},
+            VariableType{Type{TypeKind::INT}, true},
+            VariableType{Type{TypeKind::INT}},
         }},
     // function<none:int>
     FunctionTypeInfo{{}, Type{TypeKind::INT}},
     // function<int,bool:string>
     FunctionTypeInfo{
         {
-            ParamType{Type{TypeKind::INT}},
-            ParamType{Type{TypeKind::BOOL}},
+            VariableType{Type{TypeKind::INT}},
+            VariableType{Type{TypeKind::BOOL}},
         },
         Type{TypeKind::STRING}},
     // function<float:bool>
     FunctionTypeInfo{
         {
-            ParamType{Type{TypeKind::FLOAT}},
+            VariableType{Type{TypeKind::FLOAT}},
         },
         Type{TypeKind::BOOL}},
     // function<mut string:none>
     FunctionTypeInfo{
         {
-            ParamType{Type{TypeKind::STRING}, true},
+            VariableType{Type{TypeKind::STRING}, true},
         }},
     // function<int,mut float:float>
     FunctionTypeInfo{
         {
-            ParamType{Type{TypeKind::INT}},
-            ParamType{Type{TypeKind::FLOAT}, true},
+            VariableType{Type{TypeKind::INT}},
+            VariableType{Type{TypeKind::FLOAT}, true},
         },
         Type{TypeKind::FLOAT}},
     // function<function<mut float:int>:none>
     FunctionTypeInfo{
         {
-            ParamType{Type{
+            VariableType{Type{
                 FunctionTypeInfo{
-                    {ParamType{Type{TypeKind::FLOAT}, true}},
+                    {VariableType{Type{TypeKind::FLOAT}, true}},
                     Type{TypeKind::INT}}}},
         }},
 
@@ -79,37 +79,37 @@ std::vector<FunctionTypeInfo> function_type_infos = {
         {},
         Type{
             FunctionTypeInfo{
-                {ParamType{Type{TypeKind::INT}}},
+                {VariableType{Type{TypeKind::INT}}},
                 Type{TypeKind::INT}}}},
 
     // function<function<string:int>:function<int:int>>
     FunctionTypeInfo{
         {
-            ParamType{Type{
+            VariableType{Type{
                 FunctionTypeInfo{
-                    {ParamType{Type{TypeKind::STRING}}},
+                    {VariableType{Type{TypeKind::STRING}}},
                     Type{TypeKind::INT}}}},
         },
         Type{
             FunctionTypeInfo{
-                {ParamType{Type{TypeKind::INT}}},
+                {VariableType{Type{TypeKind::INT}}},
                 Type{TypeKind::INT}}}},
 
     // function<function<int:int>,function<float:bool>:function<string:none>>
     FunctionTypeInfo{
         {
-            ParamType{Type{
+            VariableType{Type{
                 FunctionTypeInfo{
-                    {ParamType{Type{TypeKind::INT}}},
+                    {VariableType{Type{TypeKind::INT}}},
                     Type{TypeKind::INT}}}},
-            ParamType{Type{
+            VariableType{Type{
                 FunctionTypeInfo{
-                    {ParamType{Type{TypeKind::FLOAT}}},
+                    {VariableType{Type{TypeKind::FLOAT}}},
                     Type{TypeKind::BOOL}}}},
         },
         Type{
             FunctionTypeInfo{
-                {ParamType{Type{TypeKind::STRING}}},
+                {VariableType{Type{TypeKind::STRING}}},
                 std::nullopt}}},
 };
 
@@ -121,12 +121,12 @@ BOOST_DATA_TEST_CASE(constructor_with_function_type_info_test, bdata::make(funct
 
 BOOST_AUTO_TEST_CASE(function_returning_function_test) {
     FunctionTypeInfo inner_function{
-        {ParamType{Type{TypeKind::INT}}},
+        {VariableType{Type{TypeKind::INT}}},
         Type{TypeKind::INT}};
 
     // function<function<int:int>:none>
     FunctionTypeInfo outer_function{
-        {ParamType{Type{inner_function}}},
+        {VariableType{Type{inner_function}}},
         std::nullopt};
 
     Type outer_function_type(outer_function);
@@ -182,27 +182,27 @@ BOOST_AUTO_TEST_SUITE(param_type_tests)
 
 BOOST_AUTO_TEST_CASE(constructor_test) {
     Type int_type(TypeKind::INT);
-    ParamType param(int_type, true);
+    VariableType param(int_type, true);
     BOOST_CHECK(param.type == int_type);
     BOOST_CHECK(param.is_mutable);
 }
 
 BOOST_AUTO_TEST_CASE(to_str_test) {
     Type int_type(TypeKind::INT);
-    ParamType param(int_type, true);
+    VariableType param(int_type, true);
     BOOST_CHECK_EQUAL(param.to_str(), "mut int");
 
-    ParamType param2(int_type, false);
+    VariableType param2(int_type, false);
     BOOST_CHECK_EQUAL(param2.to_str(), "int");
 }
 
 BOOST_AUTO_TEST_CASE(equality_operators_test) {
     Type int_type(TypeKind::INT);
-    ParamType param1(int_type, true);
-    ParamType param2(int_type, true);
+    VariableType param1(int_type, true);
+    VariableType param2(int_type, true);
     BOOST_CHECK(param1 == param2);
 
-    ParamType param3(int_type, false);
+    VariableType param3(int_type, false);
     BOOST_CHECK(param1 != param3);
 }
 
@@ -216,7 +216,7 @@ BOOST_AUTO_TEST_SUITE(function_type_info_tests)
 
 BOOST_AUTO_TEST_CASE(constructor_test) {
     Type int_type(TypeKind::INT);
-    ParamType param(int_type, true);
+    VariableType param(int_type, true);
     FunctionTypeInfo func_info{{param}, int_type};
 
     BOOST_CHECK_EQUAL(func_info.param_types.size(), 1);
@@ -226,7 +226,7 @@ BOOST_AUTO_TEST_CASE(constructor_test) {
 
 BOOST_AUTO_TEST_CASE(to_str_test) {
     Type int_type(TypeKind::INT);
-    ParamType param(int_type, true);
+    VariableType param(int_type, true);
     FunctionTypeInfo func_info{{param}, int_type};
 
     BOOST_CHECK_EQUAL(func_info.to_str(), "<mut int:int>");
@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_CASE(to_str_test) {
 
 BOOST_AUTO_TEST_CASE(equality_operators_test) {
     Type int_type(TypeKind::INT);
-    ParamType param(int_type, true);
+    VariableType param(int_type, true);
     FunctionTypeInfo func_info1{{param}, int_type};
     FunctionTypeInfo func_info2{{param}, int_type};
 
