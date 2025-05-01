@@ -41,7 +41,7 @@ up_statement Parser::_try_parse_statement() {
 
     return nullptr;
 }
-
+// continue;
 up_statement Parser::_try_parse_continue_statement() {
     if (not _token_type_is(TokenType::T_CONTINUE))
         return nullptr;
@@ -49,10 +49,11 @@ up_statement Parser::_try_parse_continue_statement() {
     _get_next_token();
 
     _token_must_be(TokenType::T_SEMICOLON);
+    _get_next_token();
 
     return std::make_unique<ContinueStatement>(position);
 }
-
+// break;
 up_statement Parser::_try_parse_break_statement() {
     if (not _token_type_is(TokenType::T_BREAK))
         return nullptr;
@@ -60,10 +61,11 @@ up_statement Parser::_try_parse_break_statement() {
     _get_next_token();
 
     _token_must_be(TokenType::T_SEMICOLON);
+    _get_next_token();
 
     return std::make_unique<BreakStatement>(position);
 }
-
+// return [ expression ]; examples: return 4 + 8, return is_sth or foo(a, b, b+5) ;
 up_statement Parser::_try_parse_return_statement() {
     if (not _token_type_is(TokenType::T_RETURN))
         return nullptr;
@@ -73,11 +75,13 @@ up_statement Parser::_try_parse_return_statement() {
     auto expression = _try_parse_expression();
 
     _token_must_be(TokenType::T_SEMICOLON);
+    _get_next_token();
 
     _get_next_token();
     return std::make_unique<ReturnStatement>(position, std::move(expression));
 }
-
+// let [ mut ] identifier: type = expression;
+// examples: let mut i: int = 4;, let foo: function<int,int:bool> = foo2();
 up_statement Parser::_try_parse_variable_declaration() {
     if (not _token_type_is(TokenType::T_LET))
         return nullptr;
@@ -96,11 +100,31 @@ up_statement Parser::_try_parse_variable_declaration() {
     auto assigned_expression = _try_parse_expression();
     if (not assigned_expression)
         // dobra już widze że to zaczyna sie powtarzać, do upakowania w inną funkcje np _must_be() po prostu
-        throw std::invalid_argument("required expression to assign");  // TODO: replace - eee chociaz może jak działam na unique ptr to nie warto
+        throw std::invalid_argument("required expression to assign");  // TODO: replace - eee chociaz może jak działam na unique ptr to nie warto - do przemyslenia
 
     _token_must_be(TokenType::T_SEMICOLON);
+    _get_next_token();
     return std::make_unique<VariableDeclarationStatement>(position, std::move(typed_identifier),
                                                           std::move(assigned_expression));
+}
+
+up_statement Parser::_try_parse_code_block() {
+    return nullptr;
+}
+up_statement Parser::_try_parse_if_statement() {
+    return nullptr;
+}
+up_statement Parser::_try_parse_for_loop() {
+    return nullptr;
+}
+up_statement Parser::_try_parse_function_definition() {
+    return nullptr;
+}
+up_statement Parser::_try_parse_assignment_or_expression_statement() {
+    return nullptr;
+}
+up_statement Parser::_try_parse_expression_statement() {
+    return nullptr;
 }
 
 /* -----------------------------------------------------------------------------*
@@ -108,10 +132,18 @@ up_statement Parser::_try_parse_variable_declaration() {
  *------------------------------------------------------------------------------*/
 // TODO
 
+up_expression Parser::_try_parse_expression() {
+    return nullptr;
+}
+up_expression Parser::_try_parse_assigned_expression() {
+    return nullptr;
+}
+
 /* -----------------------------------------------------------------------------*
  *                               TYPED IDENTIFIER                               *
  *------------------------------------------------------------------------------*/
-
+// [ mut ] identifier: type
+// examples: mut fraction: float, a:int, fun_foo: function<mut float, int : none>
 up_typed_identifier Parser::_try_parse_typed_identifier() {
     bool is_mutable{false};
     Position position{_token.get_position()};
@@ -136,6 +168,7 @@ up_typed_identifier Parser::_try_parse_typed_identifier() {
 /* -----------------------------------------------------------------------------*
  *                                   TYPE                                       *
  *------------------------------------------------------------------------------*/
+//
 std::optional<Type> Parser::_try_parse_type() {
     switch (_token.get_type()) {
         // int
@@ -154,16 +187,18 @@ std::optional<Type> Parser::_try_parse_type() {
         case TokenType::T_BOOL:
             _get_next_token();
             return Type{TypeKind::BOOL};
+        // function type
         // example: function<mut int,float:none>
         case TokenType::T_FUNCTION:
             _get_next_token();
+            return Type{_parse_function_type_info()};
         // not a type
         default:
             return std::nullopt;
     }
 }
 // examples: <int:string>, <float,float:float>, <function<string,mut string:none>,string:function<mut string:none>
-FunctionTypeInfo Parser::_try_parse_function_type_info() {
+FunctionTypeInfo Parser::_parse_function_type_info() {
     _token_must_be(TokenType::T_LESS);
     _get_next_token();
 

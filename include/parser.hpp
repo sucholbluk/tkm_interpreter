@@ -36,7 +36,7 @@ class Parser {
     up_typed_identifier _try_parse_typed_identifier();
 
     std::optional<Type> _try_parse_type();
-    FunctionTypeInfo _try_parse_function_type_info();
+    FunctionTypeInfo _parse_function_type_info();
     std::optional<VariableType> _try_parse_function_param_type();
 
     void _token_must_be(TokenType token_type) const;

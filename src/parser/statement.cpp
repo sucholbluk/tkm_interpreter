@@ -1,5 +1,13 @@
 #include "statement.hpp"
 
+void ContinueStatement::accept(Visitor& visitor) const {
+    visitor.visit(*this);
+}
+
+void BreakStatement::accept(Visitor& visitor) const {
+    visitor.visit(*this);
+}
+
 ReturnStatement::ReturnStatement(const Position& position, up_expression expression)
     : Statement{position}, expression{std::move(expression)} {}
 
