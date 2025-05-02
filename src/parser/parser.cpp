@@ -25,7 +25,9 @@ up_statement Parser::_try_parse_statement() {
 
     if ((statement = _try_parse_break_statement())) return statement;
 
-    if ((statement = _try_parse_return_statement())) return statement;
+    if ((statement = _try_parse_return_statement())) {
+        return statement;
+    }
 
     if ((statement = _try_parse_variable_declaration())) return statement;
 
@@ -65,16 +67,17 @@ up_statement Parser::_try_parse_break_statement() {
 }
 // return [ expression ]; examples: return 4 + 8, return is_sth or foo(a, b, b+5) ;
 up_statement Parser::_try_parse_return_statement() {
-    if (not _token_type_is(TokenType::T_RETURN)) return nullptr;
+    if (not _token_type_is(TokenType::T_RETURN)) {
+        return nullptr;
+    }
 
     Position position{_token.get_position()};
     _get_next_token();
-    auto expression = _try_parse_expression();
+    up_expression expression = _try_parse_expression();
 
     _token_must_be(TokenType::T_SEMICOLON);
     _get_next_token();
 
-    _get_next_token();
     return std::make_unique<ReturnStatement>(position, std::move(expression));
 }
 // let [ mut ] identifier: type = expression;
@@ -337,6 +340,74 @@ up_expression Parser::_try_parse_bind_front_or_function_call() {
     }
 
     return std::make_unique<BindFront>(position, std::move(argument_list), std::move(target));
+}
+
+up_expression Parser::_try_parse_function_call() {
+    up_expression callee{_try_parse_primary()};
+    if (not callee) {
+        return nullptr;
+    }
+    while (std::optional<up_expression_vec> arg_list = _try_parse_argument_list()) {
+        callee = std::make_unique<FunctionCall>(callee->position, std::move(callee), std::move(arg_list.value()));
+    }
+    return callee;
+}
+
+up_expression Parser::_try_parse_function_call(up_expression paren_expr) {
+    if (not paren_expr) {
+        throw std::logic_error("_try_parse_function_call called with null paren expr - shouldnt happen");
+    }
+    up_expression callee{std::move(paren_expr)};
+
+    while (std::optional<up_expression_vec> arg_list = _try_parse_argument_list()) {
+        callee = std::make_unique<FunctionCall>(callee->position, std::move(callee), std::move(arg_list.value()));
+    }
+    return callee;
+}
+
+up_expression Parser::_try_parse_primary() {
+    up_expression primary_expr{_try_parse_literal()};
+
+    if (not primary_expr) {
+        primary_expr = _try_parse_identifier();
+        if (not primary_expr) {
+            return nullptr;
+        }
+    }
+
+    return primary_expr;
+}
+
+up_expression Parser::_try_parse_literal() {
+    Position position{_token.get_position()};
+    up_expression literal;
+    switch (_token.get_type()) {
+        case TokenType::T_LITERAL_INT:
+            literal = std::make_unique<LiteralInt>(position, _token.get_value_as<int>());
+            break;
+        case TokenType::T_LITERAL_FLOAT:
+            literal = std::make_unique<LiteralFloat>(position, _token.get_value_as<double>());
+            break;
+        case TokenType::T_LITERAL_STRING:
+            literal = std::make_unique<LiteralString>(position, _token.get_value_as<std::string>());
+            break;
+        case TokenType::T_LITERAL_BOOL:
+            literal = std::make_unique<LiteralBool>(position, _token.get_value_as<bool>());
+            break;
+        default:
+            return nullptr;
+    }
+    _get_next_token();
+    return literal;
+}
+
+up_expression Parser::_try_parse_identifier() {
+    if (not _token_type_is(TokenType::T_IDENTIFIER)) {
+        return nullptr;
+    }
+    up_expression idenitifier = std::make_unique<Identifier>(_token.get_position(), _token.get_value_as<std::string>());
+    _get_next_token();
+    return idenitifier;
 }
 
 up_expression Parser::_try_parse_assigned_expression() {

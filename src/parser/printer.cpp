@@ -9,8 +9,12 @@
 #include "typed_identifier.hpp"
 
 void Printer::_print_indent() const {
-    std::cout << std::string(_indent_level * 2, ' ') << "|";
+    std::cout << std::string(_indent_level * 2, ' ') << "|_";
 }
+
+/* -----------------------------------------------------------------------------*
+ *                               PRINTING STATEMENTS                            *
+ *------------------------------------------------------------------------------*/
 
 void Printer::visit(const Program& program) {
     std::cout << "Program <" << this << "> at: " << program.position.get_position_str() << std::endl;
@@ -28,6 +32,20 @@ void Printer::visit(const BreakStatement& break_stmnt) {
     _print_indent();
     std::cout << "BreakStatement <" << &break_stmnt << "> at: " << break_stmnt.position.get_position_str() << std::endl;
 }
+
+void Printer::visit(const ReturnStatement& return_stmnt) {
+    _print_indent();
+    std::cout << "ReturnStatement <" << &return_stmnt << "> at: " << return_stmnt.position.get_position_str()
+              << std::endl;
+    _IndentGuard guard{_indent_level};
+    if (return_stmnt.expression) {
+        return_stmnt.expression->accept(*this);
+    }
+}
+
+/* -----------------------------------------------------------------------------*
+ *                               PRINTING EXPRESSIONS                           *
+ *------------------------------------------------------------------------------*/
 
 void Printer::visit(const BinaryExpression& binary_expr) {
     _print_expression_header(binary_expr);
@@ -89,6 +107,7 @@ void Printer::visit(const BindFront& bind_front_expr) {
 
 void Printer::visit(const ParenExpression& paren_expr) {
     _print_expression_header(paren_expr);
+    _IndentGuard guard{_indent_level};
     paren_expr.expr->accept(*this);
 }
 

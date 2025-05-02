@@ -76,6 +76,56 @@ BOOST_AUTO_TEST_CASE(test_break_cont) {
     program->accept(printer);
 }
 
+BOOST_AUTO_TEST_CASE(test_return_literal_int) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_RETURN, Position()},
+        Token(TokenType::T_LITERAL_INT, Position(), 4),
+        Token(TokenType::T_SEMICOLON, Position()),
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+    Printer printer{};
+    program->accept(printer);
+}
+
+BOOST_AUTO_TEST_CASE(test_return_paren) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_RETURN, Position()},
+        Token{TokenType::T_L_PAREN, Position()},
+        Token(TokenType::T_LITERAL_FLOAT, Position(), 4.5),
+        Token{TokenType::T_R_PAREN, Position()},
+        Token(TokenType::T_SEMICOLON, Position()),
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+    Printer printer{};
+    program->accept(printer);
+}
+
+// return (3 * 5) / divisor;
+BOOST_AUTO_TEST_CASE(test_return_paren_multiplication) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_RETURN, Position()},         Token{TokenType::T_L_PAREN, Position()},
+        Token{TokenType::T_LITERAL_INT, Position(), 3}, Token{TokenType::T_MULTIPLY, Position()},
+        Token{TokenType::T_LITERAL_INT, Position(), 5}, Token{TokenType::T_R_PAREN, Position()},
+        Token{TokenType::T_DIVIDE, Position()},         Token{TokenType::T_IDENTIFIER, Position(), "divisor"},
+        Token{TokenType::T_SEMICOLON, Position()},
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+    Printer printer{};
+    program->accept(printer);
+}
+
 BOOST_AUTO_TEST_CASE(test_fail) {
     BOOST_CHECK_EQUAL(1, 0);
 }

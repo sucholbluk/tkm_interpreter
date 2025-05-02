@@ -4,6 +4,8 @@
 struct Program;
 struct ContinueStatement;
 struct BreakStatement;
+struct ReturnStatement;
+
 struct BinaryExpression;
 struct UnaryExpression;
 struct FunctionCall;
@@ -24,6 +26,7 @@ class Visitor {
     virtual void visit(const Program& program) = 0;
     virtual void visit(const ContinueStatement& continue_stmnt) = 0;
     virtual void visit(const BreakStatement& break_stmnt) = 0;
+    virtual void visit(const ReturnStatement& reaturn_stmnt) = 0;
 
     virtual void visit(const BinaryExpression& binary_expr) = 0;
     virtual void visit(const UnaryExpression& unary_expr) = 0;

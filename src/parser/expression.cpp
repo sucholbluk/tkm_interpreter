@@ -114,28 +114,28 @@ void Identifier::accept(Visitor& visitor) const {
  *                                  LITERALS                                    *
  *------------------------------------------------------------------------------*/
 LiteralInt::LiteralInt(const Position& position, int value)
-    : Expression{position, ExpressionKind::LITERAL}, value{value} {}
+    : Expression{position, ExpressionKind::LITERAL}, type{TypeKind::INT}, value{value} {}
 
 void LiteralInt::accept(Visitor& visitor) const {
     visitor.visit(*this);
 }
 
 LiteralFloat::LiteralFloat(const Position& position, double value)
-    : Expression{position, ExpressionKind::LITERAL}, value{value} {}
+    : Expression{position, ExpressionKind::LITERAL}, type{TypeKind::FLOAT}, value{value} {}
 
 void LiteralFloat::accept(Visitor& visitor) const {
     visitor.visit(*this);
 }
 
 LiteralString::LiteralString(const Position& position, std::string value)
-    : Expression{position, ExpressionKind::LITERAL}, value{value} {}
+    : Expression{position, ExpressionKind::LITERAL}, type{TypeKind::STRING}, value{value} {}
 
 void LiteralString::accept(Visitor& visitor) const {
     visitor.visit(*this);
 }
 
 LiteralBool::LiteralBool(const Position& position, bool value)
-    : Expression{position, ExpressionKind::LITERAL}, value{value} {}
+    : Expression{position, ExpressionKind::LITERAL}, type{TypeKind::BOOL}, value{value} {}
 
 void LiteralBool::accept(Visitor& visitor) const {
     visitor.visit(*this);

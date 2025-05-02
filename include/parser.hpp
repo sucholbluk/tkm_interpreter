@@ -49,7 +49,9 @@ class Parser {
     up_expression _try_parse_bind_front_or_function_call();
     up_expression _try_parse_function_call();
     up_expression _try_parse_function_call(up_expression paren_expr);
-
+    up_expression _try_parse_primary();
+    up_expression _try_parse_literal();
+    up_expression _try_parse_identifier();
     std::optional<up_expression_vec> _try_parse_argument_list();
 
     up_expression _try_parse_assigned_expression();

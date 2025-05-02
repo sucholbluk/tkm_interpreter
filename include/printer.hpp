@@ -11,6 +11,7 @@ class Printer : public Visitor {
     void visit(const Program& program) override;
     void visit(const ContinueStatement& continue_stmnt) override;
     void visit(const BreakStatement& break_stmnt) override;
+    void visit(const ReturnStatement& reaturn_stmnt) override;
 
     void visit(const BinaryExpression& binary_expr) override;
     void visit(const UnaryExpression& unary_expr) override;

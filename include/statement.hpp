@@ -26,7 +26,7 @@ struct BreakStatement : public Statement {
 struct ReturnStatement : public Statement {
     explicit ReturnStatement(const Position& position, up_expression expression = nullptr);
     up_expression expression;
-    void accept(Visitor& visitor) const override {}
+    void accept(Visitor& visitor) const override;
 };
 
 struct VariableDeclarationStatement : public Statement {
