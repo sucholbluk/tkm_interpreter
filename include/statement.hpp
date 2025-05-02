@@ -34,7 +34,7 @@ struct VariableDeclarationStatement : public Statement {
                                           up_expression assigned_expression);
     up_typed_identifier typed_identifier;
     up_expression assigned_expression;
-    void accept(Visitor& visitor) const override {}
+    void accept(Visitor& visitor) const override;
 };
 
 #endif  // STATEMENT_HPP

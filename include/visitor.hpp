@@ -18,6 +18,7 @@ struct LiteralString;
 struct LiteralBool;
 struct TypedIdentifier;
 struct TypeCastExpression;
+struct VariableDeclarationStatement;
 
 class Visitor {
    public:
@@ -27,6 +28,7 @@ class Visitor {
     virtual void visit(const ContinueStatement& continue_stmnt) = 0;
     virtual void visit(const BreakStatement& break_stmnt) = 0;
     virtual void visit(const ReturnStatement& reaturn_stmnt) = 0;
+    virtual void visit(const VariableDeclarationStatement& var_decl) = 0;
 
     virtual void visit(const BinaryExpression& binary_expr) = 0;
     virtual void visit(const UnaryExpression& unary_expr) = 0;

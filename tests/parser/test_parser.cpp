@@ -125,6 +125,34 @@ BOOST_AUTO_TEST_CASE(test_return_paren_multiplication) {
     Printer printer{};
     program->accept(printer);
 }
+// let is_foo: bool = (foo())("Hello World")
+BOOST_AUTO_TEST_CASE(test_variable_declaration_with_function_call) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_LET, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "is_foo"},
+        Token{TokenType::T_COLON, Position()},
+        Token{TokenType::T_BOOL, Position()},
+        Token{TokenType::T_ASSIGN, Position()},
+        Token{TokenType::T_L_PAREN, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "foo"},
+        Token{TokenType::T_L_PAREN, Position()},
+        Token{TokenType::T_R_PAREN, Position()},
+        Token{TokenType::T_R_PAREN, Position()},
+        Token{TokenType::T_L_PAREN, Position()},
+        Token{TokenType::T_LITERAL_STRING, Position(), "Hello World"},
+        Token{TokenType::T_R_PAREN, Position()},
+        Token{TokenType::T_SEMICOLON, Position()},
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+
+    Printer printer{};
+    program->accept(printer);
+}
 
 BOOST_AUTO_TEST_CASE(test_fail) {
     BOOST_CHECK_EQUAL(1, 0);

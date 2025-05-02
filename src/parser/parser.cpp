@@ -95,7 +95,7 @@ up_statement Parser::_try_parse_variable_declaration() {
     _token_must_be(TokenType::T_ASSIGN);
     _get_next_token();
 
-    auto assigned_expression{_try_parse_expression()};
+    up_expression assigned_expression{_try_parse_expression()};
     if (not assigned_expression)
         // dobra już widze że to zaczyna sie powtarzać, do upakowania w inną funkcje np _must_be() po prostu
         throw std::invalid_argument("required expression to assign");  // TODO: replace - eee chociaz może jak działam
@@ -467,6 +467,10 @@ up_typed_identifier Parser::_try_parse_typed_identifier() {
     }
 
     std::string identifier{_token.get_value_as<std::string>()};
+    _get_next_token();
+
+    _token_must_be(TokenType::T_COLON);
+    _get_next_token();
 
     std::optional<Type> type{_try_parse_type()};
     if (not type.has_value()) {

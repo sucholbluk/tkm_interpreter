@@ -43,6 +43,16 @@ void Printer::visit(const ReturnStatement& return_stmnt) {
     }
 }
 
+void Printer::visit(const VariableDeclarationStatement& var_decl) {
+    _print_indent();
+    std::cout << "VariableDeclarationStatement <" << &var_decl << "> at: " << var_decl.position.get_position_str()
+              << std::endl;
+    _IndentGuard guard{_indent_level};
+
+    var_decl.typed_identifier->accept(*this);
+    var_decl.assigned_expression->accept(*this);
+}
+
 /* -----------------------------------------------------------------------------*
  *                               PRINTING EXPRESSIONS                           *
  *------------------------------------------------------------------------------*/
@@ -78,7 +88,10 @@ void Printer::visit(const FunctionCall& func_call_expr) {
 
     _print_indent();
     std::cout << "Arguments:";
-    {
+    if (func_call_expr.argument_list.empty()) {
+        std::cout << "no arguments called" << std::endl;
+    } else {
+        std::cout << std::endl;
         _IndentGuard arguments_guard{_indent_level};
         std::ranges::for_each(func_call_expr.argument_list,
                               [this](const up_expression& argument) { argument->accept(*this); });
@@ -138,7 +151,8 @@ void Printer::visit(const LiteralBool& literal_bool) {
 void Printer::visit(const TypedIdentifier& typed_identifier) {
     _print_indent();
     std::cout << "TypedIdentifier <" << &typed_identifier << "> at:" << typed_identifier.position.get_position_str()
-              << std::format("identifier:{}, type:{}", typed_identifier.name, typed_identifier.type.to_str());
+              << std::format(" identifier:{}, type:{}", typed_identifier.name, typed_identifier.type.to_str())
+              << std::endl;
 }
 
 void Printer::_print_expression_header(const Expression& expr, std::string type_spec,
