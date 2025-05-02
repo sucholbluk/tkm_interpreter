@@ -9,6 +9,8 @@ struct TypedIdentifier : public Node {
     std::string name;
     VariableType type;
     explicit TypedIdentifier(const Position& position, std::string name, VariableType type);
+
+    void accept(Visitor& visitor) const override;
 };
 
 using up_typed_identifier = std::unique_ptr<TypedIdentifier>;

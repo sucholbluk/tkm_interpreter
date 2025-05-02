@@ -75,3 +75,7 @@ BOOST_AUTO_TEST_CASE(test_break_cont) {
     Printer printer{};
     program->accept(printer);
 }
+
+BOOST_AUTO_TEST_CASE(test_fail) {
+    BOOST_CHECK_EQUAL(1, 0);
+}
