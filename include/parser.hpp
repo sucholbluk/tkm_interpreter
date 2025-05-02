@@ -31,6 +31,27 @@ class Parser {
     up_statement _try_parse_expression_statement();
 
     up_expression _try_parse_expression();
+    up_expression _try_parse_logical_or();
+    up_expression _try_parse_logical_and();
+    up_expression _try_parse_equality_expression();
+    up_expression _try_parse_comparison_expression();
+    up_expression _try_parse_additive_expression();
+    up_expression _try_parse_multiplicative_expression();
+    up_expression _try_parse_type_cast();
+    up_expression _try_parse_unary_expression();
+    up_expression _try_parse_function_composition();
+
+    // jest wspolny początek dla (expression) i bind front - arg_list= (expr, ...)
+    // możliwe, że próbując zbudować arg_list zbudujemy tylko (expr) i jesli następny token nie jest
+    // >> to powinniśmy zwrócić expression, ale function call ma w języku wyższy priorytet
+    // niż bind front więc żeby uchronić się przed uniemożliwieniem function calla o postaci
+    // (expr)() sprawdzamy czy następny token to nie kolejny argument list itd (expr)()()...
+    up_expression _try_parse_bind_front_or_function_call();
+    up_expression _try_parse_function_call();
+    up_expression _try_parse_function_call(up_expression paren_expr);
+
+    std::optional<up_expression_vec> _try_parse_argument_list();
+
     up_expression _try_parse_assigned_expression();
 
     up_typed_identifier _try_parse_typed_identifier();
@@ -44,6 +65,7 @@ class Parser {
 
     std::unique_ptr<ILexer> _lexer;
     Token _token;
-    static const std::unordered_map<TokenType, std::function<up_statement(Parser&)>> _simple_statement_builders_map;
+
+    static const std::unordered_map<TokenType, ExpressionKind> _comparison_tokens_to_expr_kind;
 };
 #endif  // PARSER_HPP

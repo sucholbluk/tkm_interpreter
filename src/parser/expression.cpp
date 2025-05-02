@@ -91,12 +91,12 @@ void ParenExpression::accept(Visitor& visitor) const {
     visitor.visit(*this);
 }
 /* -----------------------------------------------------------------------------*
- *                          TYPE_CONVERSION_EXPRESSION                          *
+ *                          TYPE_CAST_EXPRESSION                          *
  *------------------------------------------------------------------------------*/
-TypeConvExpression::TypeConvExpression(const Position& position, up_expression expr, Type target_type)
-    : Expression{position, ExpressionKind::TYPE_CONVERSION}, expr{std::move(expr)}, target_type{target_type} {}
+TypeCastExpression::TypeCastExpression(const Position& position, up_expression expr, Type target_type)
+    : Expression{position, ExpressionKind::TYPE_CAST}, expr{std::move(expr)}, target_type{target_type} {}
 
-void TypeConvExpression::accept(Visitor& visitor) const {
+void TypeCastExpression::accept(Visitor& visitor) const {
     visitor.visit(*this);
 }
 
@@ -176,8 +176,8 @@ std::string expression_kind_to_str(const ExpressionKind& kind) {
             return "BindFront";
         case ExpressionKind::FUNCTION_CALL:
             return "FunctionCall";
-        case ExpressionKind::TYPE_CONVERSION:
-            return "TypeConversion";
+        case ExpressionKind::TYPE_CAST:
+            return "TypeCast";
         case ExpressionKind::LOGICAL_NOT:
             return "LogicalNot";
         case ExpressionKind::UNARY_MINUS:

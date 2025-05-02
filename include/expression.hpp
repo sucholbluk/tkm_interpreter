@@ -24,7 +24,7 @@ enum class ExpressionKind {
     BIND_FRONT,
     FUNCTION_CALL,
 
-    TYPE_CONVERSION,
+    TYPE_CAST,
     LOGICAL_NOT,
     UNARY_MINUS,
 
@@ -89,8 +89,8 @@ struct ParenExpression : Expression {
     void accept(Visitor& visitor) const override;
 };
 
-struct TypeConvExpression : Expression {
-    explicit TypeConvExpression(const Position& position, up_expression expr, Type target_type);
+struct TypeCastExpression : Expression {
+    explicit TypeCastExpression(const Position& position, up_expression expr, Type target_type);
     up_expression expr;
     Type target_type;
 

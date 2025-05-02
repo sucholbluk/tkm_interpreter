@@ -42,8 +42,8 @@ void Printer::visit(const UnaryExpression& unary_expr) {
     unary_expr.expr->accept(*this);
 }
 
-void Printer::visit(const TypeConvExpression& type_conv_expr) {
-    _print_expression_header(type_conv_expr, "", std::format("target_type:{}", type_conv_expr.target_type.to_str()));
+void Printer::visit(const TypeCastExpression& type_cast_expr) {
+    _print_expression_header(type_cast_expr, "", std::format("target_type:{}", type_cast_expr.target_type.to_str()));
     _IndentGuard guard{_indent_level};
 }
 

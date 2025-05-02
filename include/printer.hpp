@@ -17,7 +17,7 @@ class Printer : public Visitor {
     void visit(const FunctionCall& func_call_expr) override;
     void visit(const BindFront& bind_front_expr) override;
     void visit(const ParenExpression& paren_expr) override;
-    void visit(const TypeConvExpression& type_conv_expr) override;
+    void visit(const TypeCastExpression& type_cast_expr) override;
     void visit(const Identifier& identifier) override;
     void visit(const LiteralInt& literal_int) override;
     void visit(const LiteralFloat& literal_float) override;

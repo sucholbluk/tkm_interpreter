@@ -15,7 +15,7 @@ struct LiteralFloat;
 struct LiteralString;
 struct LiteralBool;
 struct TypedIdentifier;
-struct TypeConvExpression;
+struct TypeCastExpression;
 
 class Visitor {
    public:
@@ -30,7 +30,7 @@ class Visitor {
     virtual void visit(const FunctionCall& func_call_expr) = 0;
     virtual void visit(const BindFront& bind_front_expr) = 0;
     virtual void visit(const ParenExpression& paren_expr) = 0;
-    virtual void visit(const TypeConvExpression& type_conv_expr) = 0;
+    virtual void visit(const TypeCastExpression& type_cast_expr) = 0;
     virtual void visit(const Identifier& identifier) = 0;
     virtual void visit(const LiteralInt& literal_int) = 0;
     virtual void visit(const LiteralFloat& literal_float) = 0;
