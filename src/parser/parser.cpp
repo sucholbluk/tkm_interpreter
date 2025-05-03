@@ -103,15 +103,78 @@ up_statement Parser::_try_parse_variable_declaration() {
 
     _token_must_be(TokenType::T_SEMICOLON);
     _get_next_token();
-    return std::make_unique<VariableDeclarationStatement>(position, std::move(typed_identifier),
-                                                          std::move(assigned_expression));
+    return std::make_unique<VariableDeclaration>(position, std::move(typed_identifier), std::move(assigned_expression));
 }
 
 up_statement Parser::_try_parse_code_block() {
-    return nullptr;
+    if (not _token_type_is(TokenType::T_L_BRACE)) {
+        return nullptr;
+    }
+
+    Position position{_token.get_position()};
+    _get_next_token();
+
+    up_statement_vec statements{};
+    while (up_statement statement = _try_parse_statement()) {
+        statements.push_back(std::move(statement));
+    }
+
+    _token_must_be(TokenType::T_R_BRACE);
+    _get_next_token();
+
+    return std::make_unique<CodeBlock>(position, std::move(statements));
 }
 up_statement Parser::_try_parse_if_statement() {
-    return nullptr;
+    if (not _token_type_is(TokenType::T_IF)) {
+        return nullptr;
+    }
+    Position if_position{_token.get_position()};
+    _get_next_token();
+
+    up_expression condition{_try_parse_condition()};
+
+    if (not condition) {
+        throw std::runtime_error("missing if condition");
+    }
+
+    up_statement if_body{_try_parse_code_block()};
+
+    if (not if_body) {
+        throw std::runtime_error("required if code block");
+    }
+
+    up_else_if_vec else_ifs{};
+    up_statement else_block{};
+    while (_token_type_is(TokenType::T_ELSE) and not else_block) {
+        Position else_if_position{_token.get_position()};
+        _get_next_token();
+
+        if (not _token_type_is(TokenType::T_IF)) {
+            else_block = _try_parse_code_block();
+            if (not else_block) {
+                throw std::runtime_error("required body after else");
+            }
+
+            continue;
+        }
+
+        _get_next_token();
+
+        up_expression else_if_condition{_try_parse_condition()};
+        if (not else_if_condition) {
+            throw std::runtime_error("required condition after else if");
+        }
+
+        up_statement else_if_body{_try_parse_code_block()};
+        if (not else_if_body) {
+            throw std::runtime_error("required body in else if");
+        }
+
+        else_ifs.push_back(
+            std::make_unique<ElseIf>(else_if_position, std::move(else_if_condition), std::move(else_if_body)));
+    }
+    return std::make_unique<IfStatement>(if_position, std::move(condition), std::move(if_body), std::move(else_ifs),
+                                         std::move(else_block));
 }
 up_statement Parser::_try_parse_for_loop() {
     return nullptr;
@@ -130,6 +193,20 @@ up_statement Parser::_try_parse_expression_statement() {
  *                             PARSING EXPRESSIONS                              *
  *------------------------------------------------------------------------------*/
 // TODO
+
+up_expression Parser::_try_parse_condition() {
+    if (not _token_type_is(TokenType::T_L_PAREN)) {
+        return nullptr;
+    }
+    _get_next_token();
+
+    up_expression condition{_try_parse_expression()};
+
+    _token_must_be(TokenType::T_R_PAREN);
+    _get_next_token();
+
+    return condition;
+}
 
 up_expression Parser::_try_parse_expression() {
     return _try_parse_logical_or();

@@ -43,14 +43,75 @@ void Printer::visit(const ReturnStatement& return_stmnt) {
     }
 }
 
-void Printer::visit(const VariableDeclarationStatement& var_decl) {
+void Printer::visit(const VariableDeclaration& var_decl) {
     _print_indent();
-    std::cout << "VariableDeclarationStatement <" << &var_decl << "> at: " << var_decl.position.get_position_str()
-              << std::endl;
+    std::cout << "VariableDeclaration <" << &var_decl << "> at: " << var_decl.position.get_position_str() << std::endl;
     _IndentGuard guard{_indent_level};
 
     var_decl.typed_identifier->accept(*this);
     var_decl.assigned_expression->accept(*this);
+}
+
+void Printer::visit(const CodeBlock& code_block) {
+    _print_indent();
+    std::cout << "CodeBlock <" << &code_block << "> at: " << code_block.position.get_position_str() << std::endl;
+    {
+        _IndentGuard guard{_indent_level};
+        std::ranges::for_each(code_block.statements,
+                              [this](const up_statement& statement) { statement->accept(*this); });
+    }
+}
+
+void Printer::visit(const IfStatement& if_stmnt) {
+    _print_indent();
+    std::cout << "IfStatement <" << &if_stmnt << "> at: " << if_stmnt.position.get_position_str() << std::endl;
+    {
+        _IndentGuard guard{_indent_level};
+        _print_indent();
+        std::cout << "Contition:" << std::endl;
+        {
+            _IndentGuard condition_guard{_indent_level};
+            if_stmnt.condition->accept(*this);
+        }
+        _print_indent();
+        std::cout << "Body:" << std::endl;
+        {
+            _IndentGuard body_guard{_indent_level};
+            if_stmnt.body->accept(*this);
+        }
+
+        if (not if_stmnt.else_ifs.empty()) {
+            _print_indent();
+            std::cout << "Else Ifs:" << std::endl;
+            _IndentGuard else_ifs_guard{_indent_level};
+            std::ranges::for_each(if_stmnt.else_ifs, [this](const up_else_if& else_if) { else_if->accept(*this); });
+        }
+
+        if (if_stmnt.else_body) {
+            _print_indent();
+            std::cout << "Else:" << std::endl;
+            _IndentGuard else_guard{_indent_level};
+            if_stmnt.else_body->accept(*this);
+        }
+    }
+}
+
+void Printer::visit(const ElseIf& else_if) {
+    _print_indent();
+    std::cout << "ElseIf <" << &else_if << "> at: " << else_if.position.get_position_str() << std::endl;
+    _IndentGuard guard{_indent_level};
+    _print_indent();
+    std::cout << "Condition:" << std::endl;
+    {
+        _IndentGuard condition_guard{_indent_level};
+        else_if.condition->accept(*this);
+    }
+    _print_indent();
+    std::cout << "Body:" << std::endl;
+    {
+        _IndentGuard body_guard{_indent_level};
+        else_if.body->accept(*this);
+    }
 }
 
 /* -----------------------------------------------------------------------------*

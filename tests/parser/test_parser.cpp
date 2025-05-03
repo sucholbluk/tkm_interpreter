@@ -154,6 +154,96 @@ BOOST_AUTO_TEST_CASE(test_variable_declaration_with_function_call) {
     program->accept(printer);
 }
 
+// {let inc_42: function<mut int: none> = }
+BOOST_AUTO_TEST_CASE(test_parse_code_block) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_L_BRACE, Position()},
+        Token{TokenType::T_LET, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "inc_42"},
+        Token{TokenType::T_COLON, Position()},
+        Token{TokenType::T_FUNCTION, Position()},
+        Token{TokenType::T_LESS, Position()},
+        Token{TokenType::T_MUT, Position()},
+        Token{TokenType::T_INT, Position()},
+        Token{TokenType::T_COLON, Position()},
+        Token{TokenType::T_NONE, Position()},
+        Token{TokenType::T_GREATER, Position()},
+        Token{TokenType::T_ASSIGN, Position()},
+        Token{TokenType::T_L_PAREN, Position()},
+        Token{TokenType::T_LITERAL_INT, Position(), 42},
+        Token{TokenType::T_R_PAREN, Position()},
+        Token{TokenType::T_BIND_FRONT, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "inc_by"},
+        Token{TokenType::T_SEMICOLON, Position()},
+        Token{TokenType::T_RETURN, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "my_function"},
+        Token{TokenType::T_SEMICOLON, Position()},
+        Token{TokenType::T_R_BRACE, Position()},
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+    Printer printer{};
+    program->accept(printer);
+}
+// if (x < 4){
+//     return x + 2;
+// } else if (x > 5) {
+//     return x - 3;
+// } else {
+//     return x * 2;
+// }
+BOOST_AUTO_TEST_CASE(test_if_else_statement) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_IF, Position()},
+        Token{TokenType::T_L_PAREN, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "x"},
+        Token{TokenType::T_LESS, Position()},
+        Token{TokenType::T_LITERAL_INT, Position(), 4},
+        Token{TokenType::T_R_PAREN, Position()},
+        Token{TokenType::T_L_BRACE, Position()},
+        Token{TokenType::T_RETURN, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "x"},
+        Token{TokenType::T_PLUS, Position()},
+        Token{TokenType::T_LITERAL_INT, Position(), 2},
+        Token{TokenType::T_SEMICOLON, Position()},
+        Token{TokenType::T_R_BRACE, Position()},
+        Token{TokenType::T_ELSE, Position()},
+        Token{TokenType::T_IF, Position()},
+        Token{TokenType::T_L_PAREN, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "x"},
+        Token{TokenType::T_GREATER, Position()},
+        Token{TokenType::T_LITERAL_INT, Position(), 5},
+        Token{TokenType::T_R_PAREN, Position()},
+        Token{TokenType::T_L_BRACE, Position()},
+        Token{TokenType::T_RETURN, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "x"},
+        Token{TokenType::T_MINUS, Position()},
+        Token{TokenType::T_LITERAL_INT, Position(), 3},
+        Token{TokenType::T_SEMICOLON, Position()},
+        Token{TokenType::T_R_BRACE, Position()},
+        Token{TokenType::T_ELSE, Position()},
+        Token{TokenType::T_L_BRACE, Position()},
+        Token{TokenType::T_RETURN, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "x"},
+        Token{TokenType::T_MULTIPLY, Position()},
+        Token{TokenType::T_LITERAL_INT, Position(), 2},
+        Token{TokenType::T_SEMICOLON, Position()},
+        Token{TokenType::T_R_BRACE, Position()},
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+
+    Printer printer{};
+    program->accept(printer);
+}
+
 BOOST_AUTO_TEST_CASE(test_fail) {
     BOOST_CHECK_EQUAL(1, 0);
 }

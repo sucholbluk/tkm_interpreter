@@ -11,7 +11,13 @@ struct Statement : public Node {
     using Node::Node;
 };
 
+struct CodeBlock;
+struct ElseIf;
+
 using up_statement = std::unique_ptr<Statement>;
+using up_statement_vec = std::vector<up_statement>;
+using up_else_if = std::unique_ptr<ElseIf>;
+using up_else_if_vec = std::vector<up_else_if>;
 
 struct ContinueStatement : public Statement {
     using Statement::Statement;
@@ -29,11 +35,34 @@ struct ReturnStatement : public Statement {
     void accept(Visitor& visitor) const override;
 };
 
-struct VariableDeclarationStatement : public Statement {
-    explicit VariableDeclarationStatement(const Position& position, up_typed_identifier typed_identifier,
-                                          up_expression assigned_expression);
+struct VariableDeclaration : public Statement {
+    explicit VariableDeclaration(const Position& position, up_typed_identifier typed_identifier,
+                                 up_expression assigned_expression);
     up_typed_identifier typed_identifier;
     up_expression assigned_expression;
+    void accept(Visitor& visitor) const override;
+};
+
+struct CodeBlock : public Statement {
+    explicit CodeBlock(const Position& position, up_statement_vec statements);
+    up_statement_vec statements;
+    void accept(Visitor& visitor) const override;
+};
+
+struct IfStatement : public Statement {
+    explicit IfStatement(const Position& position, up_expression condition, up_statement body, up_else_if_vec else_ifs,
+                         up_statement else_body);
+    up_expression condition;
+    up_statement body;
+    up_else_if_vec else_ifs;
+    up_statement else_body;
+    void accept(Visitor& visitor) const override;
+};
+
+struct ElseIf : public Statement {
+    explicit ElseIf(const Position& position, up_expression condition, up_statement body);
+    up_expression condition;
+    up_statement body;
     void accept(Visitor& visitor) const override;
 };
 

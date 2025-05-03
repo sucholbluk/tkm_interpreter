@@ -12,7 +12,10 @@ class Printer : public Visitor {
     void visit(const ContinueStatement& continue_stmnt) override;
     void visit(const BreakStatement& break_stmnt) override;
     void visit(const ReturnStatement& reaturn_stmnt) override;
-    void visit(const VariableDeclarationStatement& var_decl) override;
+    void visit(const VariableDeclaration& var_decl) override;
+    void visit(const CodeBlock& var_decl) override;
+    void visit(const IfStatement& if_stmnt) override;
+    void visit(const ElseIf& else_if) override;
 
     void visit(const BinaryExpression& binary_expr) override;
     void visit(const UnaryExpression& unary_expr) override;

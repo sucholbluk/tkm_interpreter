@@ -30,6 +30,7 @@ class Parser {
     up_statement _try_parse_assignment_or_expression_statement();
     up_statement _try_parse_expression_statement();
 
+    up_expression _try_parse_condition();
     up_expression _try_parse_expression();
     up_expression _try_parse_logical_or();
     up_expression _try_parse_logical_and();

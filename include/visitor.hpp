@@ -18,7 +18,10 @@ struct LiteralString;
 struct LiteralBool;
 struct TypedIdentifier;
 struct TypeCastExpression;
-struct VariableDeclarationStatement;
+struct VariableDeclaration;
+struct CodeBlock;
+struct IfStatement;
+struct ElseIf;
 
 class Visitor {
    public:
@@ -28,7 +31,10 @@ class Visitor {
     virtual void visit(const ContinueStatement& continue_stmnt) = 0;
     virtual void visit(const BreakStatement& break_stmnt) = 0;
     virtual void visit(const ReturnStatement& reaturn_stmnt) = 0;
-    virtual void visit(const VariableDeclarationStatement& var_decl) = 0;
+    virtual void visit(const VariableDeclaration& var_decl) = 0;
+    virtual void visit(const CodeBlock& var_decl) = 0;
+    virtual void visit(const IfStatement& if_stmnt) = 0;
+    virtual void visit(const ElseIf& else_if) = 0;
 
     virtual void visit(const BinaryExpression& binary_expr) = 0;
     virtual void visit(const UnaryExpression& unary_expr) = 0;
