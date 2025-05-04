@@ -88,3 +88,15 @@ void FunctionSignature::_deduce_function_type(std::optional<Type> return_type) {
 void FunctionSignature::accept(Visitor& visitor) const {
     visitor.visit(*this);
 }
+
+ForLoop::ForLoop(const Position& position, up_statement var_declaration, up_expression condition,
+                 up_statement loop_update, up_statement body)
+    : Statement{position},
+      var_declaration{std::move(var_declaration)},
+      condition{std::move(condition)},
+      loop_update{std::move(loop_update)},
+      body{std::move(body)} {}
+
+void ForLoop::accept(Visitor& visitor) const {
+    visitor.visit(*this);
+}

@@ -423,6 +423,49 @@ BOOST_AUTO_TEST_CASE(test_function_definition_with_mutable_argument) {
     program->accept(printer);
 }
 
+// for (i: int = 0; i < 10; i = i + 1) {
+//     print(i);
+// }
+BOOST_AUTO_TEST_CASE(test_for_loop_with_variable_declaration) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_FOR, Position()},                  // for
+        Token{TokenType::T_L_PAREN, Position()},              // (
+        Token{TokenType::T_IDENTIFIER, Position(), "i"},      // i
+        Token{TokenType::T_COLON, Position()},                // :
+        Token{TokenType::T_INT, Position()},                  // int
+        Token{TokenType::T_ASSIGN, Position()},               // =
+        Token{TokenType::T_LITERAL_INT, Position(), 0},       // 0
+        Token{TokenType::T_SEMICOLON, Position()},            // ;
+        Token{TokenType::T_IDENTIFIER, Position(), "i"},      // i
+        Token{TokenType::T_LESS, Position()},                 // <
+        Token{TokenType::T_LITERAL_INT, Position(), 10},      // 10
+        Token{TokenType::T_SEMICOLON, Position()},            // ;
+        Token{TokenType::T_IDENTIFIER, Position(), "i"},      // i
+        Token{TokenType::T_ASSIGN, Position()},               // =
+        Token{TokenType::T_IDENTIFIER, Position(), "i"},      // i
+        Token{TokenType::T_PLUS, Position()},                 // +
+        Token{TokenType::T_LITERAL_INT, Position(), 1},       // 1
+        Token{TokenType::T_R_PAREN, Position()},              // )
+        Token{TokenType::T_L_BRACE, Position()},              // {
+        Token{TokenType::T_IDENTIFIER, Position(), "print"},  // print
+        Token{TokenType::T_L_PAREN, Position()},              // (
+        Token{TokenType::T_IDENTIFIER, Position(), "i"},      // i
+        Token{TokenType::T_R_PAREN, Position()},              // )
+        Token{TokenType::T_SEMICOLON, Position()},            // ;
+        Token{TokenType::T_R_BRACE, Position()},              // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+
+    // Użycie Printer do wypisania struktury AST
+    Printer printer{};
+    program->accept(printer);
+}
+
 BOOST_AUTO_TEST_CASE(test_fail) {
     BOOST_CHECK_EQUAL(1, 0);
 }

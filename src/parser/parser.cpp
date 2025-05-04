@@ -91,13 +91,9 @@ up_statement Parser::_try_parse_variable_declaration() {
 
     if (not typed_identifier) throw std::invalid_argument("couldnt parse typed identifier");  // TODO: replace
 
-    _advance_on_required_token(TokenType::T_ASSIGN);
+    up_expression assigned_expression{_try_parse_assigned_expression()};
 
-    up_expression assigned_expression{_try_parse_expression()};
-    if (not assigned_expression)
-        // dobra już widze że to zaczyna sie powtarzać, do upakowania w inną funkcje np _must_be() po prostu
-        throw std::invalid_argument("required expression to assign");  // TODO: replace - eee chociaz może jak działam
-                                                                       // na unique ptr to nie warto - do przemyslenia
+    if (not assigned_expression) throw std::invalid_argument("required assignment in variable declaration");
 
     _advance_on_required_token(TokenType::T_SEMICOLON);
 
@@ -170,7 +166,48 @@ up_statement Parser::_try_parse_if_statement() {
                                          std::move(else_block));
 }
 up_statement Parser::_try_parse_for_loop() {
-    return nullptr;
+    if (not _token_type_is(TokenType::T_FOR)) {
+        return nullptr;
+    }
+    Position position{_get_position_and_digest_token()};
+
+    _advance_on_required_token(TokenType::T_L_PAREN);
+
+    up_statement var_decl{_try_parse_loop_var_declaration()};
+    if (not var_decl) {
+        throw std::runtime_error("loop requires loop var declaration");
+    }
+
+    _advance_on_required_token(TokenType::T_SEMICOLON);
+
+    up_expression condition{_try_parse_expression()};
+    if (not condition) {
+        throw std::runtime_error("loop requires condition");
+    }
+
+    _advance_on_required_token(TokenType::T_SEMICOLON);
+
+    if (not _token_type_is(TokenType::T_IDENTIFIER)) {
+        throw std::runtime_error("required identifier for loop update");
+    }
+    std::string identifier{_token.get_value_as<std::string>()};
+    Position asgn_position{_get_position_and_digest_token()};
+
+    up_expression assigned_expr{_try_parse_assigned_expression()};
+    if (not assigned_expr) {
+        throw std::runtime_error("required assignment for loop update");
+    }
+    up_statement loop_update{std::make_unique<AssignStatement>(asgn_position, identifier, std::move(assigned_expr))};
+
+    _advance_on_required_token(TokenType::T_R_PAREN);
+
+    up_statement body{_try_parse_code_block()};
+    if (not body) {
+        throw std::runtime_error("required body for ForLoop");
+    }
+
+    return std::make_unique<ForLoop>(position, std::move(var_decl), std::move(condition), std::move(loop_update),
+                                     std::move(body));
 }
 up_statement Parser::_try_parse_function_definition() {
     up_func_sig signature{_try_parse_function_signature()};
@@ -204,15 +241,27 @@ up_statement Parser::_try_parse_assignment_or_expression_statement() {
         throw std::runtime_error("invalid assign target");
     }
 
-    _get_next_token();
-    up_expression assigned_expr{_try_parse_expression()};
+    // tu już jestesmy pewni, że token jest T_ASSIGN, wiec jesli wystapi blad to bedzie
+    // zgloszony na poziomie _try_parse_assigned_expression()
+    up_expression assigned_expr{_try_parse_assigned_expression()};
 
-    if (not assigned_expr) {
-        throw std::runtime_error("assignment requires expression");
-    }
     _advance_on_required_token(TokenType::T_SEMICOLON);
 
     return std::make_unique<AssignStatement>(expr->position, identifier, std::move(assigned_expr));
+}
+
+up_statement Parser::_try_parse_loop_var_declaration() {
+    Position position{_token.get_position()};
+
+    up_typed_identifier typed_identifier = _try_parse_typed_identifier();
+
+    if (not typed_identifier) throw std::invalid_argument("couldnt parse typed identifier");
+    typed_identifier->type.is_mutable = true;
+
+    up_expression assigned_expr{_try_parse_assigned_expression()};
+    if (not assigned_expr) throw std::invalid_argument("missing assignment to loop var declaration");
+
+    return std::make_unique<VariableDeclaration>(position, std::move(typed_identifier), std::move(assigned_expr));
 }
 
 /* -----------------------------------------------------------------------------*
@@ -292,7 +341,6 @@ up_expression Parser::_try_parse_unary_expression() {
     }
 
     ExprKind kind = _token_type_is(TokenType::T_NOT) ? ExprKind::UNARY_MINUS : ExprKind::LOGICAL_NOT;
-
     Position position{_get_position_and_digest_token()};
 
     up_expression expr = _try_parse_function_composition();
@@ -351,11 +399,11 @@ up_expression Parser::_try_parse_function_call() {
     return _try_parse_function_call(_try_parse_primary());
 }
 
-up_expression Parser::_try_parse_function_call(up_expression paren_expr) {
-    if (not paren_expr) {
+up_expression Parser::_try_parse_function_call(up_expression primary) {
+    if (not primary) {
         return nullptr;
     }
-    up_expression callee{std::move(paren_expr)};
+    up_expression callee{std::move(primary)};
 
     while (std::optional<up_expression_vec> arg_list = _try_parse_argument_list()) {
         callee = std::make_unique<FunctionCall>(callee->position, std::move(callee), std::move(arg_list.value()));
@@ -406,6 +454,19 @@ up_expression Parser::_try_parse_identifier() {
     up_expression idenitifier = std::make_unique<Identifier>(_token.get_position(), _token.get_value_as<std::string>());
     _get_next_token();
     return idenitifier;
+}
+
+up_expression Parser::_try_parse_assigned_expression() {
+    if (not _token_type_is(TokenType::T_ASSIGN)) {
+        return nullptr;
+    }
+
+    _get_next_token();
+    up_expression assigned_expr{_try_parse_expression()};
+    if (not assigned_expr) {
+        throw std::runtime_error("assignment requires expression");
+    }
+    return assigned_expr;
 }
 
 /* -----------------------------------------------------------------------------*

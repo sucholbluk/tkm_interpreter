@@ -26,6 +26,7 @@ struct AssignStatement;
 struct ExpressionStatement;
 struct FunctionDefinition;
 struct FunctionSignature;
+struct ForLoop;
 
 class Visitor {
    public:
@@ -43,6 +44,7 @@ class Visitor {
     virtual void visit(const ExpressionStatement& expr_stmnt) = 0;
     virtual void visit(const FunctionDefinition& func_def) = 0;
     virtual void visit(const FunctionSignature& func_sig) = 0;
+    virtual void visit(const ForLoop& for_loop) = 0;
 
     virtual void visit(const BinaryExpression& binary_expr) = 0;
     virtual void visit(const UnaryExpression& unary_expr) = 0;

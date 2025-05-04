@@ -100,4 +100,15 @@ struct FunctionDefinition : public Statement {
     void accept(Visitor& visitor) const override;
 };
 
+struct ForLoop : public Statement {
+    explicit ForLoop(const Position& position, up_statement var_declaration, up_expression condition,
+                     up_statement loop_update, up_statement body);
+    up_statement var_declaration;
+    up_expression condition;
+    up_statement loop_update;
+    up_statement body;
+
+    void accept(Visitor& visitor) const override;
+};
+
 #endif  // STATEMENT_HPP

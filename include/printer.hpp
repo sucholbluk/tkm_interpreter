@@ -20,6 +20,7 @@ class Printer : public Visitor {
     void visit(const ExpressionStatement& expr_stmnt) override;
     void visit(const FunctionDefinition& func_def) override;
     void visit(const FunctionSignature& func_sig) override;
+    void visit(const ForLoop& for_loop) override;
 
     void visit(const BinaryExpression& binary_expr) override;
     void visit(const UnaryExpression& unary_expr) override;

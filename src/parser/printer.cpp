@@ -147,6 +147,35 @@ void Printer::visit(const FunctionSignature& func_sig) {
     std::ranges::for_each(func_sig.params, [this](const up_typed_identifier& param) { param->accept(*this); });
 }
 
+void Printer::visit(const ForLoop& for_loop) {
+    std::cout << "ForLoop<" << &for_loop << "> at: " << for_loop.position.get_position_str() << std::endl;
+    _IndentGuard loop_guard{_indent_level};
+    _print_indent();
+    std::cout << "LoopVarDeclaration:" << std::endl;
+    {
+        _IndentGuard loop_var_guard{_indent_level};
+        for_loop.var_declaration->accept(*this);
+    }
+    _print_indent();
+    std::cout << "Condition:" << std::endl;
+    {
+        _IndentGuard condition_guard{_indent_level};
+        for_loop.condition->accept(*this);
+    }
+    _print_indent();
+    std::cout << "LoopUpdate:" << std::endl;
+    {
+        _IndentGuard loop_update_guard{_indent_level};
+        for_loop.condition->accept(*this);
+    }
+    _print_indent();
+    std::cout << "Body:" << std::endl;
+    {
+        _IndentGuard body_guard{_indent_level};
+        for_loop.body->accept(*this);
+    }
+}
+
 /* -----------------------------------------------------------------------------*
  *                               PRINTING EXPRESSIONS                           *
  *------------------------------------------------------------------------------*/

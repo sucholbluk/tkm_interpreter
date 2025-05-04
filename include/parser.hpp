@@ -29,9 +29,11 @@ class Parser {
     up_statement _try_parse_continue_statement();
     up_statement _try_parse_function_definition();
     up_statement _try_parse_assignment_or_expression_statement();
+    up_statement _try_parse_loop_var_declaration();
 
     up_expression _try_parse_condition();
     up_expression _try_parse_expression();
+    up_expression _try_parse_assigned_expression();
 
     up_expression _try_parse_chained_binary_expression(std::function<up_expression()> try_parse_subexpr,
                                                        const std::unordered_set<TokenType>& token_types,
@@ -57,7 +59,7 @@ class Parser {
     // (expr)() sprawdzamy czy następny token to nie kolejny argument list itd (expr)()()...
     up_expression _try_parse_bind_front_or_function_call();
     up_expression _try_parse_function_call();
-    up_expression _try_parse_function_call(up_expression paren_expr);
+    up_expression _try_parse_function_call(up_expression primary);
     up_expression _try_parse_primary();
     up_expression _try_parse_literal();
     up_expression _try_parse_identifier();
