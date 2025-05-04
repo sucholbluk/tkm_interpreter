@@ -103,7 +103,7 @@ up_statement Parser::_try_parse_variable_declaration() {
 
     return std::make_unique<VariableDeclaration>(position, std::move(typed_identifier), std::move(assigned_expression));
 }
-
+// { statements }
 up_statement Parser::_try_parse_code_block() {
     if (not _token_type_is(TokenType::T_L_BRACE)) {
         return nullptr;
@@ -124,8 +124,7 @@ up_statement Parser::_try_parse_if_statement() {
     if (not _token_type_is(TokenType::T_IF)) {
         return nullptr;
     }
-    Position if_position{_token.get_position()};
-    _get_next_token();
+    Position if_position{_get_position_and_digest_token()};
 
     up_expression condition{_try_parse_condition()};
 
@@ -142,8 +141,7 @@ up_statement Parser::_try_parse_if_statement() {
     up_else_if_vec else_ifs{};
     up_statement else_block{};
     while (_token_type_is(TokenType::T_ELSE)) {
-        Position else_if_position{_token.get_position()};
-        _get_next_token();
+        Position else_if_position{_get_position_and_digest_token()};
 
         if (not _token_type_is(TokenType::T_IF)) {
             else_block = _try_parse_code_block();
@@ -175,8 +173,17 @@ up_statement Parser::_try_parse_for_loop() {
     return nullptr;
 }
 up_statement Parser::_try_parse_function_definition() {
-    return nullptr;
+    up_func_sig signature{_try_parse_function_signature()};
+    if (not signature) {
+        return nullptr;
+    }
+    up_statement body{_try_parse_code_block()};
+    if (not body) {
+        throw std::runtime_error("required function body");
+    }
+    return std::make_unique<FunctionDefinition>(signature->position, std::move(signature), std::move(body));
 }
+
 up_statement Parser::_try_parse_assignment_or_expression_statement() {
     std::string identifier;
     if (_token_type_is(TokenType::T_IDENTIFIER)) {
@@ -510,6 +517,62 @@ up_typed_identifier Parser::_try_parse_typed_identifier() {
     return std::make_unique<TypedIdentifier>(position, identifier, VariableType{type.value(), is_mutable});
 }
 
+std::optional<up_typed_ident_vec> Parser::_try_parse_function_params() {
+    if (not _token_type_is(TokenType::T_L_PAREN)) {
+        return std::nullopt;
+    }
+    _get_next_token();
+    up_typed_ident_vec params{};
+
+    up_typed_identifier first_param{_try_parse_typed_identifier()};
+    if (first_param) {
+        params.push_back(std::move(first_param));
+        while (_token_type_is(TokenType::T_COMMA)) {
+            _get_next_token();
+            up_typed_identifier param{_try_parse_typed_identifier()};
+            if (not param) {
+                throw std::runtime_error("required typed identifier");
+            }
+            params.push_back(std::move(param));
+        }
+    }
+    _advance_on_required_token(TokenType::T_R_PAREN);
+
+    return params;
+}
+
+/* -----------------------------------------------------------------------------*
+ *                             FUNCTION SIGNATURE                               *
+ *------------------------------------------------------------------------------*/
+up_func_sig Parser::_try_parse_function_signature() {
+    if (not _token_type_is(TokenType::T_DEF)) {
+        return nullptr;
+    }
+    Position position{_get_position_and_digest_token()};
+
+    _token_must_be(TokenType::T_IDENTIFIER);
+    std::string identifier{_token.get_value_as<std::string>()};
+    _get_next_token();
+
+    std::optional<up_typed_ident_vec> params{_try_parse_function_params()};
+    if (not params.has_value()) {
+        throw std::runtime_error("missing function parameters specification");
+    }
+
+    _advance_on_required_token(TokenType::T_ARROW);
+
+    std::optional<Type> return_type{};
+    if (_token_type_is(TokenType::T_NONE)) {
+        _get_next_token();
+    } else {
+        std::optional<Type> not_none_type{_try_parse_type()};
+        if (not not_none_type.has_value()) {
+            throw std::invalid_argument("missing return type specification");
+        }
+        return_type = not_none_type;
+    }
+    return std::make_unique<FunctionSignature>(position, identifier, std::move(params.value()), return_type);
+}
 /* -----------------------------------------------------------------------------*
  *                                   TYPE                                       *
  *------------------------------------------------------------------------------*/
@@ -547,7 +610,9 @@ FunctionTypeInfo Parser::_parse_function_type_info() {
     _advance_on_required_token(TokenType::T_LESS);
 
     std::vector<VariableType> params{};  // if none, then params vector is empty
-    if (not _token_type_is(TokenType::T_NONE)) {
+    if (_token_type_is(TokenType::T_NONE)) {
+        _get_next_token();
+    } else {
         std::optional<VariableType> param{};
         do {
             param = _try_parse_function_param_type();

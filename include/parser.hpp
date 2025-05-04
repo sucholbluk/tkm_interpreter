@@ -64,6 +64,9 @@ class Parser {
     std::optional<up_expression_vec> _try_parse_argument_list();
 
     up_typed_identifier _try_parse_typed_identifier();
+    std::optional<up_typed_ident_vec> _try_parse_function_params();
+
+    up_func_sig _try_parse_function_signature();
 
     std::optional<Type> _try_parse_type();
     FunctionTypeInfo _parse_function_type_info();

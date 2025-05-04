@@ -328,6 +328,101 @@ BOOST_AUTO_TEST_CASE(test_complex_logical_and_arithmetic_expression) {
     program->accept(printer);
 }
 
+// let hello_world: function<none:string> = ("Hello", "world") >> space_concat;
+BOOST_AUTO_TEST_CASE(test_variable_declaration_with_bind_front) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_LET, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "hello_world"},
+        Token{TokenType::T_COLON, Position()},
+        Token{TokenType::T_FUNCTION, Position()},
+        Token{TokenType::T_LESS, Position()},
+        Token{TokenType::T_NONE, Position()},
+        Token{TokenType::T_COLON, Position()},
+        Token{TokenType::T_STRING, Position()},
+        Token{TokenType::T_GREATER, Position()},
+        Token{TokenType::T_ASSIGN, Position()},
+        Token{TokenType::T_L_PAREN, Position()},
+        Token{TokenType::T_LITERAL_STRING, Position(), "Hello"},
+        Token{TokenType::T_COMMA, Position()},
+        Token{TokenType::T_LITERAL_STRING, Position(), "world"},
+        Token{TokenType::T_R_PAREN, Position()},
+        Token{TokenType::T_BIND_FRONT, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "space_concat"},
+        Token{TokenType::T_SEMICOLON, Position()},
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+
+    Printer printer{};
+    program->accept(printer);
+}
+
+// ((4, 2) >> sum_two && square)();
+BOOST_AUTO_TEST_CASE(test_function_composition_with_bind_front) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_L_PAREN, Position()},                // (
+        Token{TokenType::T_L_PAREN, Position()},                // (
+        Token{TokenType::T_LITERAL_INT, Position(), 4},         // 4
+        Token{TokenType::T_COMMA, Position()},                  // ,
+        Token{TokenType::T_LITERAL_INT, Position(), 2},         // 2
+        Token{TokenType::T_R_PAREN, Position()},                // )
+        Token{TokenType::T_BIND_FRONT, Position()},             // >>
+        Token{TokenType::T_IDENTIFIER, Position(), "sum_two"},  // sum_two
+        Token{TokenType::T_FUNC_COMPOSITION, Position()},       // &&
+        Token{TokenType::T_IDENTIFIER, Position(), "square"},   // square
+        Token{TokenType::T_R_PAREN, Position()},                // )
+        Token{TokenType::T_L_PAREN, Position()},                // (
+        Token{TokenType::T_R_PAREN, Position()},                // )
+        Token{TokenType::T_SEMICOLON, Position()},              // ;
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+
+    Printer printer{};
+    program->accept(printer);
+}
+
+// def increment(mut a: int) -> none { a = a + 1; }
+BOOST_AUTO_TEST_CASE(test_function_definition_with_mutable_argument) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position()},                      // def
+        Token{TokenType::T_IDENTIFIER, Position(), "increment"},  // increment
+        Token{TokenType::T_L_PAREN, Position()},                  // (
+        Token{TokenType::T_MUT, Position()},                      // mut
+        Token{TokenType::T_IDENTIFIER, Position(), "a"},          // a
+        Token{TokenType::T_COLON, Position()},                    // :
+        Token{TokenType::T_INT, Position()},                      // int
+        Token{TokenType::T_R_PAREN, Position()},                  // )
+        Token{TokenType::T_ARROW, Position()},                    // ->
+        Token{TokenType::T_NONE, Position()},                     // none
+        Token{TokenType::T_L_BRACE, Position()},                  // {
+        Token{TokenType::T_IDENTIFIER, Position(), "a"},          // a
+        Token{TokenType::T_ASSIGN, Position()},                   // =
+        Token{TokenType::T_IDENTIFIER, Position(), "a"},          // a
+        Token{TokenType::T_PLUS, Position()},                     // +
+        Token{TokenType::T_LITERAL_INT, Position(), 1},           // 1
+        Token{TokenType::T_SEMICOLON, Position()},                // ;
+        Token{TokenType::T_R_BRACE, Position()},                  // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+
+    Printer printer{};
+    program->accept(printer);
+}
+
 BOOST_AUTO_TEST_CASE(test_fail) {
     BOOST_CHECK_EQUAL(1, 0);
 }

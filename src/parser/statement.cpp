@@ -70,9 +70,9 @@ void FunctionDefinition::accept(Visitor& visitor) const {
     visitor.visit(*this);
 }
 
-FunctionSignature::FunctionSignature(const Position& position, up_typed_ident_vec params,
+FunctionSignature::FunctionSignature(const Position& position, std::string identifier, up_typed_ident_vec params,
                                      std::optional<Type> return_type)
-    : Node{position}, params{std::move(params)} {
+    : Node{position}, identifier{identifier}, params{std::move(params)} {
     _deduce_function_type(return_type);
 }
 

@@ -82,7 +82,8 @@ struct ExpressionStatement : public Statement {
 };
 
 struct FunctionSignature : public Node {
-    explicit FunctionSignature(const Position& position, up_typed_ident_vec params, std::optional<Type> return_type);
+    explicit FunctionSignature(const Position& position, std::string identifier, up_typed_ident_vec params,
+                               std::optional<Type> return_type);
     std::string identifier;
     Type type;
     up_typed_ident_vec params;
