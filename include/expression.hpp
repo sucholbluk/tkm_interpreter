@@ -6,7 +6,7 @@
 #include "node.hpp"
 #include "type.hpp"
 
-enum class ExpressionKind {
+enum class ExprKind {
     LOGICAL_OR,
     LOGICAL_AND,
     EQUAL,
@@ -34,36 +34,36 @@ enum class ExpressionKind {
     LITERAL,
 };
 
-std::string expression_kind_to_str(const ExpressionKind& expr_kind);
+std::string expression_kind_to_str(const ExprKind& expr_kind);
 
 struct Expression : Node {
-    explicit Expression(const Position& position, ExpressionKind expr_kind);
-    ExpressionKind kind;
+    explicit Expression(const Position& position, ExprKind expr_kind);
+    ExprKind kind;
 };
 
 using up_expression = std::unique_ptr<Expression>;
 using up_expression_vec = std::vector<up_expression>;
 
 struct BinaryExpression : Expression {
-    explicit BinaryExpression(const Position& position, ExpressionKind kind, up_expression left, up_expression right);
+    explicit BinaryExpression(const Position& position, ExprKind kind, up_expression left, up_expression right);
     up_expression left;
     up_expression right;
 
     void accept(Visitor& visitor) const override;
 
-    static const std::unordered_set<ExpressionKind> binary_kinds;
-    static std::unique_ptr<BinaryExpression> create(const Position& position, ExpressionKind kind, up_expression left,
+    static const std::unordered_set<ExprKind> binary_kinds;
+    static std::unique_ptr<BinaryExpression> create(const Position& position, ExprKind kind, up_expression left,
                                                     up_expression right);
 };
 
 struct UnaryExpression : Expression {
-    explicit UnaryExpression(const Position& position, ExpressionKind kind, up_expression expr);
+    explicit UnaryExpression(const Position& position, ExprKind kind, up_expression expr);
     up_expression expr;
 
     void accept(Visitor& visitor) const override;
 
-    static const std::unordered_set<ExpressionKind> unary_kinds;
-    static std::unique_ptr<UnaryExpression> create(const Position& position, ExpressionKind kind, up_expression expr);
+    static const std::unordered_set<ExprKind> unary_kinds;
+    static std::unique_ptr<UnaryExpression> create(const Position& position, ExprKind kind, up_expression expr);
 };
 
 struct FunctionCall : Expression {

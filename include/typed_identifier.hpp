@@ -14,4 +14,5 @@ struct TypedIdentifier : public Node {
 };
 
 using up_typed_identifier = std::unique_ptr<TypedIdentifier>;
+using up_typed_ident_vec = std::vector<up_typed_identifier>;
 #endif  // TYPED_IDENTIFIER_HPP

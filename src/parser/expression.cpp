@@ -3,37 +3,36 @@
 /* -----------------------------------------------------------------------------*
  *                               BASE - EXPRESSION                              *
  *------------------------------------------------------------------------------*/
-Expression::Expression(const Position& position, ExpressionKind kind) : Node{position}, kind{kind} {}
+Expression::Expression(const Position& position, ExprKind kind) : Node{position}, kind{kind} {}
 
 /* -----------------------------------------------------------------------------*
  *                               BINARY_EXPRESSION                              *
  *------------------------------------------------------------------------------*/
-BinaryExpression::BinaryExpression(const Position& position, ExpressionKind kind, up_expression left,
-                                   up_expression right)
+BinaryExpression::BinaryExpression(const Position& position, ExprKind kind, up_expression left, up_expression right)
     : Expression{position, kind}, left{std::move(left)}, right{std::move(right)} {}
 
 void BinaryExpression::accept(Visitor& visitor) const {
     visitor.visit(*this);
 }
 
-const std::unordered_set<ExpressionKind> BinaryExpression::binary_kinds = {
-    ExpressionKind::LOGICAL_OR,
-    ExpressionKind::LOGICAL_AND,
-    ExpressionKind::EQUAL,
-    ExpressionKind::NOT_EQUAL,
-    ExpressionKind::GREATER,
-    ExpressionKind::GREATER_EQUAL,
-    ExpressionKind::LESS,
-    ExpressionKind::LESS_EQUAL,
-    ExpressionKind::ADDITION,
-    ExpressionKind::SUBTRACTION,
-    ExpressionKind::MULTIPICATION,
-    ExpressionKind::DIVISION,
-    ExpressionKind::FUNCTION_COMPOSITION,
+const std::unordered_set<ExprKind> BinaryExpression::binary_kinds = {
+    ExprKind::LOGICAL_OR,
+    ExprKind::LOGICAL_AND,
+    ExprKind::EQUAL,
+    ExprKind::NOT_EQUAL,
+    ExprKind::GREATER,
+    ExprKind::GREATER_EQUAL,
+    ExprKind::LESS,
+    ExprKind::LESS_EQUAL,
+    ExprKind::ADDITION,
+    ExprKind::SUBTRACTION,
+    ExprKind::MULTIPICATION,
+    ExprKind::DIVISION,
+    ExprKind::FUNCTION_COMPOSITION,
 };
 
-std::unique_ptr<BinaryExpression> BinaryExpression::create(const Position& position, ExpressionKind kind,
-                                                           up_expression left, up_expression right) {
+std::unique_ptr<BinaryExpression> BinaryExpression::create(const Position& position, ExprKind kind, up_expression left,
+                                                           up_expression right) {
     if (not(binary_kinds.contains(kind) and left and right))
         throw std::logic_error("binary expr initialization");  // TODO: replace with custom exception
     return std::make_unique<BinaryExpression>(position, kind, std::move(left), std::move(right));
@@ -42,20 +41,19 @@ std::unique_ptr<BinaryExpression> BinaryExpression::create(const Position& posit
 /* -----------------------------------------------------------------------------*
  *                               UNARY_EXPRESSION                               *
  *------------------------------------------------------------------------------*/
-UnaryExpression::UnaryExpression(const Position& position, ExpressionKind kind, up_expression expr)
+UnaryExpression::UnaryExpression(const Position& position, ExprKind kind, up_expression expr)
     : Expression{position, kind}, expr{std::move(expr)} {}
 
 void UnaryExpression::accept(Visitor& visitor) const {
     visitor.visit(*this);
 }
 
-const std::unordered_set<ExpressionKind> UnaryExpression::unary_kinds = {
-    ExpressionKind::LOGICAL_NOT,
-    ExpressionKind::UNARY_MINUS,
+const std::unordered_set<ExprKind> UnaryExpression::unary_kinds = {
+    ExprKind::LOGICAL_NOT,
+    ExprKind::UNARY_MINUS,
 };
 
-std::unique_ptr<UnaryExpression> UnaryExpression::create(const Position& position, ExpressionKind kind,
-                                                         up_expression expr) {
+std::unique_ptr<UnaryExpression> UnaryExpression::create(const Position& position, ExprKind kind, up_expression expr) {
     if (not unary_kinds.contains(kind))
         throw std::logic_error("invalid expr kind");  // TODO: replace with custom exception
     return std::make_unique<UnaryExpression>(position, kind, std::move(expr));
@@ -65,7 +63,7 @@ std::unique_ptr<UnaryExpression> UnaryExpression::create(const Position& positio
  *                          FUNCTION_CALL AND BIND_FRONT                        *
  *------------------------------------------------------------------------------*/
 FunctionCall::FunctionCall(const Position& position, up_expression callee, up_expression_vec argument_list)
-    : Expression{position, ExpressionKind::FUNCTION_CALL},
+    : Expression{position, ExprKind::FUNCTION_CALL},
       callee{std::move(callee)},
       argument_list{std::move(argument_list)} {}
 
@@ -74,9 +72,7 @@ void FunctionCall::accept(Visitor& visitor) const {
 }
 
 BindFront::BindFront(const Position& position, up_expression_vec argument_list, up_expression target)
-    : Expression{position, ExpressionKind::BIND_FRONT},
-      argument_list{std::move(argument_list)},
-      target{std::move(target)} {}
+    : Expression{position, ExprKind::BIND_FRONT}, argument_list{std::move(argument_list)}, target{std::move(target)} {}
 
 void BindFront::accept(Visitor& visitor) const {
     visitor.visit(*this);
@@ -85,7 +81,7 @@ void BindFront::accept(Visitor& visitor) const {
  *                           PARENTHESIZED_EXPRESSION                           *
  *------------------------------------------------------------------------------*/
 ParenExpression::ParenExpression(const Position& position, up_expression expr)
-    : Expression{position, ExpressionKind::PARENTHESIZED}, expr{std::move(expr)} {}
+    : Expression{position, ExprKind::PARENTHESIZED}, expr{std::move(expr)} {}
 
 void ParenExpression::accept(Visitor& visitor) const {
     visitor.visit(*this);
@@ -94,7 +90,7 @@ void ParenExpression::accept(Visitor& visitor) const {
  *                          TYPE_CAST_EXPRESSION                          *
  *------------------------------------------------------------------------------*/
 TypeCastExpression::TypeCastExpression(const Position& position, up_expression expr, Type target_type)
-    : Expression{position, ExpressionKind::TYPE_CAST}, expr{std::move(expr)}, target_type{target_type} {}
+    : Expression{position, ExprKind::TYPE_CAST}, expr{std::move(expr)}, target_type{target_type} {}
 
 void TypeCastExpression::accept(Visitor& visitor) const {
     visitor.visit(*this);
@@ -104,7 +100,7 @@ void TypeCastExpression::accept(Visitor& visitor) const {
  *                                 IDENTIFIER                                   *
  *------------------------------------------------------------------------------*/
 Identifier::Identifier(const Position& position, std::string name)
-    : Expression{position, ExpressionKind::IDENTIFIER}, name{name} {}
+    : Expression{position, ExprKind::IDENTIFIER}, name{name} {}
 
 void Identifier::accept(Visitor& visitor) const {
     visitor.visit(*this);
@@ -114,28 +110,28 @@ void Identifier::accept(Visitor& visitor) const {
  *                                  LITERALS                                    *
  *------------------------------------------------------------------------------*/
 LiteralInt::LiteralInt(const Position& position, int value)
-    : Expression{position, ExpressionKind::LITERAL}, type{TypeKind::INT}, value{value} {}
+    : Expression{position, ExprKind::LITERAL}, type{TypeKind::INT}, value{value} {}
 
 void LiteralInt::accept(Visitor& visitor) const {
     visitor.visit(*this);
 }
 
 LiteralFloat::LiteralFloat(const Position& position, double value)
-    : Expression{position, ExpressionKind::LITERAL}, type{TypeKind::FLOAT}, value{value} {}
+    : Expression{position, ExprKind::LITERAL}, type{TypeKind::FLOAT}, value{value} {}
 
 void LiteralFloat::accept(Visitor& visitor) const {
     visitor.visit(*this);
 }
 
 LiteralString::LiteralString(const Position& position, std::string value)
-    : Expression{position, ExpressionKind::LITERAL}, type{TypeKind::STRING}, value{value} {}
+    : Expression{position, ExprKind::LITERAL}, type{TypeKind::STRING}, value{value} {}
 
 void LiteralString::accept(Visitor& visitor) const {
     visitor.visit(*this);
 }
 
 LiteralBool::LiteralBool(const Position& position, bool value)
-    : Expression{position, ExpressionKind::LITERAL}, type{TypeKind::BOOL}, value{value} {}
+    : Expression{position, ExprKind::LITERAL}, type{TypeKind::BOOL}, value{value} {}
 
 void LiteralBool::accept(Visitor& visitor) const {
     visitor.visit(*this);
@@ -144,49 +140,49 @@ void LiteralBool::accept(Visitor& visitor) const {
 /* -----------------------------------------------------------------------------*
  *                               EXPRESSION_KIND                                *
  *------------------------------------------------------------------------------*/
-std::string expression_kind_to_str(const ExpressionKind& kind) {
+std::string expression_kind_to_str(const ExprKind& kind) {
     switch (kind) {
-        case ExpressionKind::LOGICAL_OR:
+        case ExprKind::LOGICAL_OR:
             return "LogicalOr";
-        case ExpressionKind::LOGICAL_AND:
+        case ExprKind::LOGICAL_AND:
             return "LogicalAnd";
-        case ExpressionKind::EQUAL:
+        case ExprKind::EQUAL:
             return "Equal";
-        case ExpressionKind::NOT_EQUAL:
+        case ExprKind::NOT_EQUAL:
             return "NotEqual";
-        case ExpressionKind::GREATER:
+        case ExprKind::GREATER:
             return "Greater";
-        case ExpressionKind::GREATER_EQUAL:
+        case ExprKind::GREATER_EQUAL:
             return "GreaterEqual";
-        case ExpressionKind::LESS:
+        case ExprKind::LESS:
             return "Less";
-        case ExpressionKind::LESS_EQUAL:
+        case ExprKind::LESS_EQUAL:
             return "LessEqual";
-        case ExpressionKind::ADDITION:
+        case ExprKind::ADDITION:
             return "Addition";
-        case ExpressionKind::SUBTRACTION:
+        case ExprKind::SUBTRACTION:
             return "Subtraction";
-        case ExpressionKind::MULTIPICATION:
+        case ExprKind::MULTIPICATION:
             return "Multiplication";
-        case ExpressionKind::DIVISION:
+        case ExprKind::DIVISION:
             return "Division";
-        case ExpressionKind::FUNCTION_COMPOSITION:
+        case ExprKind::FUNCTION_COMPOSITION:
             return "FunctionComposition";
-        case ExpressionKind::BIND_FRONT:
+        case ExprKind::BIND_FRONT:
             return "BindFront";
-        case ExpressionKind::FUNCTION_CALL:
+        case ExprKind::FUNCTION_CALL:
             return "FunctionCall";
-        case ExpressionKind::TYPE_CAST:
+        case ExprKind::TYPE_CAST:
             return "TypeCast";
-        case ExpressionKind::LOGICAL_NOT:
+        case ExprKind::LOGICAL_NOT:
             return "LogicalNot";
-        case ExpressionKind::UNARY_MINUS:
+        case ExprKind::UNARY_MINUS:
             return "UnaryMinus";
-        case ExpressionKind::PARENTHESIZED:
+        case ExprKind::PARENTHESIZED:
             return "Parenthesized";
-        case ExpressionKind::IDENTIFIER:
+        case ExprKind::IDENTIFIER:
             return "Identifier";
-        case ExpressionKind::LITERAL:
+        case ExprKind::LITERAL:
             return "Literal";
     }
 }

@@ -17,7 +17,7 @@ class MockLexer : public ILexer {
     MockLexer(std::vector<Token> tokens) : _tokens{tokens.begin(), tokens.end()} {}
     Token get_next_token() override {
         if (_tokens.empty()) {
-            return Token{TokenType::T_EOF, Position{}};  // tokens have been tested - doesnt matter here
+            return Token{TokenType::T_EOF, Position{}};  // tokens have been tested -  position doesnt matter here
         }
         Token token{_tokens.front()};
         _tokens.pop_front();
@@ -32,6 +32,7 @@ BOOST_AUTO_TEST_CASE(test_constructor) {
     BOOST_CHECK_EQUAL(program->statements.size(), 0);
 }
 
+// continue;
 BOOST_AUTO_TEST_CASE(test_continue) {
     std::vector<Token> tokens = {
         Token{TokenType::T_CONTINUE, Position()},
@@ -46,6 +47,7 @@ BOOST_AUTO_TEST_CASE(test_continue) {
     program->accept(printer);
 }
 
+// break;
 BOOST_AUTO_TEST_CASE(test_break) {
     std::vector<Token> tokens = {
         Token{TokenType::T_BREAK, Position()},
@@ -60,6 +62,8 @@ BOOST_AUTO_TEST_CASE(test_break) {
     program->accept(printer);
 }
 
+// continue;
+// break;
 BOOST_AUTO_TEST_CASE(test_break_cont) {
     std::vector<Token> tokens = {
         Token{TokenType::T_CONTINUE, Position()},
@@ -76,6 +80,7 @@ BOOST_AUTO_TEST_CASE(test_break_cont) {
     program->accept(printer);
 }
 
+// return 4;
 BOOST_AUTO_TEST_CASE(test_return_literal_int) {
     std::vector<Token> tokens = {
         Token{TokenType::T_RETURN, Position()},
@@ -91,6 +96,7 @@ BOOST_AUTO_TEST_CASE(test_return_literal_int) {
     program->accept(printer);
 }
 
+// return (4.5);
 BOOST_AUTO_TEST_CASE(test_return_paren) {
     std::vector<Token> tokens = {
         Token{TokenType::T_RETURN, Position()},
@@ -154,7 +160,10 @@ BOOST_AUTO_TEST_CASE(test_variable_declaration_with_function_call) {
     program->accept(printer);
 }
 
-// {let inc_42: function<mut int: none> = }
+// {
+//  let inc_42: function<mut int: none> = (42) >> inc_by;
+//  return inc_42;
+// }
 BOOST_AUTO_TEST_CASE(test_parse_code_block) {
     std::vector<Token> tokens = {
         Token{TokenType::T_L_BRACE, Position()},
@@ -176,7 +185,7 @@ BOOST_AUTO_TEST_CASE(test_parse_code_block) {
         Token{TokenType::T_IDENTIFIER, Position(), "inc_by"},
         Token{TokenType::T_SEMICOLON, Position()},
         Token{TokenType::T_RETURN, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "my_function"},
+        Token{TokenType::T_IDENTIFIER, Position(), "inc_42"},
         Token{TokenType::T_SEMICOLON, Position()},
         Token{TokenType::T_R_BRACE, Position()},
     };
@@ -232,6 +241,81 @@ BOOST_AUTO_TEST_CASE(test_if_else_statement) {
         Token{TokenType::T_LITERAL_INT, Position(), 2},
         Token{TokenType::T_SEMICOLON, Position()},
         Token{TokenType::T_R_BRACE, Position()},
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+
+    Printer printer{};
+    program->accept(printer);
+}
+
+// some_num = (4.5 + 8 as float) * 2.5 + sqrt(3) * 1.5 / 9 as float;
+BOOST_AUTO_TEST_CASE(test_assignment_with_complex_expression_and_cast) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_IDENTIFIER, Position(), "some_num"},
+        Token{TokenType::T_ASSIGN, Position()},
+        Token{TokenType::T_L_PAREN, Position()},
+        Token{TokenType::T_LITERAL_FLOAT, Position(), 4.5},
+        Token{TokenType::T_PLUS, Position()},
+        Token{TokenType::T_LITERAL_INT, Position(), 8},
+        Token{TokenType::T_AS, Position()},
+        Token{TokenType::T_FLOAT, Position()},
+        Token{TokenType::T_R_PAREN, Position()},
+        Token{TokenType::T_MULTIPLY, Position()},
+        Token{TokenType::T_LITERAL_FLOAT, Position(), 2.5},
+        Token{TokenType::T_PLUS, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "sqrt"},
+        Token{TokenType::T_L_PAREN, Position()},
+        Token{TokenType::T_LITERAL_INT, Position(), 3},
+        Token{TokenType::T_R_PAREN, Position()},
+        Token{TokenType::T_MULTIPLY, Position()},
+        Token{TokenType::T_LITERAL_FLOAT, Position(), 1.5},
+        Token{TokenType::T_DIVIDE, Position()},
+        Token{TokenType::T_LITERAL_INT, Position(), 9},
+        Token{TokenType::T_AS, Position()},
+        Token{TokenType::T_FLOAT, Position()},
+        Token{TokenType::T_SEMICOLON, Position()},
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+
+    Printer printer{};
+    program->accept(printer);
+}
+
+// (is_primary(x) or x <= 2) and x > 0 or "hello" + " world" == "hello world";
+
+BOOST_AUTO_TEST_CASE(test_complex_logical_and_arithmetic_expression) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_L_PAREN, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "is_primary"},
+        Token{TokenType::T_L_PAREN, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "x"},
+        Token{TokenType::T_R_PAREN, Position()},
+        Token{TokenType::T_OR, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "x"},
+        Token{TokenType::T_LESS_EQUAL, Position()},
+        Token{TokenType::T_LITERAL_INT, Position(), 2},
+        Token{TokenType::T_R_PAREN, Position()},
+        Token{TokenType::T_AND, Position()},
+        Token{TokenType::T_IDENTIFIER, Position(), "x"},
+        Token{TokenType::T_GREATER, Position()},
+        Token{TokenType::T_LITERAL_INT, Position(), 0},
+        Token{TokenType::T_OR, Position()},
+        Token{TokenType::T_LITERAL_STRING, Position(), "hello"},
+        Token{TokenType::T_PLUS, Position()},
+        Token{TokenType::T_LITERAL_STRING, Position(), " world"},
+        Token{TokenType::T_EQUAL, Position()},
+        Token{TokenType::T_LITERAL_STRING, Position(), "hello world"},
+        Token{TokenType::T_SEMICOLON, Position()},
     };
 
     auto lexer = std::make_unique<MockLexer>(tokens);

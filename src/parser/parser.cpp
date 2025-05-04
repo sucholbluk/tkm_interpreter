@@ -25,9 +25,7 @@ up_statement Parser::_try_parse_statement() {
 
     if ((statement = _try_parse_break_statement())) return statement;
 
-    if ((statement = _try_parse_return_statement())) {
-        return statement;
-    }
+    if ((statement = _try_parse_return_statement())) return statement;
 
     if ((statement = _try_parse_variable_declaration())) return statement;
 
@@ -45,23 +43,25 @@ up_statement Parser::_try_parse_statement() {
 }
 // continue;
 up_statement Parser::_try_parse_continue_statement() {
-    if (not _token_type_is(TokenType::T_CONTINUE)) return nullptr;
-    Position position{_token.get_position()};
-    _get_next_token();
+    if (not _token_type_is(TokenType::T_CONTINUE)) {
+        return nullptr;
+    }
 
-    _token_must_be(TokenType::T_SEMICOLON);
-    _get_next_token();
+    Position position{_get_position_and_digest_token()};
+
+    _advance_on_required_token(TokenType::T_SEMICOLON);
 
     return std::make_unique<ContinueStatement>(position);
 }
 // break;
 up_statement Parser::_try_parse_break_statement() {
-    if (not _token_type_is(TokenType::T_BREAK)) return nullptr;
-    Position position{_token.get_position()};
-    _get_next_token();
+    if (not _token_type_is(TokenType::T_BREAK)) {
+        return nullptr;
+    }
 
-    _token_must_be(TokenType::T_SEMICOLON);
-    _get_next_token();
+    Position position{_get_position_and_digest_token()};
+
+    _advance_on_required_token(TokenType::T_SEMICOLON);
 
     return std::make_unique<BreakStatement>(position);
 }
@@ -71,29 +71,27 @@ up_statement Parser::_try_parse_return_statement() {
         return nullptr;
     }
 
-    Position position{_token.get_position()};
-    _get_next_token();
+    Position position{_get_position_and_digest_token()};
     up_expression expression = _try_parse_expression();
 
-    _token_must_be(TokenType::T_SEMICOLON);
-    _get_next_token();
+    _advance_on_required_token(TokenType::T_SEMICOLON);
 
     return std::make_unique<ReturnStatement>(position, std::move(expression));
 }
 // let [ mut ] identifier: type = expression;
 // examples: let mut i: int = 4;, let foo: function<int,int:bool> = foo2();
 up_statement Parser::_try_parse_variable_declaration() {
-    if (not _token_type_is(TokenType::T_LET)) return nullptr;
+    if (not _token_type_is(TokenType::T_LET)) {
+        return nullptr;
+    }
 
-    Position position{_token.get_position()};
-    _get_next_token();
+    Position position{_get_position_and_digest_token()};
 
     up_typed_identifier typed_identifier = _try_parse_typed_identifier();
 
     if (not typed_identifier) throw std::invalid_argument("couldnt parse typed identifier");  // TODO: replace
 
-    _token_must_be(TokenType::T_ASSIGN);
-    _get_next_token();
+    _advance_on_required_token(TokenType::T_ASSIGN);
 
     up_expression assigned_expression{_try_parse_expression()};
     if (not assigned_expression)
@@ -101,8 +99,8 @@ up_statement Parser::_try_parse_variable_declaration() {
         throw std::invalid_argument("required expression to assign");  // TODO: replace - eee chociaz może jak działam
                                                                        // na unique ptr to nie warto - do przemyslenia
 
-    _token_must_be(TokenType::T_SEMICOLON);
-    _get_next_token();
+    _advance_on_required_token(TokenType::T_SEMICOLON);
+
     return std::make_unique<VariableDeclaration>(position, std::move(typed_identifier), std::move(assigned_expression));
 }
 
@@ -111,16 +109,14 @@ up_statement Parser::_try_parse_code_block() {
         return nullptr;
     }
 
-    Position position{_token.get_position()};
-    _get_next_token();
+    Position position{_get_position_and_digest_token()};
 
     up_statement_vec statements{};
     while (up_statement statement = _try_parse_statement()) {
         statements.push_back(std::move(statement));
     }
 
-    _token_must_be(TokenType::T_R_BRACE);
-    _get_next_token();
+    _advance_on_required_token(TokenType::T_R_BRACE);
 
     return std::make_unique<CodeBlock>(position, std::move(statements));
 }
@@ -145,7 +141,7 @@ up_statement Parser::_try_parse_if_statement() {
 
     up_else_if_vec else_ifs{};
     up_statement else_block{};
-    while (_token_type_is(TokenType::T_ELSE) and not else_block) {
+    while (_token_type_is(TokenType::T_ELSE)) {
         Position else_if_position{_token.get_position()};
         _get_next_token();
 
@@ -154,8 +150,7 @@ up_statement Parser::_try_parse_if_statement() {
             if (not else_block) {
                 throw std::runtime_error("required body after else");
             }
-
-            continue;
+            break;
         }
 
         _get_next_token();
@@ -183,17 +178,39 @@ up_statement Parser::_try_parse_function_definition() {
     return nullptr;
 }
 up_statement Parser::_try_parse_assignment_or_expression_statement() {
-    return nullptr;
-}
-up_statement Parser::_try_parse_expression_statement() {
-    return nullptr;
+    std::string identifier;
+    if (_token_type_is(TokenType::T_IDENTIFIER)) {
+        identifier = _token.get_value_as<std::string>();
+    }
+
+    up_expression expr{_try_parse_expression()};
+
+    if (not expr) {
+        return nullptr;
+    }
+    if (not _token_type_is(TokenType::T_ASSIGN)) {
+        _advance_on_required_token(TokenType::T_SEMICOLON);
+        return std::make_unique<ExpressionStatement>(expr->position, std::move(expr));
+    }
+
+    if (expr->kind != ExprKind::IDENTIFIER) {
+        throw std::runtime_error("invalid assign target");
+    }
+
+    _get_next_token();
+    up_expression assigned_expr{_try_parse_expression()};
+
+    if (not assigned_expr) {
+        throw std::runtime_error("assignment requires expression");
+    }
+    _advance_on_required_token(TokenType::T_SEMICOLON);
+
+    return std::make_unique<AssignStatement>(expr->position, identifier, std::move(assigned_expr));
 }
 
 /* -----------------------------------------------------------------------------*
  *                             PARSING EXPRESSIONS                              *
  *------------------------------------------------------------------------------*/
-// TODO
-
 up_expression Parser::_try_parse_condition() {
     if (not _token_type_is(TokenType::T_L_PAREN)) {
         return nullptr;
@@ -202,8 +219,7 @@ up_expression Parser::_try_parse_condition() {
 
     up_expression condition{_try_parse_expression()};
 
-    _token_must_be(TokenType::T_R_PAREN);
-    _get_next_token();
+    _advance_on_required_token(TokenType::T_R_PAREN);
 
     return condition;
 }
@@ -212,121 +228,38 @@ up_expression Parser::_try_parse_expression() {
     return _try_parse_logical_or();
 }
 up_expression Parser::_try_parse_logical_or() {
-    up_expression left{_try_parse_logical_and()};
-    if (not left) {
-        return nullptr;
-    }
-
-    while (_token_type_is(TokenType::T_OR)) {
-        _get_next_token();
-        up_expression right{_try_parse_logical_and()};
-        if (not right) {
-            throw std::runtime_error("missing expression after or");
-        }  // TODO: custom exept
-
-        left = std::make_unique<BinaryExpression>(left->position, ExpressionKind::LOGICAL_OR, std::move(left),
-                                                  std::move(right));
-    }
-    return left;
+    return _try_parse_chained_binary_expression([this]() { return _try_parse_logical_and(); }, Parser::_or_token_types,
+                                                []() { throw std::runtime_error("missing expression after or"); });
 }
 
 up_expression Parser::_try_parse_logical_and() {
-    up_expression left{_try_parse_equality_expression()};
-    if (not left) {
-        return nullptr;
-    }
-
-    while (_token_type_is(TokenType::T_AND)) {
-        _get_next_token();
-        up_expression right{_try_parse_equality_expression()};
-        if (not right) {
-            throw std::runtime_error("missing expression after and");
-        }  // TODO: custom exept
-
-        left = std::make_unique<BinaryExpression>(left->position, ExpressionKind::LOGICAL_AND, std::move(left),
-                                                  std::move(right));
-    }
-    return left;
+    return _try_parse_chained_binary_expression([this]() { return _try_parse_equality_expression(); },
+                                                Parser::_and_token_types,
+                                                []() { throw std::runtime_error("missing expression after and"); });
 }
 
 up_expression Parser::_try_parse_equality_expression() {
-    up_expression left{_try_parse_comparison_expression()};
-    if (not left) {
-        return nullptr;
-    }
-
-    if (_token_type_is(TokenType::T_EQUAL) or _token_type_is(TokenType::T_NOT_EQUAL)) {
-        ExpressionKind kind = _token_type_is(TokenType::T_EQUAL) ? ExpressionKind::EQUAL : ExpressionKind::NOT_EQUAL;
-        _get_next_token();
-        up_expression right{_try_parse_comparison_expression()};
-        if (not right) {
-            throw std::runtime_error("missing expression after eq/neq");
-        }  // TODO: custom exept
-
-        left = std::make_unique<BinaryExpression>(left->position, kind, std::move(left), std::move(right));
-    }
-    return left;
+    return _try_parse_single_binary_expression([this]() { return _try_parse_comparison_expression(); },
+                                               Parser::_equality_token_types,
+                                               []() { throw std::runtime_error("missing expression after eq/neq"); });
 }
 
 up_expression Parser::_try_parse_comparison_expression() {
-    up_expression left{_try_parse_additive_expression()};
-    if (not left) {
-        return nullptr;
-    }
-
-    if (Parser::_comparison_tokens_to_expr_kind.contains(_token.get_type())) {
-        ExpressionKind kind = Parser::_comparison_tokens_to_expr_kind.at(_token.get_type());
-        _get_next_token();
-        up_expression right{_try_parse_additive_expression()};
-        if (not right) {
-            throw std::runtime_error("missing expression after comparison op");
-        }  // TODO: custom exept
-
-        left = std::make_unique<BinaryExpression>(left->position, kind, std::move(left), std::move(right));
-    }
-    return left;
+    return _try_parse_single_binary_expression(
+        [this]() { return _try_parse_additive_expression(); }, Parser::_comparison_token_types,
+        []() { throw std::runtime_error("missing expression after comparison op"); });
 }
 
 up_expression Parser::_try_parse_additive_expression() {
-    up_expression left{_try_parse_multiplicative_expression()};
-    if (not left) {
-        return nullptr;
-    }
-
-    while (_token_type_is(TokenType::T_PLUS) or _token_type_is(TokenType::T_MINUS)) {
-        ExpressionKind kind{_token_type_is(TokenType::T_PLUS) ? ExpressionKind::ADDITION : ExpressionKind::SUBTRACTION};
-        _get_next_token();
-        up_expression right{_try_parse_multiplicative_expression()};
-
-        if (not right) {
-            throw std::runtime_error("missing expression after additive oper");
-        }  // TODO: custom exept
-
-        left = std::make_unique<BinaryExpression>(left->position, kind, std::move(left), std::move(right));
-    }
-    return left;
+    return _try_parse_chained_binary_expression(
+        [this]() { return _try_parse_multiplicative_expression(); }, Parser::_additive_token_types,
+        []() { throw std::runtime_error("missing expression after additive oper"); });
 }
 
 up_expression Parser::_try_parse_multiplicative_expression() {
-    up_expression left{_try_parse_type_cast()};
-    if (not left) {
-        return nullptr;
-    }
-
-    while (_token_type_is(TokenType::T_MULTIPLY) or _token_type_is(TokenType::T_DIVIDE)) {
-        ExpressionKind kind =
-            _token_type_is(TokenType::T_MULTIPLY) ? ExpressionKind::MULTIPICATION : ExpressionKind::DIVISION;
-
-        _get_next_token();
-        up_expression right{_try_parse_type_cast()};
-
-        if (not right) {
-            throw std::runtime_error("missing expression after multiplicative oper");
-        }  // TODO: custom exept
-
-        left = std::make_unique<BinaryExpression>(left->position, kind, std::move(left), std::move(right));
-    }
-    return left;
+    return _try_parse_chained_binary_expression(
+        [this]() { return _try_parse_type_cast(); }, Parser::_multipicative_token_types,
+        []() { throw std::runtime_error("missing expression after multiplicative oper"); });
 }
 
 up_expression Parser::_try_parse_type_cast() {
@@ -351,10 +284,9 @@ up_expression Parser::_try_parse_unary_expression() {
         return _try_parse_function_composition();  // to nie unary - delegujemy dalej
     }
 
-    Position position{_token.get_position()};
-    ExpressionKind kind = _token_type_is(TokenType::T_NOT) ? ExpressionKind::UNARY_MINUS : ExpressionKind::LOGICAL_NOT;
+    ExprKind kind = _token_type_is(TokenType::T_NOT) ? ExprKind::UNARY_MINUS : ExprKind::LOGICAL_NOT;
 
-    _get_next_token();
+    Position position{_get_position_and_digest_token()};
 
     up_expression expr = _try_parse_function_composition();
     if (not expr) {
@@ -365,20 +297,9 @@ up_expression Parser::_try_parse_unary_expression() {
 }
 
 up_expression Parser::_try_parse_function_composition() {
-    up_expression left{_try_parse_bind_front_or_function_call()};
-    if (not left) {
-        return nullptr;
-    }
-    while (_token_type_is(TokenType::T_FUNC_COMPOSITION)) {
-        _get_next_token();
-        up_expression right{_try_parse_bind_front_or_function_call()};
-        if (not right) {
-            throw std::runtime_error("func comp must be followed with adequate expression");  // TODO
-        }
-        left = std::make_unique<BinaryExpression>(left->position, ExpressionKind::FUNCTION_COMPOSITION, std::move(left),
-                                                  std::move(right));
-    }
-    return left;
+    return _try_parse_chained_binary_expression(
+        [this]() { return _try_parse_bind_front_or_function_call(); }, Parser::_func_comp_token_types,
+        []() { throw std::runtime_error("func comp must be followed with adequate expression"); });
 }
 
 // EBNF bind_front = function_call | ( arg_list, bindf, function_call);
@@ -420,19 +341,12 @@ up_expression Parser::_try_parse_bind_front_or_function_call() {
 }
 
 up_expression Parser::_try_parse_function_call() {
-    up_expression callee{_try_parse_primary()};
-    if (not callee) {
-        return nullptr;
-    }
-    while (std::optional<up_expression_vec> arg_list = _try_parse_argument_list()) {
-        callee = std::make_unique<FunctionCall>(callee->position, std::move(callee), std::move(arg_list.value()));
-    }
-    return callee;
+    return _try_parse_function_call(_try_parse_primary());
 }
 
 up_expression Parser::_try_parse_function_call(up_expression paren_expr) {
     if (not paren_expr) {
-        throw std::logic_error("_try_parse_function_call called with null paren expr - shouldnt happen");
+        return nullptr;
     }
     up_expression callee{std::move(paren_expr)};
 
@@ -487,8 +401,51 @@ up_expression Parser::_try_parse_identifier() {
     return idenitifier;
 }
 
-up_expression Parser::_try_parse_assigned_expression() {
-    return nullptr;
+/* -----------------------------------------------------------------------------*
+ *                             PARSE_BINARY_EXPR                                *
+ *------------------------------------------------------------------------------*/
+up_expression Parser::_try_parse_chained_binary_expression(std::function<up_expression()> try_parse_subexpr,
+                                                           const std::unordered_set<TokenType>& token_types,
+                                                           std::function<void()> on_error) {
+    up_expression left{try_parse_subexpr()};
+    if (not left) {
+        return nullptr;
+    }
+
+    while (token_types.contains(_token.get_type())) {
+        ExprKind kind{Parser::_token_type_to_expr_kind.at(_token.get_type())};
+
+        _get_next_token();
+        up_expression right{try_parse_subexpr()};
+        if (not right) {
+            on_error();
+        }
+        left = std::make_unique<BinaryExpression>(left->position, kind, std::move(left), std::move(right));
+    }
+
+    return left;
+}
+
+up_expression Parser::_try_parse_single_binary_expression(std::function<up_expression()> try_parse_subexpr,
+                                                          const std::unordered_set<TokenType>& token_types,
+                                                          std::function<void()> on_error) {
+    up_expression left{try_parse_subexpr()};
+    if (not left) {
+        return nullptr;
+    }
+
+    if (token_types.contains(_token.get_type())) {
+        ExprKind kind{Parser::_token_type_to_expr_kind.at(_token.get_type())};
+
+        _get_next_token();
+        up_expression right{try_parse_subexpr()};
+        if (not right) {
+            on_error();
+        }
+        left = std::make_unique<BinaryExpression>(left->position, kind, std::move(left), std::move(right));
+    }
+
+    return left;
 }
 
 /* -----------------------------------------------------------------------------*
@@ -499,13 +456,11 @@ std::optional<up_expression_vec> Parser::_try_parse_argument_list() {
         return std::nullopt;
     }
     up_expression_vec arguments{};
-    Position position(_token.get_position());
-    _get_next_token();
+    Position position(_get_position_and_digest_token());
 
     up_expression argument = _try_parse_expression();
     if (not argument) {
-        _token_must_be(TokenType::T_R_PAREN);
-        _get_next_token();
+        _advance_on_required_token(TokenType::T_R_PAREN);
         return arguments;
     }
 
@@ -520,8 +475,7 @@ std::optional<up_expression_vec> Parser::_try_parse_argument_list() {
         arguments.push_back(std::move(argument));
     }
 
-    _token_must_be(TokenType::T_R_PAREN);
-    _get_next_token();
+    _advance_on_required_token(TokenType::T_R_PAREN);
 
     return arguments;
 }
@@ -546,8 +500,7 @@ up_typed_identifier Parser::_try_parse_typed_identifier() {
     std::string identifier{_token.get_value_as<std::string>()};
     _get_next_token();
 
-    _token_must_be(TokenType::T_COLON);
-    _get_next_token();
+    _advance_on_required_token(TokenType::T_COLON);
 
     std::optional<Type> type{_try_parse_type()};
     if (not type.has_value()) {
@@ -591,8 +544,7 @@ std::optional<Type> Parser::_try_parse_type() {
 }
 // examples: <int:string>, <float,float:float>, <function<string,mut string:none>,string:function<mut string:none>
 FunctionTypeInfo Parser::_parse_function_type_info() {
-    _token_must_be(TokenType::T_LESS);
-    _get_next_token();
+    _advance_on_required_token(TokenType::T_LESS);
 
     std::vector<VariableType> params{};  // if none, then params vector is empty
     if (not _token_type_is(TokenType::T_NONE)) {
@@ -607,8 +559,7 @@ FunctionTypeInfo Parser::_parse_function_type_info() {
             params.push_back(std::move(*param));
         } while (_token_type_is(TokenType::T_COMMA));
     }
-    _token_must_be(TokenType::T_COLON);
-    _get_next_token();
+    _advance_on_required_token(TokenType::T_COLON);
 
     std::optional<Type> return_type{};
 
@@ -621,8 +572,7 @@ FunctionTypeInfo Parser::_parse_function_type_info() {
         }
     }
 
-    _token_must_be(TokenType::T_GREATER);
-    _get_next_token();
+    _advance_on_required_token(TokenType::T_GREATER);
 
     return FunctionTypeInfo{params, return_type};
 }
@@ -653,6 +603,17 @@ void Parser::_get_next_token() {
     _token = _lexer->get_next_token();
 }
 
+void Parser::_advance_on_required_token(TokenType token_type) {
+    _token_must_be(token_type);
+    _get_next_token();
+}
+
+Position Parser::_get_position_and_digest_token() {
+    Position position{_token.get_position()};
+    _get_next_token();
+    return position;
+}
+
 void Parser::_token_must_be(TokenType token_type) const {
     if (not _token_type_is(token_type))
         throw std::invalid_argument("required token of type ...");  // TODO: create custom exception for ts
@@ -662,9 +623,43 @@ bool Parser::_token_type_is(TokenType token_type) const {
     return _token.get_type() == token_type;
 }
 
-const std::unordered_map<TokenType, ExpressionKind> Parser::_comparison_tokens_to_expr_kind = {
-    {TokenType::T_LESS, ExpressionKind::LESS},
-    {TokenType::T_LESS_EQUAL, ExpressionKind::EQUAL},
-    {TokenType::T_GREATER, ExpressionKind::GREATER},
-    {TokenType::T_GREATER_EQUAL, ExpressionKind::NOT_EQUAL},
+const std::unordered_set<TokenType> Parser::_or_token_types = {TokenType::T_OR};
+
+const std::unordered_set<TokenType> Parser::_and_token_types = {TokenType::T_AND};
+
+const std::unordered_set<TokenType> Parser::_equality_token_types = {
+    TokenType::T_EQUAL,
+    TokenType::T_NOT_EQUAL,
+};
+
+const std::unordered_set<TokenType> Parser::_comparison_token_types = {
+    TokenType::T_LESS,
+    TokenType::T_LESS_EQUAL,
+    TokenType::T_GREATER,
+    TokenType::T_GREATER_EQUAL,
+};
+const std::unordered_set<TokenType> Parser::_additive_token_types = {
+    TokenType::T_PLUS,
+    TokenType::T_MINUS,
+};
+const std::unordered_set<TokenType> Parser::_multipicative_token_types = {
+    TokenType::T_MULTIPLY,
+    TokenType::T_DIVIDE,
+};
+const std::unordered_set<TokenType> Parser::_func_comp_token_types = {TokenType::T_FUNC_COMPOSITION};
+
+const std::unordered_map<TokenType, ExprKind> Parser::_token_type_to_expr_kind = {
+    {TokenType::T_OR, ExprKind::LOGICAL_OR},
+    {TokenType::T_AND, ExprKind::LOGICAL_AND},
+    {TokenType::T_EQUAL, ExprKind::EQUAL},
+    {TokenType::T_NOT_EQUAL, ExprKind::NOT_EQUAL},
+    {TokenType::T_LESS, ExprKind::LESS},
+    {TokenType::T_LESS_EQUAL, ExprKind::LESS_EQUAL},
+    {TokenType::T_GREATER, ExprKind::GREATER},
+    {TokenType::T_GREATER_EQUAL, ExprKind::GREATER_EQUAL},
+    {TokenType::T_PLUS, ExprKind::ADDITION},
+    {TokenType::T_MINUS, ExprKind::SUBTRACTION},
+    {TokenType::T_MULTIPLY, ExprKind::MULTIPICATION},
+    {TokenType::T_DIVIDE, ExprKind::DIVISION},
+    {TokenType::T_FUNC_COMPOSITION, ExprKind::FUNCTION_COMPOSITION},
 };

@@ -3,6 +3,7 @@
 #include <functional>
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "expression.hpp"
 #include "ilexer.hpp"
@@ -28,10 +29,17 @@ class Parser {
     up_statement _try_parse_continue_statement();
     up_statement _try_parse_function_definition();
     up_statement _try_parse_assignment_or_expression_statement();
-    up_statement _try_parse_expression_statement();
 
     up_expression _try_parse_condition();
     up_expression _try_parse_expression();
+
+    up_expression _try_parse_chained_binary_expression(std::function<up_expression()> try_parse_subexpr,
+                                                       const std::unordered_set<TokenType>& token_types,
+                                                       std::function<void()> on_error);
+    up_expression _try_parse_single_binary_expression(std::function<up_expression()> try_parse_subexpr,
+                                                      const std::unordered_set<TokenType>& token_types,
+                                                      std::function<void()> on_error);
+
     up_expression _try_parse_logical_or();
     up_expression _try_parse_logical_and();
     up_expression _try_parse_equality_expression();
@@ -55,20 +63,29 @@ class Parser {
     up_expression _try_parse_identifier();
     std::optional<up_expression_vec> _try_parse_argument_list();
 
-    up_expression _try_parse_assigned_expression();
-
     up_typed_identifier _try_parse_typed_identifier();
 
     std::optional<Type> _try_parse_type();
     FunctionTypeInfo _parse_function_type_info();
     std::optional<VariableType> _try_parse_function_param_type();
 
+    void _advance_on_required_token(TokenType token_type);
+    Position _get_position_and_digest_token();
     void _token_must_be(TokenType token_type) const;
     bool _token_type_is(TokenType token_type) const;
 
     std::unique_ptr<ILexer> _lexer;
     Token _token;
 
-    static const std::unordered_map<TokenType, ExpressionKind> _comparison_tokens_to_expr_kind;
+    // for binary expressions
+    static const std::unordered_set<TokenType> _or_token_types;
+    static const std::unordered_set<TokenType> _and_token_types;
+    static const std::unordered_set<TokenType> _equality_token_types;
+    static const std::unordered_set<TokenType> _comparison_token_types;
+    static const std::unordered_set<TokenType> _additive_token_types;
+    static const std::unordered_set<TokenType> _multipicative_token_types;
+    static const std::unordered_set<TokenType> _func_comp_token_types;
+
+    static const std::unordered_map<TokenType, ExprKind> _token_type_to_expr_kind;
 };
 #endif  // PARSER_HPP

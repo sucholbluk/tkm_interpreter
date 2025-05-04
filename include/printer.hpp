@@ -16,6 +16,10 @@ class Printer : public Visitor {
     void visit(const CodeBlock& var_decl) override;
     void visit(const IfStatement& if_stmnt) override;
     void visit(const ElseIf& else_if) override;
+    void visit(const AssignStatement& asgn_stmnt) override;
+    void visit(const ExpressionStatement& expr_stmnt) override;
+    void visit(const FunctionDefinition& func_def) override;
+    void visit(const FunctionSignature& func_sig) override;
 
     void visit(const BinaryExpression& binary_expr) override;
     void visit(const UnaryExpression& unary_expr) override;

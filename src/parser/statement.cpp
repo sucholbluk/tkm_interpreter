@@ -48,3 +48,43 @@ ElseIf::ElseIf(const Position& position, up_expression condition, up_statement b
 void ElseIf::accept(Visitor& visitor) const {
     visitor.visit(*this);
 }
+
+AssignStatement::AssignStatement(const Position& position, std::string identifier, up_expression expr)
+    : Statement{position}, identifier{identifier}, expr{std::move(expr)} {}
+
+void AssignStatement::accept(Visitor& visitor) const {
+    visitor.visit(*this);
+}
+
+ExpressionStatement::ExpressionStatement(const Position& position, up_expression expr)
+    : Statement{position}, expr{std::move(expr)} {}
+
+void ExpressionStatement::accept(Visitor& visitor) const {
+    visitor.visit(*this);
+}
+
+FunctionDefinition::FunctionDefinition(const Position& position, up_func_sig signature, up_statement body)
+    : Statement{position}, signature{std::move(signature)}, body{std::move(body)} {}
+
+void FunctionDefinition::accept(Visitor& visitor) const {
+    visitor.visit(*this);
+}
+
+FunctionSignature::FunctionSignature(const Position& position, up_typed_ident_vec params,
+                                     std::optional<Type> return_type)
+    : Node{position}, params{std::move(params)} {
+    _deduce_function_type(return_type);
+}
+
+void FunctionSignature::_deduce_function_type(std::optional<Type> return_type) {
+    std::vector<VariableType> param_types{};
+
+    for (const auto& up_param : params) {
+        param_types.push_back(VariableType{up_param->type});
+    }
+    type = Type{FunctionTypeInfo{param_types, return_type}};
+}
+
+void FunctionSignature::accept(Visitor& visitor) const {
+    visitor.visit(*this);
+}

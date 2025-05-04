@@ -114,6 +114,39 @@ void Printer::visit(const ElseIf& else_if) {
     }
 }
 
+void Printer::visit(const AssignStatement& asgn_stmnt) {
+    _print_indent();
+    std::cout << "AssignStatement <" << &asgn_stmnt << "> at: " << asgn_stmnt.position.get_position_str()
+              << std::format(" to identifier: {}", asgn_stmnt.identifier) << std::endl;
+    _IndentGuard guard{_indent_level};
+    asgn_stmnt.expr->accept(*this);
+}
+
+void Printer::visit(const ExpressionStatement& expr_stmnt) {
+    _print_indent();
+    std::cout << "ExpressionStatement <" << &expr_stmnt << "> at: " << expr_stmnt.position.get_position_str()
+              << std::endl;
+    _IndentGuard guard{_indent_level};
+    expr_stmnt.expr->accept(*this);
+}
+
+void Printer::visit(const FunctionDefinition& func_def) {
+    _print_indent();
+    std::cout << "FunctionDefinition <" << &func_def << "> at: " << func_def.position.get_position_str() << std::endl;
+    _IndentGuard guard{_indent_level};
+    func_def.signature->accept(*this);
+    func_def.body->accept(*this);
+}
+
+void Printer::visit(const FunctionSignature& func_sig) {
+    _print_indent();
+    std::cout << "FunctionSignature <" << &func_sig << "> at: " << func_sig.position.get_position_str()
+              << std::format(" identifier: {}, type: {}", func_sig.identifier, func_sig.type.to_str()) << std::endl;
+    _IndentGuard guard{_indent_level};
+
+    std::ranges::for_each(func_sig.params, [this](const up_typed_identifier& param) { param->accept(*this); });
+}
+
 /* -----------------------------------------------------------------------------*
  *                               PRINTING EXPRESSIONS                           *
  *------------------------------------------------------------------------------*/
@@ -134,6 +167,7 @@ void Printer::visit(const UnaryExpression& unary_expr) {
 void Printer::visit(const TypeCastExpression& type_cast_expr) {
     _print_expression_header(type_cast_expr, "", std::format("target_type:{}", type_cast_expr.target_type.to_str()));
     _IndentGuard guard{_indent_level};
+    type_cast_expr.expr->accept(*this);
 }
 
 void Printer::visit(const FunctionCall& func_call_expr) {

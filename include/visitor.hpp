@@ -22,6 +22,10 @@ struct VariableDeclaration;
 struct CodeBlock;
 struct IfStatement;
 struct ElseIf;
+struct AssignStatement;
+struct ExpressionStatement;
+struct FunctionDefinition;
+struct FunctionSignature;
 
 class Visitor {
    public:
@@ -35,6 +39,10 @@ class Visitor {
     virtual void visit(const CodeBlock& var_decl) = 0;
     virtual void visit(const IfStatement& if_stmnt) = 0;
     virtual void visit(const ElseIf& else_if) = 0;
+    virtual void visit(const AssignStatement& asgn_stmnt) = 0;
+    virtual void visit(const ExpressionStatement& expr_stmnt) = 0;
+    virtual void visit(const FunctionDefinition& func_def) = 0;
+    virtual void visit(const FunctionSignature& func_sig) = 0;
 
     virtual void visit(const BinaryExpression& binary_expr) = 0;
     virtual void visit(const UnaryExpression& unary_expr) = 0;

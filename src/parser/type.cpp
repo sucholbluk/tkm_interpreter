@@ -16,17 +16,16 @@ Type::Type(FunctionTypeInfo fun_type_info)
 std::string Type::to_str() const {
     std::string type_str{type_kind_to_string(kind)};
 
-    if (kind == TypeKind::FUNCTION)
+    if (kind == TypeKind::FUNCTION) {
         type_str += function_type_info->to_str();
+    }
     return type_str;
 }
 
 bool operator==(const Type& lhs, const Type& rhs) {
-    if (lhs.kind != rhs.kind)
-        return false;
+    if (lhs.kind != rhs.kind) return false;
 
-    if (lhs.kind != TypeKind::FUNCTION)
-        return true;
+    if (lhs.kind != TypeKind::FUNCTION) return true;
 
     return *lhs.function_type_info == *rhs.function_type_info;
 }
@@ -51,8 +50,9 @@ std::string FunctionTypeInfo::to_str() const {
     } else {
         for (auto it = param_types.begin(); it != param_types.end(); ++it) {
             fun_type_info_str += it->to_str();
-            if (it != param_types.end() - 1)
+            if (it != param_types.end() - 1) {
                 fun_type_info_str += ",";
+            }
         }
     }
 
