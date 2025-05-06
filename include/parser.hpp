@@ -1,6 +1,5 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
-#include <functional>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -35,12 +34,10 @@ class Parser {
     up_expression _try_parse_expression();
     up_expression _try_parse_assigned_expression();
 
-    up_expression _try_parse_chained_binary_expression(std::function<up_expression()> try_parse_subexpr,
-                                                       const std::unordered_set<TokenType>& token_types,
-                                                       std::function<void()> on_error);
-    up_expression _try_parse_single_binary_expression(std::function<up_expression()> try_parse_subexpr,
-                                                      const std::unordered_set<TokenType>& token_types,
-                                                      std::function<void()> on_error);
+    up_expression _try_parse_chained_binary_expression(auto try_parse_subexpr,
+                                                       const std::unordered_set<TokenType>& token_types, auto on_error);
+    up_expression _try_parse_single_binary_expression(auto try_parse_subexpr,
+                                                      const std::unordered_set<TokenType>& token_types, auto on_error);
 
     up_expression _try_parse_logical_or();
     up_expression _try_parse_logical_and();

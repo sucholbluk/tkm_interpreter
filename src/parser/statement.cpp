@@ -56,15 +56,14 @@ void AssignStatement::accept(Visitor& visitor) const {
     visitor.visit(*this);
 }
 
-ExpressionStatement::ExpressionStatement(const Position& position, up_expression expr)
-    : Statement{position}, expr{std::move(expr)} {}
+ExpressionStatement::ExpressionStatement(up_expression expr) : Statement{expr->position}, expr{std::move(expr)} {}
 
 void ExpressionStatement::accept(Visitor& visitor) const {
     visitor.visit(*this);
 }
 
-FunctionDefinition::FunctionDefinition(const Position& position, up_func_sig signature, up_statement body)
-    : Statement{position}, signature{std::move(signature)}, body{std::move(body)} {}
+FunctionDefinition::FunctionDefinition(up_func_sig signature, up_statement body)
+    : Statement{signature->position}, signature{std::move(signature)}, body{std::move(body)} {}
 
 void FunctionDefinition::accept(Visitor& visitor) const {
     visitor.visit(*this);

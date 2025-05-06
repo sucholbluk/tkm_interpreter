@@ -45,15 +45,14 @@ using up_expression = std::unique_ptr<Expression>;
 using up_expression_vec = std::vector<up_expression>;
 
 struct BinaryExpression : Expression {
-    explicit BinaryExpression(const Position& position, ExprKind kind, up_expression left, up_expression right);
+    explicit BinaryExpression(ExprKind kind, up_expression left, up_expression right);
     up_expression left;
     up_expression right;
 
     void accept(Visitor& visitor) const override;
 
     static const std::unordered_set<ExprKind> binary_kinds;
-    static std::unique_ptr<BinaryExpression> create(const Position& position, ExprKind kind, up_expression left,
-                                                    up_expression right);
+    static std::unique_ptr<BinaryExpression> create(ExprKind kind, up_expression left, up_expression right);
 };
 
 struct UnaryExpression : Expression {
@@ -67,7 +66,7 @@ struct UnaryExpression : Expression {
 };
 
 struct FunctionCall : Expression {
-    explicit FunctionCall(const Position& position, up_expression callee, up_expression_vec argument_list);
+    explicit FunctionCall(up_expression callee, up_expression_vec argument_list);
     up_expression callee;
     up_expression_vec argument_list;
 
@@ -90,7 +89,7 @@ struct ParenExpression : Expression {
 };
 
 struct TypeCastExpression : Expression {
-    explicit TypeCastExpression(const Position& position, up_expression expr, Type target_type);
+    explicit TypeCastExpression(up_expression expr, Type target_type);
     up_expression expr;
     Type target_type;
 

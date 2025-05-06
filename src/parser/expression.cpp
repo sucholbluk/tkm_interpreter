@@ -8,8 +8,8 @@ Expression::Expression(const Position& position, ExprKind kind) : Node{position}
 /* -----------------------------------------------------------------------------*
  *                               BINARY_EXPRESSION                              *
  *------------------------------------------------------------------------------*/
-BinaryExpression::BinaryExpression(const Position& position, ExprKind kind, up_expression left, up_expression right)
-    : Expression{position, kind}, left{std::move(left)}, right{std::move(right)} {}
+BinaryExpression::BinaryExpression(ExprKind kind, up_expression left, up_expression right)
+    : Expression{left->position, kind}, left{std::move(left)}, right{std::move(right)} {}
 
 void BinaryExpression::accept(Visitor& visitor) const {
     visitor.visit(*this);
@@ -31,11 +31,10 @@ const std::unordered_set<ExprKind> BinaryExpression::binary_kinds = {
     ExprKind::FUNCTION_COMPOSITION,
 };
 
-std::unique_ptr<BinaryExpression> BinaryExpression::create(const Position& position, ExprKind kind, up_expression left,
-                                                           up_expression right) {
+std::unique_ptr<BinaryExpression> BinaryExpression::create(ExprKind kind, up_expression left, up_expression right) {
     if (not(binary_kinds.contains(kind) and left and right))
         throw std::logic_error("binary expr initialization");  // TODO: replace with custom exception
-    return std::make_unique<BinaryExpression>(position, kind, std::move(left), std::move(right));
+    return std::make_unique<BinaryExpression>(kind, std::move(left), std::move(right));
 }
 
 /* -----------------------------------------------------------------------------*
@@ -62,8 +61,8 @@ std::unique_ptr<UnaryExpression> UnaryExpression::create(const Position& positio
 /* -----------------------------------------------------------------------------*
  *                          FUNCTION_CALL AND BIND_FRONT                        *
  *------------------------------------------------------------------------------*/
-FunctionCall::FunctionCall(const Position& position, up_expression callee, up_expression_vec argument_list)
-    : Expression{position, ExprKind::FUNCTION_CALL},
+FunctionCall::FunctionCall(up_expression callee, up_expression_vec argument_list)
+    : Expression{callee->position, ExprKind::FUNCTION_CALL},
       callee{std::move(callee)},
       argument_list{std::move(argument_list)} {}
 
@@ -89,8 +88,8 @@ void ParenExpression::accept(Visitor& visitor) const {
 /* -----------------------------------------------------------------------------*
  *                          TYPE_CAST_EXPRESSION                          *
  *------------------------------------------------------------------------------*/
-TypeCastExpression::TypeCastExpression(const Position& position, up_expression expr, Type target_type)
-    : Expression{position, ExprKind::TYPE_CAST}, expr{std::move(expr)}, target_type{target_type} {}
+TypeCastExpression::TypeCastExpression(up_expression expr, Type target_type)
+    : Expression{expr->position, ExprKind::TYPE_CAST}, expr{std::move(expr)}, target_type{target_type} {}
 
 void TypeCastExpression::accept(Visitor& visitor) const {
     visitor.visit(*this);

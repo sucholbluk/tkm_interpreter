@@ -76,7 +76,7 @@ struct AssignStatement : public Statement {
 };
 
 struct ExpressionStatement : public Statement {
-    explicit ExpressionStatement(const Position& position, up_expression expr);
+    explicit ExpressionStatement(up_expression expr);
     up_expression expr;
     void accept(Visitor& visitor) const override;
 };
@@ -94,7 +94,7 @@ struct FunctionSignature : public Node {
 };
 
 struct FunctionDefinition : public Statement {
-    explicit FunctionDefinition(const Position& position, up_func_sig signature, up_statement body);
+    explicit FunctionDefinition(up_func_sig signature, up_statement body);
     up_func_sig signature;
     up_statement body;
     void accept(Visitor& visitor) const override;

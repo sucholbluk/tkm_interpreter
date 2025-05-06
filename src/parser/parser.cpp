@@ -218,7 +218,7 @@ up_statement Parser::_try_parse_function_definition() {
     if (not body) {
         throw std::runtime_error("required function body");
     }
-    return std::make_unique<FunctionDefinition>(signature->position, std::move(signature), std::move(body));
+    return std::make_unique<FunctionDefinition>(std::move(signature), std::move(body));
 }
 
 up_statement Parser::_try_parse_assignment_or_expression_statement() {
@@ -234,7 +234,7 @@ up_statement Parser::_try_parse_assignment_or_expression_statement() {
     }
     if (not _token_type_is(TokenType::T_ASSIGN)) {
         _advance_on_required_token(TokenType::T_SEMICOLON);
-        return std::make_unique<ExpressionStatement>(expr->position, std::move(expr));
+        return std::make_unique<ExpressionStatement>(std::move(expr));
     }
 
     if (expr->kind != ExprKind::IDENTIFIER) {
@@ -330,7 +330,7 @@ up_expression Parser::_try_parse_type_cast() {
         if (not type.has_value()) {
             throw std::runtime_error("expected type after as");  // TODO
         }
-        expr = std::make_unique<TypeCastExpression>(expr->position, std::move(expr), type.value());
+        expr = std::make_unique<TypeCastExpression>(std::move(expr), type.value());
     }
     return expr;
 }
@@ -406,7 +406,7 @@ up_expression Parser::_try_parse_function_call(up_expression primary) {
     up_expression callee{std::move(primary)};
 
     while (std::optional<up_expression_vec> arg_list = _try_parse_argument_list()) {
-        callee = std::make_unique<FunctionCall>(callee->position, std::move(callee), std::move(arg_list.value()));
+        callee = std::make_unique<FunctionCall>(std::move(callee), std::move(arg_list.value()));
     }
     return callee;
 }
@@ -472,9 +472,9 @@ up_expression Parser::_try_parse_assigned_expression() {
 /* -----------------------------------------------------------------------------*
  *                             PARSE_BINARY_EXPR                                *
  *------------------------------------------------------------------------------*/
-up_expression Parser::_try_parse_chained_binary_expression(std::function<up_expression()> try_parse_subexpr,
+up_expression Parser::_try_parse_chained_binary_expression(auto try_parse_subexpr,
                                                            const std::unordered_set<TokenType>& token_types,
-                                                           std::function<void()> on_error) {
+                                                           auto on_error) {
     up_expression left{try_parse_subexpr()};
     if (not left) {
         return nullptr;
@@ -488,15 +488,15 @@ up_expression Parser::_try_parse_chained_binary_expression(std::function<up_expr
         if (not right) {
             on_error();
         }
-        left = std::make_unique<BinaryExpression>(left->position, kind, std::move(left), std::move(right));
+        left = BinaryExpression::create(kind, std::move(left), std::move(right));
     }
 
     return left;
 }
 
-up_expression Parser::_try_parse_single_binary_expression(std::function<up_expression()> try_parse_subexpr,
+up_expression Parser::_try_parse_single_binary_expression(auto try_parse_subexpr,
                                                           const std::unordered_set<TokenType>& token_types,
-                                                          std::function<void()> on_error) {
+                                                          auto on_error) {
     up_expression left{try_parse_subexpr()};
     if (not left) {
         return nullptr;
@@ -510,7 +510,7 @@ up_expression Parser::_try_parse_single_binary_expression(std::function<up_expre
         if (not right) {
             on_error();
         }
-        left = std::make_unique<BinaryExpression>(left->position, kind, std::move(left), std::move(right));
+        left = BinaryExpression::create(kind, std::move(left), std::move(right));
     }
 
     return left;
@@ -640,23 +640,18 @@ up_func_sig Parser::_try_parse_function_signature() {
 //
 std::optional<Type> Parser::_try_parse_type() {
     switch (_token.get_type()) {
-        // int
         case TokenType::T_INT:
             _get_next_token();
             return Type{TypeKind::INT};
-        // float
         case TokenType::T_FLOAT:
             _get_next_token();
             return Type{TypeKind::FLOAT};
-        // string
         case TokenType::T_STRING:
             _get_next_token();
             return Type{TypeKind::STRING};
-        // bool
         case TokenType::T_BOOL:
             _get_next_token();
             return Type{TypeKind::BOOL};
-        // function type
         // example: function<mut int,float:none>
         case TokenType::T_FUNCTION:
             _get_next_token();
