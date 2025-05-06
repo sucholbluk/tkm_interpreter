@@ -11,9 +11,9 @@ class Printer : public Visitor {
     void visit(const Program& program) override;
     void visit(const ContinueStatement& continue_stmnt) override;
     void visit(const BreakStatement& break_stmnt) override;
-    void visit(const ReturnStatement& reaturn_stmnt) override;
+    void visit(const ReturnStatement& return_stmnt) override;
     void visit(const VariableDeclaration& var_decl) override;
-    void visit(const CodeBlock& var_decl) override;
+    void visit(const CodeBlock& code_block) override;
     void visit(const IfStatement& if_stmnt) override;
     void visit(const ElseIf& else_if) override;
     void visit(const AssignStatement& asgn_stmnt) override;
@@ -31,7 +31,7 @@ class Printer : public Visitor {
     void visit(const Identifier& identifier) override;
     void visit(const LiteralInt& literal_int) override;
     void visit(const LiteralFloat& literal_float) override;
-    void visit(const LiteralString& lieteral_string) override;
+    void visit(const LiteralString& literal_string) override;
     void visit(const LiteralBool& literal_bool) override;
 
     void visit(const TypedIdentifier& typed_ident) override;

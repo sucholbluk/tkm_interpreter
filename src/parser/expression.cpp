@@ -139,7 +139,7 @@ void LiteralBool::accept(Visitor& visitor) const {
 /* -----------------------------------------------------------------------------*
  *                               EXPRESSION_KIND                                *
  *------------------------------------------------------------------------------*/
-std::string expression_kind_to_str(const ExprKind& kind) {
+std::string expr_kind_to_str(const ExprKind& kind) {
     switch (kind) {
         case ExprKind::LOGICAL_OR:
             return "LogicalOr";

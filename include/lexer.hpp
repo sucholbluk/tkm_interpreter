@@ -49,8 +49,8 @@ class Lexer : public ILexer {
      * The type is determined by the character after the one that was used to map to this function
      * inside the @ref _simple_builders_map.
      */
-    static std::function<Token(Lexer&)> _create_equivocal_operator_builder(TokenType type,
-                                                                           char lookahead_char, TokenType extended_type);
+    static std::function<Token(Lexer&)> _create_equivocal_operator_builder(TokenType type, char lookahead_char,
+                                                                           TokenType extended_type);
 };
 
 #endif  // LEXER_HPP

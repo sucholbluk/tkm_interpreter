@@ -34,7 +34,7 @@ enum class ExprKind {
     LITERAL,
 };
 
-std::string expression_kind_to_str(const ExprKind& expr_kind);
+std::string expr_kind_to_str(const ExprKind& expr_kind);
 
 struct Expression : Node {
     explicit Expression(const Position& position, ExprKind expr_kind);

@@ -25,6 +25,225 @@ class MockLexer : public ILexer {
     }
 };
 
+// class for testing, visits program and builds vector of pairs (std::string element, int nest_level)
+// vector descibed below with example
+struct TestVisitor : public Visitor {
+    void visit(const Program& program) override {
+        elements.emplace_back(_get_name_position_str(program, "Program"), _nest_level);
+        _NestGuard guard{_nest_level};
+        std::ranges::for_each(program.statements, [this](const auto& stmnt) { stmnt->accept(*this); });
+    }
+
+    void visit(const ContinueStatement& continue_stmnt) override {
+        elements.emplace_back(_get_name_position_str(continue_stmnt, "ContinueStatement"), _nest_level);
+    }
+
+    void visit(const BreakStatement& break_stmnt) override {
+        elements.emplace_back(_get_name_position_str(break_stmnt, "BreakStatement"), _nest_level);
+    }
+
+    void visit(const ReturnStatement& return_stmnt) override {
+        elements.emplace_back(_get_name_position_str(return_stmnt, "ReturnStatement"), _nest_level);
+        return_stmnt.expression->accept(*this);
+    }
+
+    void visit(const VariableDeclaration& var_decl) override {
+        elements.emplace_back(_get_name_position_str(var_decl, "VariableDeclaration"), _nest_level);
+        _NestGuard guard{_nest_level};
+        var_decl.typed_identifier->accept(*this);
+        var_decl.assigned_expression->accept(*this);
+    }
+
+    void visit(const CodeBlock& code_block) override {
+        elements.emplace_back(_get_name_position_str(code_block, "CodeBlock"), _nest_level);
+        _NestGuard guard{_nest_level};
+        std::ranges::for_each(code_block.statements, [this](const auto& stmnt) { stmnt->accept(*this); });
+    }
+
+    void visit(const IfStatement& if_stmnt) override {
+        elements.emplace_back(_get_name_position_str(if_stmnt, "IfStatement"), _nest_level);
+        _NestGuard guard{_nest_level};
+        if_stmnt.condition->accept(*this);
+        if_stmnt.body->accept(*this);
+        std::ranges::for_each(if_stmnt.else_ifs, [this](const auto& stmnt) { stmnt->accept(*this); });
+        if (if_stmnt.else_body) {
+            if_stmnt.else_body->accept(*this);
+        }
+    }
+
+    void visit(const ElseIf& else_if) override {
+        elements.emplace_back(_get_name_position_str(else_if, "ElseIf"), _nest_level);
+        _NestGuard guard{_nest_level};
+        else_if.condition->accept(*this);
+        else_if.body->accept(*this);
+    }
+
+    void visit(const AssignStatement& asgn_stmnt) override {
+        std::string assign_str{_get_name_position_str(asgn_stmnt, "AssignStatement") +
+                               std::format(";to={}", asgn_stmnt.identifier)};
+        elements.emplace_back(assign_str, _nest_level);
+        _NestGuard guard{_nest_level};
+        asgn_stmnt.expr->accept(*this);
+    }
+
+    void visit(const ExpressionStatement& expr_stmnt) override {
+        elements.emplace_back(_get_name_position_str(expr_stmnt, "ExpressionStatement"), _nest_level);
+        _NestGuard guard{_nest_level};
+        expr_stmnt.expr->accept(*this);
+    }
+
+    void visit(const FunctionDefinition& func_def) override {
+        elements.emplace_back(_get_name_position_str(func_def, "FunctionDefinition"), _nest_level);
+        _NestGuard guard{_nest_level};
+    }
+
+    void visit(const FunctionSignature& func_sig) override {
+        std::string func_sig_str{_get_name_position_str(func_sig, "FunctionSignature") +
+                                 std::format(";type={},identifier={}", func_sig.type.to_str(), func_sig.identifier)};
+        elements.emplace_back("FunctionSignature", _nest_level);
+        _NestGuard guard{_nest_level};
+        std::ranges::for_each(func_sig.params, [this](const auto& typed_ident) { typed_ident->accept(*this); });
+    }
+
+    void visit(const ForLoop& for_loop) override {
+        elements.emplace_back(_get_name_position_str(for_loop, "ForLoop"), _nest_level);
+        _NestGuard guard{_nest_level};
+        for_loop.var_declaration->accept(*this);
+        for_loop.condition->accept(*this);
+        for_loop.loop_update->accept(*this);
+        for_loop.body->accept(*this);
+    }
+
+    void visit(const BinaryExpression& binary_expr) override {
+        elements.emplace_back(_get_name_position_str(binary_expr, expr_kind_to_str(binary_expr.kind)), _nest_level);
+        _NestGuard guard{_nest_level};
+        binary_expr.left->accept(*this);
+        binary_expr.right->accept(*this);
+    }
+
+    void visit(const UnaryExpression& unary_expr) override {
+        elements.emplace_back(_get_name_position_str(unary_expr, expr_kind_to_str(unary_expr.kind)), _nest_level);
+        _NestGuard guard{_nest_level};
+        unary_expr.expr->accept(*this);
+    }
+
+    void visit(const FunctionCall& func_call_expr) override {
+        elements.emplace_back(_get_name_position_str(func_call_expr, expr_kind_to_str(func_call_expr.kind)),
+                              _nest_level);
+        _NestGuard guard{_nest_level};
+        func_call_expr.callee->accept(*this);
+        std::ranges::for_each(func_call_expr.argument_list, [this](const auto& arg) { arg->accept(*this); });
+    }
+
+    void visit(const BindFront& bind_front_expr) override {
+        elements.emplace_back(_get_name_position_str(bind_front_expr, expr_kind_to_str(bind_front_expr.kind)),
+                              _nest_level);
+        _NestGuard guard{_nest_level};
+        std::ranges::for_each(bind_front_expr.argument_list, [this](const auto& arg) { arg->accept(*this); });
+        bind_front_expr.target->accept(*this);
+    }
+
+    void visit(const ParenExpression& paren_expr) override {
+        elements.emplace_back(_get_name_position_str(paren_expr, expr_kind_to_str(paren_expr.kind)), _nest_level);
+        _NestGuard guard{_nest_level};
+        paren_expr.expr->accept(*this);
+    }
+
+    void visit(const TypeCastExpression& type_cast_expr) override {
+        std::string type_cast_str{_get_name_position_str(type_cast_expr, expr_kind_to_str(type_cast_expr.kind)) +
+                                  std::format(";to_type={}", type_cast_expr.target_type.to_str())};
+        elements.emplace_back(type_cast_str, _nest_level);
+        _NestGuard guard{_nest_level};
+        type_cast_expr.expr->accept(*this);
+    }
+
+    void visit(const Identifier& identifier) override {
+        std::string ident_str{_get_name_position_str(identifier, expr_kind_to_str(identifier.kind)) +
+                              std::format(";name={}", identifier.name)};
+        elements.emplace_back(ident_str, _nest_level);
+    }
+    void visit(const LiteralInt& literal_int) override {
+        std::string lit_int_str{_get_name_position_str(literal_int, expr_kind_to_str(literal_int.kind) + "Int") +
+                                std::format(";value={}", literal_int.value)};
+        elements.emplace_back(lit_int_str, _nest_level);
+    }
+    void visit(const LiteralFloat& literal_float) override {
+        std::string lit_flt_str{_get_name_position_str(literal_float, expr_kind_to_str(literal_float.kind) + "Float") +
+                                std::format(";value={}", literal_float.value)};
+
+        elements.emplace_back(lit_flt_str, _nest_level);
+    }
+    void visit(const LiteralString& literal_string) override {
+        elements.emplace_back("LiteralString", _nest_level);
+        std::string lit_string_str{
+            _get_name_position_str(literal_string, expr_kind_to_str(literal_string.kind) + "String") +
+            std::format(R"(;value="{}")", literal_string.value)};
+
+        elements.emplace_back(lit_string_str, _nest_level);
+    }
+    void visit(const LiteralBool& literal_bool) override {
+        std::string lit_bool_str{_get_name_position_str(literal_bool, expr_kind_to_str(literal_bool.kind) + "Bool") +
+                                 std::format(";value={}", literal_bool.value ? "true" : "false")};
+        elements.emplace_back(lit_bool_str, _nest_level);
+    }
+
+    void visit(const TypedIdentifier& typed_ident) override {
+        std::string typed_ident_str{_get_name_position_str(typed_ident, "TypedIdentifier") +
+                                    std::format(";name={},type={}", typed_ident.name, typed_ident.type.to_str())};
+        elements.emplace_back("TypedIdentifier", _nest_level);
+    }
+
+    // vector of (std::string element, int nest_level)
+    // element = "Elem;pos;additional_info" eg. "LiteralInt;[1:1];value=4"
+    // sequence in vector reflects order of elements in program
+    // Example:
+    // program:
+    // {
+    //     let inc_42: function<mut int:none> = (42) >> inc_by;
+    //     return inc_42
+    // }
+    // printed as:
+    // (note that position is just default - mock lexer sets default value, elements without <0x56f7473e83f0>
+    //  are not program elements, but
+    // are used for readablility purpose)
+    //
+    //  [Program] <0x56f7473c3700> at: [1:1]
+    //   |_[CodeBlock ] <0x56f7473ca180> at: [1:1]
+    //     |_[VariableDeclaration] <0x56f7473e83f0> at: [1:1]
+    //       |_[TypedIdentifier ] <0x56f7473e1030> at: [1:1]  identifier:inc_42, type:function<mut int:none>
+    //       |_[BindFront] <0x56f7473e03d0> at: [1:1]
+    //         |_Arguments:
+    //           |_[LiteralInt] <0x56f7473e07c0> at: [1:1] type:int, value:42
+    //         |_Bind Target:
+    //           |_[Identifier] <0x56f7473e4f20> at: [1:1] name:inc_by
+    //     |_[ReturnStatement ] <0x56f7473c32a0> at: [1:1]
+    //       |_[Identifier] <0x56f7473e04f0> at: [1:1] name:inc_42
+    //
+    // will be represented as:
+    // [
+    //  ("Program;[1:1]", 0), ("VariableDeclaration;[1:1]", 1),
+    //  ("TypedIdentifier;[1:1];name=inc_42,type:function<mut int:none>", 2), ("BindFront;[1:1]", 2),
+    //  ("LiteralInt;[1:1];type=int,value=42",  3), ("Identifier;[1:1];name=inc_by", 3),
+    //  ("ReturnStatement;[1:1]", 1), ("Identifier;[1:1];name=inc_42", 2)
+    // ]
+    std::vector<std::pair<std::string, int>> elements = {};
+
+   private:
+    int _nest_level = 0;
+    std::string _get_name_position_str(const Node& node, std::string element_name) {
+        return std::format("{};{}", element_name, node.position.get_position_str());
+    }
+    struct _NestGuard {
+        int& level;
+        explicit _NestGuard(int& level) : level{level} {
+            ++level;
+        }
+        ~_NestGuard() {
+            --level;
+        }
+    };
+};
+
 BOOST_AUTO_TEST_CASE(test_constructor) {
     auto lexer = std::make_unique<MockLexer>();
     Parser parser{std::move(lexer)};
@@ -462,6 +681,25 @@ BOOST_AUTO_TEST_CASE(test_for_loop_with_variable_declaration) {
     BOOST_CHECK_EQUAL(program->statements.size(), 1);
 
     // Użycie Printer do wypisania struktury AST
+    Printer printer{};
+    program->accept(printer);
+}
+
+// return -10;
+BOOST_AUTO_TEST_CASE(test_return_negative_literal_int) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_RETURN, Position()},           // return
+        Token{TokenType::T_MINUS, Position()},            // -
+        Token{TokenType::T_LITERAL_INT, Position(), 10},  // 10
+        Token{TokenType::T_SEMICOLON, Position()},        // ;
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+
     Printer printer{};
     program->accept(printer);
 }

@@ -15,7 +15,7 @@ void Printer::_print_indent() const {
 void Printer::_print_expression_header(const Expression& expr, std::string type_spec,
                                        std::string additional_info) const {
     _print_indent();
-    std::cout << "[\033[1;34m" << expression_kind_to_str(expr.kind) << type_spec << "\033[0m]"
+    std::cout << "[\033[1;34m" << expr_kind_to_str(expr.kind) << type_spec << "\033[0m]"
               << " <" << &expr << "> at: " << expr.position.get_position_str() << " " << additional_info << std::endl;
 }
 

@@ -340,7 +340,7 @@ up_expression Parser::_try_parse_unary_expression() {
         return _try_parse_function_composition();  // to nie unary - delegujemy dalej
     }
 
-    ExprKind kind = _token_type_is(TokenType::T_NOT) ? ExprKind::UNARY_MINUS : ExprKind::LOGICAL_NOT;
+    ExprKind kind = _token_type_is(TokenType::T_NOT) ? ExprKind::LOGICAL_NOT : ExprKind::UNARY_MINUS;
     Position position{_get_position_and_digest_token()};
 
     up_expression expr = _try_parse_function_composition();

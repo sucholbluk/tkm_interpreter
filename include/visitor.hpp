@@ -36,9 +36,9 @@ class Visitor {
     virtual void visit(const Program& program) = 0;
     virtual void visit(const ContinueStatement& continue_stmnt) = 0;
     virtual void visit(const BreakStatement& break_stmnt) = 0;
-    virtual void visit(const ReturnStatement& reaturn_stmnt) = 0;
+    virtual void visit(const ReturnStatement& return_stmnt) = 0;
     virtual void visit(const VariableDeclaration& var_decl) = 0;
-    virtual void visit(const CodeBlock& var_decl) = 0;
+    virtual void visit(const CodeBlock& code_block) = 0;
     virtual void visit(const IfStatement& if_stmnt) = 0;
     virtual void visit(const ElseIf& else_if) = 0;
     virtual void visit(const AssignStatement& asgn_stmnt) = 0;
@@ -56,7 +56,7 @@ class Visitor {
     virtual void visit(const Identifier& identifier) = 0;
     virtual void visit(const LiteralInt& literal_int) = 0;
     virtual void visit(const LiteralFloat& literal_float) = 0;
-    virtual void visit(const LiteralString& lieteral_string) = 0;
+    virtual void visit(const LiteralString& literal_string) = 0;
     virtual void visit(const LiteralBool& literal_bool) = 0;
 
     virtual void visit(const TypedIdentifier& typed_ident) = 0;
