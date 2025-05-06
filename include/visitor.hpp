@@ -1,6 +1,7 @@
 #ifndef VISITIOR_HPP
 #define VISITIOR_HPP
 
+struct Node;
 struct Program;
 struct ContinueStatement;
 struct BreakStatement;

@@ -41,6 +41,7 @@ class Printer : public Visitor {
    private:
     int _indent_level = 0;
     void _print_indent() const;
+    void _print_header(std::string type_str, const Node& node, std::string additional_info = "") const;
     void _print_expression_header(const Expression& expr, std::string type_spec = "",
                                   std::string additional_info = "") const;
 

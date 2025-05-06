@@ -12,31 +12,40 @@ void Printer::_print_indent() const {
     std::cout << std::string(_indent_level * 2, ' ') << "|_";
 }
 
+void Printer::_print_expression_header(const Expression& expr, std::string type_spec,
+                                       std::string additional_info) const {
+    _print_indent();
+    std::cout << "[\033[1;34m" << expression_kind_to_str(expr.kind) << type_spec << "\033[0m]"
+              << " <" << &expr << "> at: " << expr.position.get_position_str() << " " << additional_info << std::endl;
+}
+
+void Printer::_print_header(std::string type_str, const Node& node, std::string additional_info) const {
+    std::cout << "[\033[1;32m" << type_str << "\033[0m"
+              << "] <" << &node << "> at: " << node.position.get_position_str() << " " << additional_info << std::endl;
+}
 /* -----------------------------------------------------------------------------*
  *                               PRINTING STATEMENTS                            *
  *------------------------------------------------------------------------------*/
 
 void Printer::visit(const Program& program) {
-    std::cout << "Program <" << this << "> at: " << program.position.get_position_str() << std::endl;
+    _print_header("Program", program);
     _IndentGuard guard(_indent_level);
     std::ranges::for_each(program.statements, [this](const up_statement& statement) { statement->accept(*this); });
 }
 
 void Printer::visit(const ContinueStatement& continue_stmnt) {
     _print_indent();
-    std::cout << "ContinueStatement <" << &continue_stmnt << "> at: " << continue_stmnt.position.get_position_str()
-              << std::endl;
+    _print_header("ContinueStatement", continue_stmnt);
 }
 
 void Printer::visit(const BreakStatement& break_stmnt) {
     _print_indent();
-    std::cout << "BreakStatement <" << &break_stmnt << "> at: " << break_stmnt.position.get_position_str() << std::endl;
+    _print_header("BreakStatement", break_stmnt);
 }
 
 void Printer::visit(const ReturnStatement& return_stmnt) {
     _print_indent();
-    std::cout << "ReturnStatement <" << &return_stmnt << "> at: " << return_stmnt.position.get_position_str()
-              << std::endl;
+    _print_header("ReturnStatement ", return_stmnt);
     _IndentGuard guard{_indent_level};
     if (return_stmnt.expression) {
         return_stmnt.expression->accept(*this);
@@ -45,7 +54,7 @@ void Printer::visit(const ReturnStatement& return_stmnt) {
 
 void Printer::visit(const VariableDeclaration& var_decl) {
     _print_indent();
-    std::cout << "VariableDeclaration <" << &var_decl << "> at: " << var_decl.position.get_position_str() << std::endl;
+    _print_header("VariableDeclaration", var_decl);
     _IndentGuard guard{_indent_level};
 
     var_decl.typed_identifier->accept(*this);
@@ -54,7 +63,7 @@ void Printer::visit(const VariableDeclaration& var_decl) {
 
 void Printer::visit(const CodeBlock& code_block) {
     _print_indent();
-    std::cout << "CodeBlock <" << &code_block << "> at: " << code_block.position.get_position_str() << std::endl;
+    _print_header("CodeBlock ", code_block);
     {
         _IndentGuard guard{_indent_level};
         std::ranges::for_each(code_block.statements,
@@ -64,7 +73,7 @@ void Printer::visit(const CodeBlock& code_block) {
 
 void Printer::visit(const IfStatement& if_stmnt) {
     _print_indent();
-    std::cout << "IfStatement <" << &if_stmnt << "> at: " << if_stmnt.position.get_position_str() << std::endl;
+    _print_header("IfStatement ", if_stmnt);
     {
         _IndentGuard guard{_indent_level};
         _print_indent();
@@ -98,7 +107,7 @@ void Printer::visit(const IfStatement& if_stmnt) {
 
 void Printer::visit(const ElseIf& else_if) {
     _print_indent();
-    std::cout << "ElseIf <" << &else_if << "> at: " << else_if.position.get_position_str() << std::endl;
+    _print_header("ElseIf ", else_if);
     _IndentGuard guard{_indent_level};
     _print_indent();
     std::cout << "Condition:" << std::endl;
@@ -116,23 +125,21 @@ void Printer::visit(const ElseIf& else_if) {
 
 void Printer::visit(const AssignStatement& asgn_stmnt) {
     _print_indent();
-    std::cout << "AssignStatement <" << &asgn_stmnt << "> at: " << asgn_stmnt.position.get_position_str()
-              << std::format(" to identifier: {}", asgn_stmnt.identifier) << std::endl;
+    _print_header("AssignStatement ", asgn_stmnt, std::format(" to identifier: {}", asgn_stmnt.identifier));
     _IndentGuard guard{_indent_level};
     asgn_stmnt.expr->accept(*this);
 }
 
 void Printer::visit(const ExpressionStatement& expr_stmnt) {
     _print_indent();
-    std::cout << "ExpressionStatement <" << &expr_stmnt << "> at: " << expr_stmnt.position.get_position_str()
-              << std::endl;
+    _print_header("ExpressionStatement ", expr_stmnt);
     _IndentGuard guard{_indent_level};
     expr_stmnt.expr->accept(*this);
 }
 
 void Printer::visit(const FunctionDefinition& func_def) {
     _print_indent();
-    std::cout << "FunctionDefinition <" << &func_def << "> at: " << func_def.position.get_position_str() << std::endl;
+    _print_header("FunctionDefinition ", func_def);
     _IndentGuard guard{_indent_level};
     func_def.signature->accept(*this);
     func_def.body->accept(*this);
@@ -140,15 +147,16 @@ void Printer::visit(const FunctionDefinition& func_def) {
 
 void Printer::visit(const FunctionSignature& func_sig) {
     _print_indent();
-    std::cout << "FunctionSignature <" << &func_sig << "> at: " << func_sig.position.get_position_str()
-              << std::format(" identifier: {}, type: {}", func_sig.identifier, func_sig.type.to_str()) << std::endl;
+    _print_header("FunctionSignature ", func_sig,
+                  std::format(" identifier: {}, type: {}", func_sig.identifier, func_sig.type.to_str()));
     _IndentGuard guard{_indent_level};
 
     std::ranges::for_each(func_sig.params, [this](const up_typed_identifier& param) { param->accept(*this); });
 }
 
 void Printer::visit(const ForLoop& for_loop) {
-    std::cout << "ForLoop<" << &for_loop << "> at: " << for_loop.position.get_position_str() << std::endl;
+    _print_indent();
+    _print_header("ForLoop", for_loop);
     _IndentGuard loop_guard{_indent_level};
     _print_indent();
     std::cout << "LoopVarDeclaration:" << std::endl;
@@ -274,14 +282,6 @@ void Printer::visit(const LiteralBool& literal_bool) {
 
 void Printer::visit(const TypedIdentifier& typed_identifier) {
     _print_indent();
-    std::cout << "TypedIdentifier <" << &typed_identifier << "> at:" << typed_identifier.position.get_position_str()
-              << std::format(" identifier:{}, type:{}", typed_identifier.name, typed_identifier.type.to_str())
-              << std::endl;
-}
-
-void Printer::_print_expression_header(const Expression& expr, std::string type_spec,
-                                       std::string additional_info) const {
-    _print_indent();
-    std::cout << expression_kind_to_str(expr.kind) << type_spec << " <" << &expr
-              << "> at: " << expr.position.get_position_str() << " " << additional_info << std::endl;
+    _print_header("TypedIdentifier ", typed_identifier,
+                  std::format(" identifier:{}, type:{}", typed_identifier.name, typed_identifier.type.to_str()));
 }
