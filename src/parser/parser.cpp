@@ -46,14 +46,14 @@ up_func_sig Parser::_try_parse_function_signature() {
         throw ExpectedArgListException(_token.get_position());
     }
 
+    _advance_on_required_token<ExpectedArrowException>(TokenType::T_ARROW);
+
     std::optional<Type> return_type{_parse_return_type()};
 
     return std::make_unique<FunctionSignature>(position, identifier, std::move(params.value()), return_type);
 }
 
 std::optional<Type> Parser::_parse_return_type() {
-    _advance_on_required_token<ExpectedArrowException>(TokenType::T_ARROW);
-
     if (_token_type_is(TokenType::T_NONE)) {
         _get_next_token();
         return std::nullopt;
@@ -171,13 +171,13 @@ up_statement Parser::_try_parse_if_statement() {
     up_expression condition{_try_parse_condition()};
 
     if (not condition) {
-        throw std::runtime_error("missing if condition");
+        throw ExpectedIfConditionException(_token.get_position());
     }
 
     up_statement if_body{_try_parse_code_block()};
 
     if (not if_body) {
-        throw std::runtime_error("required if code block");
+        throw ExpectedConditionalStatementBodyException(_token.get_position());
     }
 
     up_else_if_vec else_ifs{};
@@ -188,7 +188,7 @@ up_statement Parser::_try_parse_if_statement() {
         if (not _token_type_is(TokenType::T_IF)) {
             else_block = _try_parse_code_block();
             if (not else_block) {
-                throw std::runtime_error("required body after else");
+                throw ExpectedConditionalStatementBodyException(_token.get_position());
             }
             break;
         }
@@ -197,12 +197,12 @@ up_statement Parser::_try_parse_if_statement() {
 
         up_expression else_if_condition{_try_parse_condition()};
         if (not else_if_condition) {
-            throw std::runtime_error("required condition after else if");
+            throw ExpectedIfConditionException(_token.get_position());
         }
 
         up_statement else_if_body{_try_parse_code_block()};
         if (not else_if_body) {
-            throw std::runtime_error("required body in else if");
+            throw ExpectedConditionalStatementBodyException(_token.get_position());
         }
 
         else_ifs.push_back(
@@ -320,38 +320,39 @@ up_expression Parser::_try_parse_expression() {
     return _try_parse_logical_or();
 }
 up_expression Parser::_try_parse_logical_or() {
-    return _try_parse_chained_binary_expression([this]() { return _try_parse_logical_and(); }, Parser::_or_token_types,
-                                                []() { throw std::runtime_error("missing expression after or"); });
+    return _try_parse_chained_binary_expression(
+        [this]() { return _try_parse_logical_and(); }, Parser::_or_token_types,
+        [this]() { throw ExpectedExprAfterOrException(this->_token.get_position()); });
 }
 
 up_expression Parser::_try_parse_logical_and() {
-    return _try_parse_chained_binary_expression([this]() { return _try_parse_equality_expression(); },
-                                                Parser::_and_token_types,
-                                                []() { throw std::runtime_error("missing expression after and"); });
+    return _try_parse_chained_binary_expression(
+        [this]() { return _try_parse_equality_expression(); }, Parser::_and_token_types,
+        [this]() { throw ExpectedExprAfterAndException(this->_token.get_position()); });
 }
 
 up_expression Parser::_try_parse_equality_expression() {
-    return _try_parse_single_binary_expression([this]() { return _try_parse_comparison_expression(); },
-                                               Parser::_equality_token_types,
-                                               []() { throw std::runtime_error("missing expression after eq/neq"); });
+    return _try_parse_single_binary_expression(
+        [this]() { return _try_parse_comparison_expression(); }, Parser::_equality_token_types,
+        [this]() { throw ExpectedExprAfterEqualityException(this->_token.get_position()); });
 }
 
 up_expression Parser::_try_parse_comparison_expression() {
     return _try_parse_single_binary_expression(
         [this]() { return _try_parse_additive_expression(); }, Parser::_comparison_token_types,
-        []() { throw std::runtime_error("missing expression after comparison op"); });
+        [this]() { throw ExpectedExprAfterComparisonException(this->_token.get_position()); });
 }
 
 up_expression Parser::_try_parse_additive_expression() {
     return _try_parse_chained_binary_expression(
         [this]() { return _try_parse_multiplicative_expression(); }, Parser::_additive_token_types,
-        []() { throw std::runtime_error("missing expression after additive oper"); });
+        [this]() { throw ExpectedExprAfterAdditiveException(this->_token.get_position()); });
 }
 
 up_expression Parser::_try_parse_multiplicative_expression() {
     return _try_parse_chained_binary_expression(
         [this]() { return _try_parse_type_cast(); }, Parser::_multipicative_token_types,
-        []() { throw std::runtime_error("missing expression after multiplicative oper"); });
+        [this]() { throw ExpectedExprAfterMultiplicativeException(this->_token.get_position()); });
 }
 
 up_expression Parser::_try_parse_type_cast() {
@@ -364,7 +365,7 @@ up_expression Parser::_try_parse_type_cast() {
         _get_next_token();
         std::optional<Type> type{_try_parse_type()};
         if (not type.has_value()) {
-            throw std::runtime_error("expected type after as");  // TODO
+            throw ExpectedTypeForTypeCastException(_token.get_position());  // TODO
         }
         expr = std::make_unique<TypeCastExpression>(std::move(expr), type.value());
     }
@@ -381,7 +382,7 @@ up_expression Parser::_try_parse_unary_expression() {
 
     up_expression expr = _try_parse_function_composition();
     if (not expr) {
-        throw std::runtime_error("unary operator must be followed with adequate expression");  // TODO
+        throw ExpectedExprAfterUnaryException(_token.get_position());  // TODO
     }
 
     return std::make_unique<UnaryExpression>(position, kind, std::move(expr));
@@ -390,7 +391,7 @@ up_expression Parser::_try_parse_unary_expression() {
 up_expression Parser::_try_parse_function_composition() {
     return _try_parse_chained_binary_expression(
         [this]() { return _try_parse_bind_front_or_function_call(); }, Parser::_func_comp_token_types,
-        []() { throw std::runtime_error("func comp must be followed with adequate expression"); });
+        [this]() { throw ExpectedExprAfterFuncCompException(this->_token.get_position()); });
 }
 
 // EBNF bind_front = function_call | ( arg_list, bindf, function_call);
@@ -417,7 +418,7 @@ up_expression Parser::_try_parse_bind_front_or_function_call() {
 
     if (not _token_type_is(TokenType::T_BIND_FRONT)) {
         if (argument_list.size() != 1) {
-            throw std::runtime_error("missing >> after argument list");
+            throw ExpectedBindFrontOperatorException(_token.get_position());
         }
         return _try_parse_function_call(std::move(argument_list[0]));
     }
@@ -425,7 +426,7 @@ up_expression Parser::_try_parse_bind_front_or_function_call() {
     _get_next_token();
     up_expression target{_try_parse_function_call()};
     if (not target) {
-        throw std::runtime_error("missing function target in bind front");
+        throw ExpectedBindFrontTargetException(_token.get_position());
     }
 
     return std::make_unique<BindFront>(position, std::move(argument_list), std::move(target));
@@ -628,7 +629,7 @@ std::optional<up_typed_ident_vec> Parser::_try_parse_function_params() {
             _get_next_token();
             up_typed_identifier param{_try_parse_typed_identifier()};
             if (not param) {
-                throw std::runtime_error("required typed identifier");
+                throw ExpectedTypedIdentifierException(_token.get_position());
             }
             params.push_back(std::move(param));
         }
@@ -694,16 +695,7 @@ FunctionTypeInfo Parser::_parse_function_type_info() {
     }
     _advance_on_required_token(TokenType::T_COLON);
 
-    std::optional<Type> return_type{};
-
-    if (_token_type_is(TokenType::T_NONE)) {
-        _get_next_token();
-    } else {
-        return_type = _try_parse_type();
-        if (not return_type.has_value()) {
-            throw std::invalid_argument("expected return type");
-        }
-    }
+    std::optional<Type> return_type{_parse_return_type()};
 
     _advance_on_required_token(TokenType::T_GREATER);
 

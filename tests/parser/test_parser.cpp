@@ -194,6 +194,50 @@ BOOST_AUTO_TEST_CASE(test_main_simple_asgn_func_call) {
     // program->accept(printer);
 }
 
+// def main() -> none {
+//     foo1 && foo2;
+// }
+BOOST_AUTO_TEST_CASE(test_function_composition) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                  // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},   // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},              // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},             // )
+        Token{TokenType::T_ARROW, Position(1, 12)},               // ->
+        Token{TokenType::T_NONE, Position(1, 15)},                // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},             // {
+        Token{TokenType::T_IDENTIFIER, Position(2, 5), "foo1"},   // foo1
+        Token{TokenType::T_FUNC_COMPOSITION, Position(2, 10)},    // &&
+        Token{TokenType::T_IDENTIFIER, Position(2, 13), "foo2"},  // foo2
+        Token{TokenType::T_SEMICOLON, Position(2, 17)},           // ;
+        Token{TokenType::T_R_BRACE, Position(3, 1)},              // }
+    };
+
+    std::vector<std::pair<std::string, int>> expected_elements = {
+        {"Program;[1:1]", 0},
+        {"FunctionDefinition;[1:1]", 1},
+        {"FunctionSignature;[1:1];type=function<none:none>,identifier=main", 2},
+        {"CodeBlock;[1:19]", 2},
+        {"ExpressionStatement;[2:5]", 3},
+        {"FunctionComposition;[2:5]", 4},
+        {"Identifier;[2:5];name=foo1", 5},
+        {"Identifier;[2:13];name=foo2", 5},
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+
+    BOOST_CHECK_EQUAL(program->function_definitions.size(), 1);
+
+    ParserTestVisitor t_visit{};
+    program->accept(t_visit);
+    Printer p{};
+    program->accept(p);
+
+    BOOST_CHECK(expected_elements == t_visit.elements);
+}
+
 // def invoke(fun: function<int, int:int>, a: int, b: int) -> int {
 //     return fun(a, b);
 // }
@@ -350,13 +394,13 @@ BOOST_AUTO_TEST_CASE(test_bind_function) {
 //     if (n <= 1) {
 //         return n;
 //     }
-//
+
 //     return nth_fibonacci(n - 1) + nth_fibonacci(n - 2);
 // }
-//
+
 // def main() -> int {
 //     let n: int = 5;
-//
+
 //     print("For " + n as string + " sequence number is " + nth_fibonacci(n) as string);
 //     return 0;
 // }
@@ -923,6 +967,461 @@ BOOST_AUTO_TEST_CASE(test_missing_assignment_in_for_loop_update) {
     BOOST_CHECK_THROW(parser.parse_program(), ExpectedAssignmentException);
 }
 
+// def main() -> none {
+//     if (true or ) {}
+// }
+BOOST_AUTO_TEST_CASE(test_missing_expression_after_or) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_NONE, Position(1, 15)},               // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_IF, Position(2, 5)},                  // if
+        Token{TokenType::T_L_PAREN, Position(2, 8)},             // (
+        Token{TokenType::T_LITERAL_BOOL, Position(2, 9), true},  // true
+        Token{TokenType::T_OR, Position(2, 14)},                 // or
+        Token{TokenType::T_R_PAREN, Position(2, 17)},            // )
+        Token{TokenType::T_L_BRACE, Position(2, 19)},            // {
+        Token{TokenType::T_R_BRACE, Position(3, 5)},             // }
+        Token{TokenType::T_R_BRACE, Position(4, 1)},             // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedExprAfterOrException);
+}
+
+// def main() -> none {
+//     if (true and ) {}
+// }
+BOOST_AUTO_TEST_CASE(test_missing_expression_after_and) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_NONE, Position(1, 15)},               // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_IF, Position(2, 5)},                  // if
+        Token{TokenType::T_L_PAREN, Position(2, 8)},             // (
+        Token{TokenType::T_LITERAL_BOOL, Position(2, 9), true},  // true
+        Token{TokenType::T_AND, Position(2, 14)},                // and
+        Token{TokenType::T_R_PAREN, Position(2, 18)},            // )
+        Token{TokenType::T_L_BRACE, Position(2, 20)},            // {
+        Token{TokenType::T_R_BRACE, Position(3, 5)},             // }
+        Token{TokenType::T_R_BRACE, Position(4, 1)},             // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedExprAfterAndException);
+}
+
+// def main() -> none {
+//     if (a == ) {}
+// }
+BOOST_AUTO_TEST_CASE(test_missing_expression_after_equality) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_NONE, Position(1, 15)},               // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_IF, Position(2, 5)},                  // if
+        Token{TokenType::T_L_PAREN, Position(2, 8)},             // (
+        Token{TokenType::T_IDENTIFIER, Position(2, 9), "a"},     // a
+        Token{TokenType::T_EQUAL, Position(2, 11)},              // ==
+        Token{TokenType::T_R_PAREN, Position(2, 14)},            // )
+        Token{TokenType::T_L_BRACE, Position(2, 16)},            // {
+        Token{TokenType::T_R_BRACE, Position(3, 5)},             // }
+        Token{TokenType::T_R_BRACE, Position(4, 1)},             // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedExprAfterEqualityException);
+}
+
+// def main() -> none {
+//     if (a < ) {}
+// }
+BOOST_AUTO_TEST_CASE(test_missing_expression_after_comparison) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_NONE, Position(1, 15)},               // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_IF, Position(2, 5)},                  // if
+        Token{TokenType::T_L_PAREN, Position(2, 8)},             // (
+        Token{TokenType::T_IDENTIFIER, Position(2, 9), "a"},     // a
+        Token{TokenType::T_LESS, Position(2, 11)},               // <
+        Token{TokenType::T_R_PAREN, Position(2, 13)},            // )
+        Token{TokenType::T_L_BRACE, Position(2, 15)},            // {
+        Token{TokenType::T_R_BRACE, Position(3, 5)},             // }
+        Token{TokenType::T_R_BRACE, Position(4, 1)},             // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedExprAfterComparisonException);
+}
+
+// def main() -> none {
+//     let x: int = 4 + ;
+// }
+BOOST_AUTO_TEST_CASE(test_missing_expression_after_additive) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_NONE, Position(1, 15)},               // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_LET, Position(2, 5)},                 // let
+        Token{TokenType::T_IDENTIFIER, Position(2, 9), "x"},     // x
+        Token{TokenType::T_COLON, Position(2, 10)},              // :
+        Token{TokenType::T_INT, Position(2, 12)},                // int
+        Token{TokenType::T_ASSIGN, Position(2, 16)},             // =
+        Token{TokenType::T_LITERAL_INT, Position(2, 18), 4},     // 4
+        Token{TokenType::T_PLUS, Position(2, 20)},               // +
+        // missing expr
+        Token{TokenType::T_SEMICOLON, Position(2, 21)},  // ;
+        Token{TokenType::T_R_BRACE, Position(3, 1)},     // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedExprAfterAdditiveException);
+}
+
+// def main() -> none {
+//     let x: int = 4 * ;
+// }
+BOOST_AUTO_TEST_CASE(test_missing_expression_after_multiplicative) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_NONE, Position(1, 15)},               // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_LET, Position(2, 5)},                 // let
+        Token{TokenType::T_IDENTIFIER, Position(2, 9), "x"},     // x
+        Token{TokenType::T_COLON, Position(2, 10)},              // :
+        Token{TokenType::T_INT, Position(2, 12)},                // int
+        Token{TokenType::T_ASSIGN, Position(2, 16)},             // =
+        Token{TokenType::T_LITERAL_INT, Position(2, 18), 4},     // 4
+        Token{TokenType::T_MULTIPLY, Position(2, 20)},           // *
+        // missing expr
+        Token{TokenType::T_SEMICOLON, Position(2, 21)},  // ;
+        Token{TokenType::T_R_BRACE, Position(3, 1)},     // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedExprAfterMultiplicativeException);
+}
+
+// def main() -> none {
+//     is_foo = not ;
+// }
+BOOST_AUTO_TEST_CASE(test_missing_expression_after_unary) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                   // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},    // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},               // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},              // )
+        Token{TokenType::T_ARROW, Position(1, 12)},                // ->
+        Token{TokenType::T_NONE, Position(1, 15)},                 // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},              // {
+        Token{TokenType::T_IDENTIFIER, Position(2, 5), "is_foo"},  // is_foo
+        Token{TokenType::T_ASSIGN, Position(2, 12)},               // =
+        Token{TokenType::T_NOT, Position(2, 14)},                  // not
+        // missing expr
+        Token{TokenType::T_SEMICOLON, Position(2, 18)},  // ;
+        Token{TokenType::T_R_BRACE, Position(3, 1)},     // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedExprAfterUnaryException);
+}
+
+// def main() -> none {
+//     foo1 &&;
+// }
+BOOST_AUTO_TEST_CASE(test_missing_expression_after_function_composition) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_NONE, Position(1, 15)},               // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_IDENTIFIER, Position(2, 5), "foo1"},  // foo1
+        Token{TokenType::T_FUNC_COMPOSITION, Position(2, 10)},   // &&
+        // Brak wyrażenia po operatorze &&
+        Token{TokenType::T_SEMICOLON, Position(2, 12)},  // ;
+        Token{TokenType::T_R_BRACE, Position(3, 1)},     // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedExprAfterFuncCompException);
+}
+
+// def main() -> none {
+//     let four: function<none:int> = (2,2) sum_two;
+// }
+BOOST_AUTO_TEST_CASE(test_missing_bind_front_operator) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                     // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},      // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},                 // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},                // )
+        Token{TokenType::T_ARROW, Position(1, 12)},                  // ->
+        Token{TokenType::T_NONE, Position(1, 15)},                   // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},                // {
+        Token{TokenType::T_LET, Position(2, 5)},                     // let
+        Token{TokenType::T_IDENTIFIER, Position(2, 9), "four"},      // four
+        Token{TokenType::T_COLON, Position(2, 13)},                  // :
+        Token{TokenType::T_FUNCTION, Position(2, 15)},               // function
+        Token{TokenType::T_LESS, Position(2, 23)},                   // <
+        Token{TokenType::T_NONE, Position(2, 24)},                   // none
+        Token{TokenType::T_COLON, Position(2, 28)},                  // :
+        Token{TokenType::T_INT, Position(2, 29)},                    // int
+        Token{TokenType::T_GREATER, Position(2, 32)},                // >
+        Token{TokenType::T_ASSIGN, Position(2, 34)},                 // =
+        Token{TokenType::T_L_PAREN, Position(2, 36)},                // (
+        Token{TokenType::T_LITERAL_INT, Position(2, 37), 2},         // 2
+        Token{TokenType::T_COMMA, Position(2, 38)},                  // ,
+        Token{TokenType::T_LITERAL_INT, Position(2, 39), 2},         // 2
+        Token{TokenType::T_R_PAREN, Position(2, 40)},                // )
+        Token{TokenType::T_IDENTIFIER, Position(2, 42), "sum_two"},  // sum_two
+        Token{TokenType::T_SEMICOLON, Position(2, 49)},              // ;
+        Token{TokenType::T_R_BRACE, Position(3, 1)},                 // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedBindFrontOperatorException);
+}
+
+// def main() -> none {
+//     let four: function<none:int> = (2,2) >>;
+// }
+BOOST_AUTO_TEST_CASE(test_missing_bind_front_target) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_NONE, Position(1, 15)},               // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_LET, Position(2, 5)},                 // let
+        Token{TokenType::T_IDENTIFIER, Position(2, 9), "four"},  // four
+        Token{TokenType::T_COLON, Position(2, 13)},              // :
+        Token{TokenType::T_FUNCTION, Position(2, 15)},           // function
+        Token{TokenType::T_LESS, Position(2, 23)},               // <
+        Token{TokenType::T_NONE, Position(2, 24)},               // none
+        Token{TokenType::T_COLON, Position(2, 28)},              // :
+        Token{TokenType::T_INT, Position(2, 29)},                // int
+        Token{TokenType::T_GREATER, Position(2, 32)},            // >
+        Token{TokenType::T_ASSIGN, Position(2, 34)},             // =
+        Token{TokenType::T_L_PAREN, Position(2, 36)},            // (
+        Token{TokenType::T_LITERAL_INT, Position(2, 37), 2},     // 2
+        Token{TokenType::T_COMMA, Position(2, 38)},              // ,
+        Token{TokenType::T_LITERAL_INT, Position(2, 39), 2},     // 2
+        Token{TokenType::T_R_PAREN, Position(2, 40)},            // )
+        Token{TokenType::T_BIND_FRONT, Position(2, 42)},         // >>
+        // Brak celu po operatorze >>
+        Token{TokenType::T_SEMICOLON, Position(2, 44)},  // ;
+        Token{TokenType::T_R_BRACE, Position(3, 1)},     // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedBindFrontTargetException);
+}
+// def main() -> none {
+//     if true {
+//         foo();
+//     }
+// }
+BOOST_AUTO_TEST_CASE(test_missing_parentheses_in_if_condition) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_NONE, Position(1, 15)},               // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_IF, Position(2, 5)},                  // if
+        Token{TokenType::T_LITERAL_BOOL, Position(2, 8), true},  // true
+        Token{TokenType::T_L_BRACE, Position(2, 13)},            // {
+        Token{TokenType::T_IDENTIFIER, Position(3, 9), "foo"},   // foo
+        Token{TokenType::T_L_PAREN, Position(3, 12)},            // (
+        Token{TokenType::T_R_PAREN, Position(3, 13)},            // )
+        Token{TokenType::T_SEMICOLON, Position(3, 14)},          // ;
+        Token{TokenType::T_R_BRACE, Position(4, 5)},             // }
+        Token{TokenType::T_R_BRACE, Position(5, 1)},             // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedIfConditionException);
+}
+// def main() -> none {
+//     if (x > 3)
+//         foo();
+//
+// }
+BOOST_AUTO_TEST_CASE(test_missing_body_for_if_statement) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_NONE, Position(1, 15)},               // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_IF, Position(2, 5)},                  // if
+        Token{TokenType::T_L_PAREN, Position(2, 8)},             // (
+        Token{TokenType::T_IDENTIFIER, Position(2, 9), "x"},     // x
+        Token{TokenType::T_GREATER, Position(2, 11)},            // >
+        Token{TokenType::T_LITERAL_INT, Position(2, 13), 3},     // 3
+        Token{TokenType::T_R_PAREN, Position(2, 14)},            // )
+        Token{TokenType::T_IDENTIFIER, Position(3, 9), "foo"},   // foo
+        Token{TokenType::T_L_PAREN, Position(3, 12)},            // (
+        Token{TokenType::T_R_PAREN, Position(3, 13)},            // )
+        Token{TokenType::T_SEMICOLON, Position(3, 14)},          // ;
+        Token{TokenType::T_R_BRACE, Position(5, 1)},             // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedConditionalStatementBodyException);
+}
+
+// def main() -> none {
+//     if (x > 3) {
+//         foo();
+//     } else 4;
+// }
+BOOST_AUTO_TEST_CASE(test_invalid_body_for_else_statement) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_NONE, Position(1, 15)},               // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_IF, Position(2, 5)},                  // if
+        Token{TokenType::T_L_PAREN, Position(2, 8)},             // (
+        Token{TokenType::T_IDENTIFIER, Position(2, 9), "x"},     // x
+        Token{TokenType::T_GREATER, Position(2, 11)},            // >
+        Token{TokenType::T_LITERAL_INT, Position(2, 13), 3},     // 3
+        Token{TokenType::T_R_PAREN, Position(2, 14)},            // )
+        Token{TokenType::T_L_BRACE, Position(2, 16)},            // {
+        Token{TokenType::T_IDENTIFIER, Position(3, 9), "foo"},   // foo
+        Token{TokenType::T_L_PAREN, Position(3, 12)},            // (
+        Token{TokenType::T_R_PAREN, Position(3, 13)},            // )
+        Token{TokenType::T_SEMICOLON, Position(3, 14)},          // ;
+        Token{TokenType::T_R_BRACE, Position(4, 5)},             // }
+        Token{TokenType::T_ELSE, Position(4, 10)},               // else
+        Token{TokenType::T_LITERAL_INT, Position(4, 15), 4},     // 4
+        Token{TokenType::T_SEMICOLON, Position(4, 16)},          // ;
+        Token{TokenType::T_R_BRACE, Position(5, 1)},             // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedConditionalStatementBodyException);
+}
+// def main() -> none {
+//     if (x > 3) {
+//         foo();
+//     } else if (x < 5)
+//         foo2();
+//     else{
+//         foo3();
+//     }
+// }
+BOOST_AUTO_TEST_CASE(test_missing_body_for_else_if_statement) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_NONE, Position(1, 15)},               // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_IF, Position(2, 5)},                  // if
+        Token{TokenType::T_L_PAREN, Position(2, 8)},             // (
+        Token{TokenType::T_IDENTIFIER, Position(2, 9), "x"},     // x
+        Token{TokenType::T_GREATER, Position(2, 11)},            // >
+        Token{TokenType::T_LITERAL_INT, Position(2, 13), 3},     // 3
+        Token{TokenType::T_R_PAREN, Position(2, 14)},            // )
+        Token{TokenType::T_L_BRACE, Position(2, 16)},            // {
+        Token{TokenType::T_IDENTIFIER, Position(3, 9), "foo"},   // foo
+        Token{TokenType::T_L_PAREN, Position(3, 12)},            // (
+        Token{TokenType::T_R_PAREN, Position(3, 13)},            // )
+        Token{TokenType::T_SEMICOLON, Position(3, 14)},          // ;
+        Token{TokenType::T_R_BRACE, Position(4, 5)},             // }
+        Token{TokenType::T_ELSE, Position(4, 10)},               // else
+        Token{TokenType::T_IF, Position(4, 15)},                 // if
+        Token{TokenType::T_L_PAREN, Position(4, 18)},            // (
+        Token{TokenType::T_IDENTIFIER, Position(4, 19), "x"},    // x
+        Token{TokenType::T_LESS, Position(4, 21)},               // <
+        Token{TokenType::T_LITERAL_INT, Position(4, 23), 5},     // 5
+        Token{TokenType::T_R_PAREN, Position(4, 24)},            // )
+        Token{TokenType::T_IDENTIFIER, Position(5, 9), "foo2"},  // foo2
+        Token{TokenType::T_L_PAREN, Position(5, 14)},            // (
+        Token{TokenType::T_R_PAREN, Position(5, 15)},            // )
+        Token{TokenType::T_SEMICOLON, Position(5, 16)},          // ;
+        Token{TokenType::T_ELSE, Position(6, 5)},                // else
+        Token{TokenType::T_L_BRACE, Position(6, 10)},            // {
+        Token{TokenType::T_IDENTIFIER, Position(7, 9), "foo3"},  // foo3
+        Token{TokenType::T_L_PAREN, Position(7, 14)},            // (
+        Token{TokenType::T_R_PAREN, Position(7, 15)},            // )
+        Token{TokenType::T_SEMICOLON, Position(7, 16)},          // ;
+        Token{TokenType::T_R_BRACE, Position(8, 5)},             // }
+        Token{TokenType::T_R_BRACE, Position(9, 1)},             // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedConditionalStatementBodyException);
+}
 // BOOST_AUTO_TEST_CASE(test_fail) {
 //     BOOST_CHECK_EQUAL(1, 0);
 // }

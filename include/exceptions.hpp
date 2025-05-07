@@ -145,3 +145,68 @@ class ExpectedAssignmentException : public ParserException {
    public:
     explicit ExpectedAssignmentException(const Position& position);
 };
+
+class ExpectedTypeForTypeCastException : public ParserException {
+   public:
+    explicit ExpectedTypeForTypeCastException(const Position& position);
+};
+
+class ExpectedExprAfterOrException : public ParserException {
+   public:
+    explicit ExpectedExprAfterOrException(const Position& position);
+};
+
+class ExpectedExprAfterAndException : public ParserException {
+   public:
+    explicit ExpectedExprAfterAndException(const Position& position);
+};
+
+class ExpectedExprAfterEqualityException : public ParserException {
+   public:
+    explicit ExpectedExprAfterEqualityException(const Position& position);
+};
+
+class ExpectedExprAfterComparisonException : public ParserException {
+   public:
+    explicit ExpectedExprAfterComparisonException(const Position& position);
+};
+
+class ExpectedExprAfterAdditiveException : public ParserException {
+   public:
+    explicit ExpectedExprAfterAdditiveException(const Position& position);
+};
+
+class ExpectedExprAfterMultiplicativeException : public ParserException {
+   public:
+    explicit ExpectedExprAfterMultiplicativeException(const Position& position);
+};
+
+class ExpectedExprAfterUnaryException : public ParserException {
+   public:
+    explicit ExpectedExprAfterUnaryException(const Position& position);
+};
+
+class ExpectedExprAfterFuncCompException : public ParserException {
+   public:
+    explicit ExpectedExprAfterFuncCompException(const Position& position);
+};
+
+class ExpectedBindFrontOperatorException : public ParserException {
+   public:
+    explicit ExpectedBindFrontOperatorException(const Position& position);
+};
+
+class ExpectedBindFrontTargetException : public ParserException {
+   public:
+    explicit ExpectedBindFrontTargetException(const Position& position);
+};
+
+class ExpectedIfConditionException : public ParserException {
+   public:
+    explicit ExpectedIfConditionException(const Position& position);
+};
+
+class ExpectedConditionalStatementBodyException : public ParserException {
+   public:
+    explicit ExpectedConditionalStatementBodyException(const Position& position);
+};

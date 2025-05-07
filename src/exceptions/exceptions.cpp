@@ -70,3 +70,48 @@ ExpectedTypedIdentifierException::ExpectedTypedIdentifierException(const Positio
 
 ExpectedAssignmentException::ExpectedAssignmentException(const Position& position)
     : ParserException(std::format("Expected assignment operator '=' at: {}", position.get_position_str())) {}
+// nieprzetestowane
+ExpectedTypeForTypeCastException::ExpectedTypeForTypeCastException(const Position& position)
+    : ParserException(std::format("Expected type for type cast at: {}", position.get_position_str())) {}
+
+ExpectedExprAfterOrException::ExpectedExprAfterOrException(const Position& position)
+    : ParserException(std::format("Expected expression after 'or' operator at: {}", position.get_position_str())) {}
+
+ExpectedExprAfterAndException::ExpectedExprAfterAndException(const Position& position)
+    : ParserException(std::format("Expected expression after 'and' operator at: {}", position.get_position_str())) {}
+
+ExpectedExprAfterEqualityException::ExpectedExprAfterEqualityException(const Position& position)
+    : ParserException(
+          std::format("Expected expression after equality operator (==, !=) at: {}", position.get_position_str())) {}
+
+ExpectedExprAfterComparisonException::ExpectedExprAfterComparisonException(const Position& position)
+    : ParserException(std::format("Expected expression after comparison operator (<, <=, >, >=) at: {}",
+                                  position.get_position_str())) {}
+
+ExpectedExprAfterAdditiveException::ExpectedExprAfterAdditiveException(const Position& position)
+    : ParserException(
+          std::format("Expected expression after additive operator (+, -) at: {}", position.get_position_str())) {}
+
+ExpectedExprAfterMultiplicativeException::ExpectedExprAfterMultiplicativeException(const Position& position)
+    : ParserException(std::format("Expected expression after multiplicative operator (*, /) at: {}",
+                                  position.get_position_str())) {}
+
+ExpectedExprAfterUnaryException::ExpectedExprAfterUnaryException(const Position& position)
+    : ParserException(
+          std::format("Expected expression after unary operator (not, -): {}", position.get_position_str())) {}
+
+ExpectedExprAfterFuncCompException::ExpectedExprAfterFuncCompException(const Position& position)
+    : ParserException(
+          std::format("Expected expression after function composition operator at: {}", position.get_position_str())) {}
+
+ExpectedBindFrontOperatorException::ExpectedBindFrontOperatorException(const Position& position)
+    : ParserException(std::format("Expected bind_front operator at: {}", position.get_position_str())) {}
+
+ExpectedBindFrontTargetException::ExpectedBindFrontTargetException(const Position& position)
+    : ParserException(std::format("Expected bind target at: {}", position.get_position_str())) {}
+
+ExpectedIfConditionException::ExpectedIfConditionException(const Position& position)
+    : ParserException(std::format("Expected condition(must be in parens) at: {}", position.get_position_str())) {}
+
+ExpectedConditionalStatementBodyException::ExpectedConditionalStatementBodyException(const Position& position)
+    : ParserException(std::format("Expected body for conditional statement at: {}", position.get_position_str())) {}
