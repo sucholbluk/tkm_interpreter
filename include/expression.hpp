@@ -28,8 +28,6 @@ enum class ExprKind {
     LOGICAL_NOT,
     UNARY_MINUS,
 
-    PARENTHESIZED,
-
     IDENTIFIER,
     LITERAL,
 };
@@ -77,13 +75,6 @@ struct BindFront : Expression {
     explicit BindFront(const Position& position, up_expression_vec argument_list, up_expression target);
     up_expression_vec argument_list;
     up_expression target;
-
-    void accept(Visitor& visitor) const override;
-};
-
-struct ParenExpression : Expression {
-    explicit ParenExpression(const Position& position, up_expression expr);
-    up_expression expr;
 
     void accept(Visitor& visitor) const override;
 };

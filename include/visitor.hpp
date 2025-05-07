@@ -11,7 +11,6 @@ struct BinaryExpression;
 struct UnaryExpression;
 struct FunctionCall;
 struct BindFront;
-struct ParenExpression;
 struct Identifier;
 struct LiteralInt;
 struct LiteralFloat;
@@ -51,7 +50,6 @@ class Visitor {
     virtual void visit(const UnaryExpression& unary_expr) = 0;
     virtual void visit(const FunctionCall& func_call_expr) = 0;
     virtual void visit(const BindFront& bind_front_expr) = 0;
-    virtual void visit(const ParenExpression& paren_expr) = 0;
     virtual void visit(const TypeCastExpression& type_cast_expr) = 0;
     virtual void visit(const Identifier& identifier) = 0;
     virtual void visit(const LiteralInt& literal_int) = 0;

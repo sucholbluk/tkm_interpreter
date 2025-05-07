@@ -77,15 +77,6 @@ void BindFront::accept(Visitor& visitor) const {
     visitor.visit(*this);
 }
 /* -----------------------------------------------------------------------------*
- *                           PARENTHESIZED_EXPRESSION                           *
- *------------------------------------------------------------------------------*/
-ParenExpression::ParenExpression(const Position& position, up_expression expr)
-    : Expression{position, ExprKind::PARENTHESIZED}, expr{std::move(expr)} {}
-
-void ParenExpression::accept(Visitor& visitor) const {
-    visitor.visit(*this);
-}
-/* -----------------------------------------------------------------------------*
  *                          TYPE_CAST_EXPRESSION                          *
  *------------------------------------------------------------------------------*/
 TypeCastExpression::TypeCastExpression(up_expression expr, Type target_type)
@@ -177,8 +168,6 @@ std::string expr_kind_to_str(const ExprKind& kind) {
             return "LogicalNot";
         case ExprKind::UNARY_MINUS:
             return "UnaryMinus";
-        case ExprKind::PARENTHESIZED:
-            return "Parenthesized";
         case ExprKind::IDENTIFIER:
             return "Identifier";
         case ExprKind::LITERAL:

@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "parser.hpp"
+#include "parser_test_visitor.hpp"
 #include "printer.hpp"
 
 class MockLexer : public ILexer {
@@ -24,692 +25,38 @@ class MockLexer : public ILexer {
         return token;
     }
 };
-template <typename T1, typename T2>
-std::ostream& operator<<(std::ostream& os, const std::pair<T1, T2> pair) {
-    os << std::format("({}, {})", pair.first, pair.second);
-    return os;
-}
 
 // class for testing, visits program and builds vector of pairs (std::string element, int nest_level)
 // vector descibed below with example
-struct TestVisitor : public Visitor {
-    void visit(const Program& program) override {
-        elements.emplace_back(_get_name_position_str(program, "Program"), _nest_level);
-        _NestGuard guard{_nest_level};
-        std::ranges::for_each(program.statements, [this](const auto& stmnt) { stmnt->accept(*this); });
-    }
 
-    void visit(const ContinueStatement& continue_stmnt) override {
-        elements.emplace_back(_get_name_position_str(continue_stmnt, "ContinueStatement"), _nest_level);
-    }
-
-    void visit(const BreakStatement& break_stmnt) override {
-        elements.emplace_back(_get_name_position_str(break_stmnt, "BreakStatement"), _nest_level);
-    }
-
-    void visit(const ReturnStatement& return_stmnt) override {
-        elements.emplace_back(_get_name_position_str(return_stmnt, "ReturnStatement"), _nest_level);
-        _NestGuard guard{_nest_level};
-        return_stmnt.expression->accept(*this);
-    }
-
-    void visit(const VariableDeclaration& var_decl) override {
-        elements.emplace_back(_get_name_position_str(var_decl, "VariableDeclaration"), _nest_level);
-        _NestGuard guard{_nest_level};
-        var_decl.typed_identifier->accept(*this);
-        var_decl.assigned_expression->accept(*this);
-    }
-
-    void visit(const CodeBlock& code_block) override {
-        elements.emplace_back(_get_name_position_str(code_block, "CodeBlock"), _nest_level);
-        _NestGuard guard{_nest_level};
-        std::ranges::for_each(code_block.statements, [this](const auto& stmnt) { stmnt->accept(*this); });
-    }
-
-    void visit(const IfStatement& if_stmnt) override {
-        elements.emplace_back(_get_name_position_str(if_stmnt, "IfStatement"), _nest_level);
-        _NestGuard guard{_nest_level};
-        if_stmnt.condition->accept(*this);
-        if_stmnt.body->accept(*this);
-        std::ranges::for_each(if_stmnt.else_ifs, [this](const auto& stmnt) { stmnt->accept(*this); });
-        if (if_stmnt.else_body) {
-            if_stmnt.else_body->accept(*this);
-        }
-    }
-
-    void visit(const ElseIf& else_if) override {
-        elements.emplace_back(_get_name_position_str(else_if, "ElseIf"), _nest_level);
-        _NestGuard guard{_nest_level};
-        else_if.condition->accept(*this);
-        else_if.body->accept(*this);
-    }
-
-    void visit(const AssignStatement& asgn_stmnt) override {
-        std::string assign_str{_get_name_position_str(asgn_stmnt, "AssignStatement") +
-                               std::format(";to={}", asgn_stmnt.identifier)};
-        elements.emplace_back(assign_str, _nest_level);
-        _NestGuard guard{_nest_level};
-        asgn_stmnt.expr->accept(*this);
-    }
-
-    void visit(const ExpressionStatement& expr_stmnt) override {
-        elements.emplace_back(_get_name_position_str(expr_stmnt, "ExpressionStatement"), _nest_level);
-        _NestGuard guard{_nest_level};
-        expr_stmnt.expr->accept(*this);
-    }
-
-    void visit(const FunctionDefinition& func_def) override {
-        elements.emplace_back(_get_name_position_str(func_def, "FunctionDefinition"), _nest_level);
-        _NestGuard guard{_nest_level};
-    }
-
-    void visit(const FunctionSignature& func_sig) override {
-        std::string func_sig_str{_get_name_position_str(func_sig, "FunctionSignature") +
-                                 std::format(";type={},identifier={}", func_sig.type.to_str(), func_sig.identifier)};
-        elements.emplace_back("FunctionSignature", _nest_level);
-        _NestGuard guard{_nest_level};
-        std::ranges::for_each(func_sig.params, [this](const auto& typed_ident) { typed_ident->accept(*this); });
-    }
-
-    void visit(const ForLoop& for_loop) override {
-        elements.emplace_back(_get_name_position_str(for_loop, "ForLoop"), _nest_level);
-        _NestGuard guard{_nest_level};
-        for_loop.var_declaration->accept(*this);
-        for_loop.condition->accept(*this);
-        for_loop.loop_update->accept(*this);
-        for_loop.body->accept(*this);
-    }
-
-    void visit(const BinaryExpression& binary_expr) override {
-        elements.emplace_back(_get_name_position_str(binary_expr, expr_kind_to_str(binary_expr.kind)), _nest_level);
-        _NestGuard guard{_nest_level};
-        binary_expr.left->accept(*this);
-        binary_expr.right->accept(*this);
-    }
-
-    void visit(const UnaryExpression& unary_expr) override {
-        elements.emplace_back(_get_name_position_str(unary_expr, expr_kind_to_str(unary_expr.kind)), _nest_level);
-        _NestGuard guard{_nest_level};
-        unary_expr.expr->accept(*this);
-    }
-
-    void visit(const FunctionCall& func_call_expr) override {
-        elements.emplace_back(_get_name_position_str(func_call_expr, expr_kind_to_str(func_call_expr.kind)),
-                              _nest_level);
-        _NestGuard guard{_nest_level};
-        func_call_expr.callee->accept(*this);
-        std::ranges::for_each(func_call_expr.argument_list, [this](const auto& arg) { arg->accept(*this); });
-    }
-
-    void visit(const BindFront& bind_front_expr) override {
-        elements.emplace_back(_get_name_position_str(bind_front_expr, expr_kind_to_str(bind_front_expr.kind)),
-                              _nest_level);
-        _NestGuard guard{_nest_level};
-        std::ranges::for_each(bind_front_expr.argument_list, [this](const auto& arg) { arg->accept(*this); });
-        bind_front_expr.target->accept(*this);
-    }
-
-    void visit(const ParenExpression& paren_expr) override {
-        elements.emplace_back(_get_name_position_str(paren_expr, expr_kind_to_str(paren_expr.kind)), _nest_level);
-        _NestGuard guard{_nest_level};
-        paren_expr.expr->accept(*this);
-    }
-
-    void visit(const TypeCastExpression& type_cast_expr) override {
-        std::string type_cast_str{_get_name_position_str(type_cast_expr, expr_kind_to_str(type_cast_expr.kind)) +
-                                  std::format(";to_type={}", type_cast_expr.target_type.to_str())};
-        elements.emplace_back(type_cast_str, _nest_level);
-        _NestGuard guard{_nest_level};
-        type_cast_expr.expr->accept(*this);
-    }
-
-    void visit(const Identifier& identifier) override {
-        std::string ident_str{_get_name_position_str(identifier, expr_kind_to_str(identifier.kind)) +
-                              std::format(";name={}", identifier.name)};
-        elements.emplace_back(ident_str, _nest_level);
-    }
-    void visit(const LiteralInt& literal_int) override {
-        std::string lit_int_str{_get_name_position_str(literal_int, expr_kind_to_str(literal_int.kind) + "Int") +
-                                std::format(";value={}", literal_int.value)};
-        elements.emplace_back(lit_int_str, _nest_level);
-    }
-    void visit(const LiteralFloat& literal_float) override {
-        std::string lit_flt_str{_get_name_position_str(literal_float, expr_kind_to_str(literal_float.kind) + "Float") +
-                                std::format(";value={}", literal_float.value)};
-
-        elements.emplace_back(lit_flt_str, _nest_level);
-    }
-    void visit(const LiteralString& literal_string) override {
-        elements.emplace_back("LiteralString", _nest_level);
-        std::string lit_string_str{
-            _get_name_position_str(literal_string, expr_kind_to_str(literal_string.kind) + "String") +
-            std::format(R"(;value="{}")", literal_string.value)};
-
-        elements.emplace_back(lit_string_str, _nest_level);
-    }
-    void visit(const LiteralBool& literal_bool) override {
-        std::string lit_bool_str{_get_name_position_str(literal_bool, expr_kind_to_str(literal_bool.kind) + "Bool") +
-                                 std::format(";value={}", literal_bool.value ? "true" : "false")};
-        elements.emplace_back(lit_bool_str, _nest_level);
-    }
-
-    void visit(const TypedIdentifier& typed_ident) override {
-        std::string typed_ident_str{_get_name_position_str(typed_ident, "TypedIdentifier") +
-                                    std::format(";name={},type={}", typed_ident.name, typed_ident.type.to_str())};
-        elements.emplace_back("TypedIdentifier", _nest_level);
-    }
-
-    // vector of (std::string element, int nest_level)
-    // element = "Elem;pos;additional_info" eg. "LiteralInt;[1:1];value=4"
-    // sequence in vector reflects order of elements in program
-    // Example:
-    // program:
-    // {
-    //     let inc_42: function<mut int:none> = (42) >> inc_by;
-    //     return inc_42
-    // }
-    // printed as:
-    // (note that position is just default - mock lexer sets default value, elements without <0x56f7473e83f0>
-    //  are not program elements, but
-    // are used for readablility purpose)
-    //
-    //  [Program] <0x56f7473c3700> at: [1:1]
-    //   |_[CodeBlock ] <0x56f7473ca180> at: [1:1]
-    //     |_[VariableDeclaration] <0x56f7473e83f0> at: [1:1]
-    //       |_[TypedIdentifier ] <0x56f7473e1030> at: [1:1]  identifier:inc_42, type:function<mut int:none>
-    //       |_[BindFront] <0x56f7473e03d0> at: [1:1]
-    //         |_Arguments:
-    //           |_[LiteralInt] <0x56f7473e07c0> at: [1:1] type:int, value:42
-    //         |_Bind Target:
-    //           |_[Identifier] <0x56f7473e4f20> at: [1:1] name:inc_by
-    //     |_[ReturnStatement ] <0x56f7473c32a0> at: [1:1]
-    //       |_[Identifier] <0x56f7473e04f0> at: [1:1] name:inc_42
-    //
-    // will be represented as:
-    // [
-    //  ("Program;[1:1]", 0), ("VariableDeclaration;[1:1]", 1),
-    //  ("TypedIdentifier;[1:1];name=inc_42,type:function<mut int:none>", 2), ("BindFront;[1:1]", 2),
-    //  ("LiteralInt;[1:1];type=int,value=42",  3), ("Identifier;[1:1];name=inc_by", 3),
-    //  ("ReturnStatement;[1:1]", 1), ("Identifier;[1:1];name=inc_42", 2)
-    // ]
-    std::vector<std::pair<std::string, int>> elements = {};
-
-   private:
-    int _nest_level = 0;
-    std::string _get_name_position_str(const Node& node, std::string element_name) {
-        return std::format("{};{}", element_name, node.position.get_position_str());
-    }
-    struct _NestGuard {
-        int& level;
-        explicit _NestGuard(int& level) : level{level} {
-            ++level;
-        }
-        ~_NestGuard() {
-            --level;
-        }
-    };
-};
-
-BOOST_AUTO_TEST_CASE(test_constructor) {
+BOOST_AUTO_TEST_CASE(test_minimal_main) {
     auto lexer = std::make_unique<MockLexer>();
     Parser parser{std::move(lexer)};
     auto program = parser.parse_program();
     BOOST_CHECK_EQUAL(program->statements.size(), 0);
 }
-
-// continue;
-BOOST_AUTO_TEST_CASE(test_continue) {
+BOOST_AUTO_TEST_CASE(test_main_simple_return) {
     std::vector<Token> tokens = {
-        Token{TokenType::T_CONTINUE, Position()},
-        Token(TokenType::T_SEMICOLON, Position()),
-    };
-
-    auto lexer = std::make_unique<MockLexer>(tokens);
-    Parser parser{std::move(lexer)};
-    auto program = parser.parse_program();
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
-    Printer printer{};
-    program->accept(printer);
-}
-
-// break;
-BOOST_AUTO_TEST_CASE(test_break) {
-    std::vector<Token> tokens = {
-        Token{TokenType::T_BREAK, Position()},
-        Token(TokenType::T_SEMICOLON, Position()),
-    };
-
-    auto lexer = std::make_unique<MockLexer>(tokens);
-    Parser parser{std::move(lexer)};
-    auto program = parser.parse_program();
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
-    Printer printer{};
-    program->accept(printer);
-}
-
-// continue;
-// break;
-BOOST_AUTO_TEST_CASE(test_break_cont) {
-    std::vector<Token> tokens = {
-        Token{TokenType::T_CONTINUE, Position()},
-        Token(TokenType::T_SEMICOLON, Position()),
-        Token{TokenType::T_BREAK, Position()},
-        Token(TokenType::T_SEMICOLON, Position()),
-    };
-
-    auto lexer = std::make_unique<MockLexer>(tokens);
-    Parser parser{std::move(lexer)};
-    auto program = parser.parse_program();
-    BOOST_CHECK_EQUAL(program->statements.size(), 2);
-    Printer printer{};
-    program->accept(printer);
-}
-
-// return 4;
-BOOST_AUTO_TEST_CASE(test_return_literal_int) {
-    std::vector<Token> tokens = {
-        Token{TokenType::T_RETURN, Position()},
-        Token(TokenType::T_LITERAL_INT, Position(), 4),
-        Token(TokenType::T_SEMICOLON, Position()),
-    };
-
-    auto lexer = std::make_unique<MockLexer>(tokens);
-    Parser parser{std::move(lexer)};
-    auto program = parser.parse_program();
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
-    Printer printer{};
-    program->accept(printer);
-}
-
-// return (4.5);
-BOOST_AUTO_TEST_CASE(test_return_paren) {
-    std::vector<Token> tokens = {
-        Token{TokenType::T_RETURN, Position()},
-        Token{TokenType::T_L_PAREN, Position()},
-        Token(TokenType::T_LITERAL_FLOAT, Position(), 4.5),
-        Token{TokenType::T_R_PAREN, Position()},
-        Token(TokenType::T_SEMICOLON, Position()),
-    };
-
-    auto lexer = std::make_unique<MockLexer>(tokens);
-    Parser parser{std::move(lexer)};
-    auto program = parser.parse_program();
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
-    Printer printer{};
-    program->accept(printer);
-}
-
-// return (3 * 5) / divisor;
-BOOST_AUTO_TEST_CASE(test_return_paren_multiplication) {
-    std::vector<Token> tokens = {
-        Token{TokenType::T_RETURN, Position()},         Token{TokenType::T_L_PAREN, Position()},
-        Token{TokenType::T_LITERAL_INT, Position(), 3}, Token{TokenType::T_MULTIPLY, Position()},
-        Token{TokenType::T_LITERAL_INT, Position(), 5}, Token{TokenType::T_R_PAREN, Position()},
-        Token{TokenType::T_DIVIDE, Position()},         Token{TokenType::T_IDENTIFIER, Position(), "divisor"},
-        Token{TokenType::T_SEMICOLON, Position()},
-    };
-
-    auto lexer = std::make_unique<MockLexer>(tokens);
-    Parser parser{std::move(lexer)};
-    auto program = parser.parse_program();
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
-    Printer printer{};
-    program->accept(printer);
-}
-// let is_foo: bool = (foo())("Hello World")
-BOOST_AUTO_TEST_CASE(test_variable_declaration_with_function_call) {
-    std::vector<Token> tokens = {
-        Token{TokenType::T_LET, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "is_foo"},
-        Token{TokenType::T_COLON, Position()},
-        Token{TokenType::T_BOOL, Position()},
-        Token{TokenType::T_ASSIGN, Position()},
-        Token{TokenType::T_L_PAREN, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "foo"},
-        Token{TokenType::T_L_PAREN, Position()},
-        Token{TokenType::T_R_PAREN, Position()},
-        Token{TokenType::T_R_PAREN, Position()},
-        Token{TokenType::T_L_PAREN, Position()},
-        Token{TokenType::T_LITERAL_STRING, Position(), "Hello World"},
-        Token{TokenType::T_R_PAREN, Position()},
-        Token{TokenType::T_SEMICOLON, Position()},
-    };
-
-    auto lexer = std::make_unique<MockLexer>(tokens);
-    Parser parser{std::move(lexer)};
-    auto program = parser.parse_program();
-
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
-
-    Printer printer{};
-    program->accept(printer);
-}
-
-// {
-//  let inc_42: function<mut int: none> = (42) >> inc_by;
-//  return inc_42;
-// }
-BOOST_AUTO_TEST_CASE(test_parse_code_block) {
-    std::vector<Token> tokens = {
-        Token{TokenType::T_L_BRACE, Position()},
-        Token{TokenType::T_LET, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "inc_42"},
-        Token{TokenType::T_COLON, Position()},
-        Token{TokenType::T_FUNCTION, Position()},
-        Token{TokenType::T_LESS, Position()},
-        Token{TokenType::T_MUT, Position()},
-        Token{TokenType::T_INT, Position()},
-        Token{TokenType::T_COLON, Position()},
-        Token{TokenType::T_NONE, Position()},
-        Token{TokenType::T_GREATER, Position()},
-        Token{TokenType::T_ASSIGN, Position()},
-        Token{TokenType::T_L_PAREN, Position()},
-        Token{TokenType::T_LITERAL_INT, Position(), 42},
-        Token{TokenType::T_R_PAREN, Position()},
-        Token{TokenType::T_BIND_FRONT, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "inc_by"},
-        Token{TokenType::T_SEMICOLON, Position()},
-        Token{TokenType::T_RETURN, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "inc_42"},
-        Token{TokenType::T_SEMICOLON, Position()},
-        Token{TokenType::T_R_BRACE, Position()},
-    };
-
-    auto lexer = std::make_unique<MockLexer>(tokens);
-    Parser parser{std::move(lexer)};
-    auto program = parser.parse_program();
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
-    Printer printer{};
-    program->accept(printer);
-}
-// if (x < 4){
-//     return x + 2;
-// } else if (x > 5) {
-//     return x - 3;
-// } else {
-//     return x * 2;
-// }
-BOOST_AUTO_TEST_CASE(test_if_else_statement) {
-    std::vector<Token> tokens = {
-        Token{TokenType::T_IF, Position()},
-        Token{TokenType::T_L_PAREN, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "x"},
-        Token{TokenType::T_LESS, Position()},
-        Token{TokenType::T_LITERAL_INT, Position(), 4},
-        Token{TokenType::T_R_PAREN, Position()},
-        Token{TokenType::T_L_BRACE, Position()},
-        Token{TokenType::T_RETURN, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "x"},
-        Token{TokenType::T_PLUS, Position()},
-        Token{TokenType::T_LITERAL_INT, Position(), 2},
-        Token{TokenType::T_SEMICOLON, Position()},
-        Token{TokenType::T_R_BRACE, Position()},
-        Token{TokenType::T_ELSE, Position()},
-        Token{TokenType::T_IF, Position()},
-        Token{TokenType::T_L_PAREN, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "x"},
-        Token{TokenType::T_GREATER, Position()},
-        Token{TokenType::T_LITERAL_INT, Position(), 5},
-        Token{TokenType::T_R_PAREN, Position()},
-        Token{TokenType::T_L_BRACE, Position()},
-        Token{TokenType::T_RETURN, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "x"},
-        Token{TokenType::T_MINUS, Position()},
-        Token{TokenType::T_LITERAL_INT, Position(), 3},
-        Token{TokenType::T_SEMICOLON, Position()},
-        Token{TokenType::T_R_BRACE, Position()},
-        Token{TokenType::T_ELSE, Position()},
-        Token{TokenType::T_L_BRACE, Position()},
-        Token{TokenType::T_RETURN, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "x"},
-        Token{TokenType::T_MULTIPLY, Position()},
-        Token{TokenType::T_LITERAL_INT, Position(), 2},
-        Token{TokenType::T_SEMICOLON, Position()},
-        Token{TokenType::T_R_BRACE, Position()},
-    };
-
-    auto lexer = std::make_unique<MockLexer>(tokens);
-    Parser parser{std::move(lexer)};
-    auto program = parser.parse_program();
-
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
-
-    Printer printer{};
-    program->accept(printer);
-}
-
-// some_num = (4.5 + 8 as float) * 2.5 + sqrt(3) * 1.5 / 9 as float;
-BOOST_AUTO_TEST_CASE(test_assignment_with_complex_expression_and_cast) {
-    std::vector<Token> tokens = {
-        Token{TokenType::T_IDENTIFIER, Position(), "some_num"},
-        Token{TokenType::T_ASSIGN, Position()},
-        Token{TokenType::T_L_PAREN, Position()},
-        Token{TokenType::T_LITERAL_FLOAT, Position(), 4.5},
-        Token{TokenType::T_PLUS, Position()},
-        Token{TokenType::T_LITERAL_INT, Position(), 8},
-        Token{TokenType::T_AS, Position()},
-        Token{TokenType::T_FLOAT, Position()},
-        Token{TokenType::T_R_PAREN, Position()},
-        Token{TokenType::T_MULTIPLY, Position()},
-        Token{TokenType::T_LITERAL_FLOAT, Position(), 2.5},
-        Token{TokenType::T_PLUS, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "sqrt"},
-        Token{TokenType::T_L_PAREN, Position()},
-        Token{TokenType::T_LITERAL_INT, Position(), 3},
-        Token{TokenType::T_R_PAREN, Position()},
-        Token{TokenType::T_MULTIPLY, Position()},
-        Token{TokenType::T_LITERAL_FLOAT, Position(), 1.5},
-        Token{TokenType::T_DIVIDE, Position()},
-        Token{TokenType::T_LITERAL_INT, Position(), 9},
-        Token{TokenType::T_AS, Position()},
-        Token{TokenType::T_FLOAT, Position()},
-        Token{TokenType::T_SEMICOLON, Position()},
-    };
-
-    auto lexer = std::make_unique<MockLexer>(tokens);
-    Parser parser{std::move(lexer)};
-    auto program = parser.parse_program();
-
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
-
-    Printer printer{};
-    program->accept(printer);
-}
-
-// (is_primary(x) or x <= 2) and x > 0 or "hello" + " world" == "hello world";
-
-BOOST_AUTO_TEST_CASE(test_complex_logical_and_arithmetic_expression) {
-    std::vector<Token> tokens = {
-        Token{TokenType::T_L_PAREN, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "is_primary"},
-        Token{TokenType::T_L_PAREN, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "x"},
-        Token{TokenType::T_R_PAREN, Position()},
-        Token{TokenType::T_OR, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "x"},
-        Token{TokenType::T_LESS_EQUAL, Position()},
-        Token{TokenType::T_LITERAL_INT, Position(), 2},
-        Token{TokenType::T_R_PAREN, Position()},
-        Token{TokenType::T_AND, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "x"},
-        Token{TokenType::T_GREATER, Position()},
-        Token{TokenType::T_LITERAL_INT, Position(), 0},
-        Token{TokenType::T_OR, Position()},
-        Token{TokenType::T_LITERAL_STRING, Position(), "hello"},
-        Token{TokenType::T_PLUS, Position()},
-        Token{TokenType::T_LITERAL_STRING, Position(), " world"},
-        Token{TokenType::T_EQUAL, Position()},
-        Token{TokenType::T_LITERAL_STRING, Position(), "hello world"},
-        Token{TokenType::T_SEMICOLON, Position()},
-    };
-
-    auto lexer = std::make_unique<MockLexer>(tokens);
-    Parser parser{std::move(lexer)};
-    auto program = parser.parse_program();
-
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
-
-    Printer printer{};
-    program->accept(printer);
-}
-
-// let hello_world: function<none:string> = ("Hello", "world") >> space_concat;
-BOOST_AUTO_TEST_CASE(test_variable_declaration_with_bind_front) {
-    std::vector<Token> tokens = {
-        Token{TokenType::T_LET, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "hello_world"},
-        Token{TokenType::T_COLON, Position()},
-        Token{TokenType::T_FUNCTION, Position()},
-        Token{TokenType::T_LESS, Position()},
-        Token{TokenType::T_NONE, Position()},
-        Token{TokenType::T_COLON, Position()},
-        Token{TokenType::T_STRING, Position()},
-        Token{TokenType::T_GREATER, Position()},
-        Token{TokenType::T_ASSIGN, Position()},
-        Token{TokenType::T_L_PAREN, Position()},
-        Token{TokenType::T_LITERAL_STRING, Position(), "Hello"},
-        Token{TokenType::T_COMMA, Position()},
-        Token{TokenType::T_LITERAL_STRING, Position(), "world"},
-        Token{TokenType::T_R_PAREN, Position()},
-        Token{TokenType::T_BIND_FRONT, Position()},
-        Token{TokenType::T_IDENTIFIER, Position(), "space_concat"},
-        Token{TokenType::T_SEMICOLON, Position()},
-    };
-
-    auto lexer = std::make_unique<MockLexer>(tokens);
-    Parser parser{std::move(lexer)};
-    auto program = parser.parse_program();
-
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
-
-    Printer printer{};
-    program->accept(printer);
-}
-
-// ((4, 2) >> sum_two && square)();
-BOOST_AUTO_TEST_CASE(test_function_composition_with_bind_front) {
-    std::vector<Token> tokens = {
-        Token{TokenType::T_L_PAREN, Position()},                // (
-        Token{TokenType::T_L_PAREN, Position()},                // (
-        Token{TokenType::T_LITERAL_INT, Position(), 4},         // 4
-        Token{TokenType::T_COMMA, Position()},                  // ,
-        Token{TokenType::T_LITERAL_INT, Position(), 2},         // 2
-        Token{TokenType::T_R_PAREN, Position()},                // )
-        Token{TokenType::T_BIND_FRONT, Position()},             // >>
-        Token{TokenType::T_IDENTIFIER, Position(), "sum_two"},  // sum_two
-        Token{TokenType::T_FUNC_COMPOSITION, Position()},       // &&
-        Token{TokenType::T_IDENTIFIER, Position(), "square"},   // square
-        Token{TokenType::T_R_PAREN, Position()},                // )
-        Token{TokenType::T_L_PAREN, Position()},                // (
-        Token{TokenType::T_R_PAREN, Position()},                // )
-        Token{TokenType::T_SEMICOLON, Position()},              // ;
-    };
-
-    auto lexer = std::make_unique<MockLexer>(tokens);
-    Parser parser{std::move(lexer)};
-    auto program = parser.parse_program();
-
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
-
-    Printer printer{};
-    program->accept(printer);
-}
-
-// def increment(mut a: int) -> none { a = a + 1; }
-BOOST_AUTO_TEST_CASE(test_function_definition_with_mutable_argument) {
-    std::vector<Token> tokens = {
-        Token{TokenType::T_DEF, Position()},                      // def
-        Token{TokenType::T_IDENTIFIER, Position(), "increment"},  // increment
-        Token{TokenType::T_L_PAREN, Position()},                  // (
-        Token{TokenType::T_MUT, Position()},                      // mut
-        Token{TokenType::T_IDENTIFIER, Position(), "a"},          // a
-        Token{TokenType::T_COLON, Position()},                    // :
-        Token{TokenType::T_INT, Position()},                      // int
-        Token{TokenType::T_R_PAREN, Position()},                  // )
-        Token{TokenType::T_ARROW, Position()},                    // ->
-        Token{TokenType::T_NONE, Position()},                     // none
-        Token{TokenType::T_L_BRACE, Position()},                  // {
-        Token{TokenType::T_IDENTIFIER, Position(), "a"},          // a
-        Token{TokenType::T_ASSIGN, Position()},                   // =
-        Token{TokenType::T_IDENTIFIER, Position(), "a"},          // a
-        Token{TokenType::T_PLUS, Position()},                     // +
-        Token{TokenType::T_LITERAL_INT, Position(), 1},           // 1
-        Token{TokenType::T_SEMICOLON, Position()},                // ;
-        Token{TokenType::T_R_BRACE, Position()},                  // }
-    };
-
-    auto lexer = std::make_unique<MockLexer>(tokens);
-    Parser parser{std::move(lexer)};
-    auto program = parser.parse_program();
-
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
-
-    Printer printer{};
-    program->accept(printer);
-}
-
-// for (i: int = 0; i < 10; i = i + 1) {
-//     print(i);
-// }
-BOOST_AUTO_TEST_CASE(test_for_loop_with_variable_declaration) {
-    std::vector<Token> tokens = {
-        Token{TokenType::T_FOR, Position()},                  // for
-        Token{TokenType::T_L_PAREN, Position()},              // (
-        Token{TokenType::T_IDENTIFIER, Position(), "i"},      // i
-        Token{TokenType::T_COLON, Position()},                // :
-        Token{TokenType::T_INT, Position()},                  // int
-        Token{TokenType::T_ASSIGN, Position()},               // =
-        Token{TokenType::T_LITERAL_INT, Position(), 0},       // 0
-        Token{TokenType::T_SEMICOLON, Position()},            // ;
-        Token{TokenType::T_IDENTIFIER, Position(), "i"},      // i
-        Token{TokenType::T_LESS, Position()},                 // <
-        Token{TokenType::T_LITERAL_INT, Position(), 10},      // 10
-        Token{TokenType::T_SEMICOLON, Position()},            // ;
-        Token{TokenType::T_IDENTIFIER, Position(), "i"},      // i
-        Token{TokenType::T_ASSIGN, Position()},               // =
-        Token{TokenType::T_IDENTIFIER, Position(), "i"},      // i
-        Token{TokenType::T_PLUS, Position()},                 // +
-        Token{TokenType::T_LITERAL_INT, Position(), 1},       // 1
-        Token{TokenType::T_R_PAREN, Position()},              // )
-        Token{TokenType::T_L_BRACE, Position()},              // {
-        Token{TokenType::T_IDENTIFIER, Position(), "print"},  // print
-        Token{TokenType::T_L_PAREN, Position()},              // (
-        Token{TokenType::T_IDENTIFIER, Position(), "i"},      // i
-        Token{TokenType::T_R_PAREN, Position()},              // )
-        Token{TokenType::T_SEMICOLON, Position()},            // ;
-        Token{TokenType::T_R_BRACE, Position()},              // }
-    };
-
-    auto lexer = std::make_unique<MockLexer>(tokens);
-    Parser parser{std::move(lexer)};
-    auto program = parser.parse_program();
-
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
-
-    // Użycie Printer do wypisania struktury AST
-    Printer printer{};
-    program->accept(printer);
-
-    TestVisitor t_visit{};
-    program->accept(t_visit);
-    std::ranges::for_each(t_visit.elements, [](auto& element) { std::cout << element << " "; });
-    std::cout << std::endl;
-}
-
-// return -10;
-BOOST_AUTO_TEST_CASE(test_return_negative_literal_int) {
-    std::vector<Token> tokens = {
-        Token{TokenType::T_RETURN, Position()},           // return
-        Token{TokenType::T_MINUS, Position()},            // -
-        Token{TokenType::T_LITERAL_INT, Position(), 10},  // 10
-        Token{TokenType::T_SEMICOLON, Position()},        // ;
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_INT, Position(1, 15)},                // int
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_RETURN, Position(2, 5)},              // return
+        Token{TokenType::T_LITERAL_INT, Position(2, 12), 0},     // 0
+        Token{TokenType::T_SEMICOLON, Position(2, 13)},          // ;
+        Token{TokenType::T_R_BRACE, Position(3, 1)},             // }
     };
 
     std::vector<std::pair<std::string, int>> expected_elements = {
         {"Program;[1:1]", 0},
-        {"ReturnStatement;[1:1]", 1},
-        {"UnaryMinus;[1:1]", 2},
-        {"LiteralInt;[1:1];value=10", 3},
+        {"FunctionDefinition;[1:1]", 1},
+        {"FunctionSignature;[1:1];type=function<none:int>,identifier=main", 2},
+        {"CodeBlock;[1:19]", 2},
+        {"ReturnStatement;[2:5]", 3},
+        {"LiteralInt;[2:12];value=0", 4},
     };
 
     auto lexer = std::make_unique<MockLexer>(tokens);
@@ -718,14 +65,290 @@ BOOST_AUTO_TEST_CASE(test_return_negative_literal_int) {
 
     BOOST_CHECK_EQUAL(program->statements.size(), 1);
 
+    ParserTestVisitor t_visit{};
+    program->accept(t_visit);
+
+    BOOST_CHECK(expected_elements == t_visit.elements);
+
     Printer printer{};
     program->accept(printer);
+}
 
-    TestVisitor t_visit{};
+// def increment(mut i: int) -> none {
+//     i = i + 1;
+// }
+BOOST_AUTO_TEST_CASE(test_increment_function) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                      // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "increment"},  // increment
+        Token{TokenType::T_L_PAREN, Position(1, 14)},                 // (
+        Token{TokenType::T_MUT, Position(1, 15)},                     // mut
+        Token{TokenType::T_IDENTIFIER, Position(1, 19), "i"},         // i
+        Token{TokenType::T_COLON, Position(1, 20)},                   // :
+        Token{TokenType::T_INT, Position(1, 22)},                     // int
+        Token{TokenType::T_R_PAREN, Position(1, 25)},                 // )
+        Token{TokenType::T_ARROW, Position(1, 27)},                   // ->
+        Token{TokenType::T_NONE, Position(1, 30)},                    // none
+        Token{TokenType::T_L_BRACE, Position(1, 35)},                 // {
+        Token{TokenType::T_IDENTIFIER, Position(2, 5), "i"},          // i
+        Token{TokenType::T_ASSIGN, Position(2, 7)},                   // =
+        Token{TokenType::T_IDENTIFIER, Position(2, 9), "i"},          // i
+        Token{TokenType::T_PLUS, Position(2, 11)},                    // +
+        Token{TokenType::T_LITERAL_INT, Position(2, 13), 1},          // 1
+        Token{TokenType::T_SEMICOLON, Position(2, 14)},               // ;
+        Token{TokenType::T_R_BRACE, Position(3, 1)},                  // }
+    };
+
+    std::vector<std::pair<std::string, int>> expected_elements = {
+        {"Program;[1:1]", 0},
+        {"FunctionDefinition;[1:1]", 1},
+        {"FunctionSignature;[1:1];type=function<mut int:none>,identifier=increment", 2},
+        {"TypedIdentifier;[1:15];type=mut int,name=i", 3},
+        {"CodeBlock;[1:35]", 2},
+        {"AssignStatement;[2:5];to=i", 3},
+        {"Addition;[2:9]", 4},
+        {"Identifier;[2:9];name=i", 5},
+        {"LiteralInt;[2:13];value=1", 5},
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+
+    ParserTestVisitor t_visit{};
     program->accept(t_visit);
+
     BOOST_CHECK(expected_elements == t_visit.elements);
+
+    std::ranges::for_each(t_visit.elements, [](auto elem) { std::cout << elem << std::endl; });
+
+    Printer printer{};
+    program->accept(printer);
 }
 
-BOOST_AUTO_TEST_CASE(test_fail) {
-    BOOST_CHECK_EQUAL(1, 0);
+// def main() -> int {
+//     let x: int = 4;
+//     print(x);
+//     return 0;
+// }
+BOOST_AUTO_TEST_CASE(test_main_simple_asgn_func_call) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                  // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},   // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},              // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},             // )
+        Token{TokenType::T_ARROW, Position(1, 12)},               // ->
+        Token{TokenType::T_INT, Position(1, 15)},                 // int
+        Token{TokenType::T_L_BRACE, Position(1, 19)},             // {
+        Token{TokenType::T_LET, Position(2, 5)},                  // let
+        Token{TokenType::T_IDENTIFIER, Position(2, 9), "x"},      // x
+        Token{TokenType::T_COLON, Position(2, 10)},               // :
+        Token{TokenType::T_INT, Position(2, 12)},                 // int
+        Token{TokenType::T_ASSIGN, Position(2, 16)},              // =
+        Token{TokenType::T_LITERAL_INT, Position(2, 18), 4},      // 4
+        Token{TokenType::T_SEMICOLON, Position(2, 19)},           // ;
+        Token{TokenType::T_IDENTIFIER, Position(3, 5), "print"},  // print
+        Token{TokenType::T_L_PAREN, Position(3, 10)},             // (
+        Token{TokenType::T_IDENTIFIER, Position(3, 11), "x"},     // x
+        Token{TokenType::T_R_PAREN, Position(3, 12)},             // )
+        Token{TokenType::T_SEMICOLON, Position(3, 13)},           // ;
+        Token{TokenType::T_RETURN, Position(4, 5)},               // return
+        Token{TokenType::T_LITERAL_INT, Position(4, 12), 0},      // 0
+        Token{TokenType::T_SEMICOLON, Position(4, 13)},           // ;
+        Token{TokenType::T_R_BRACE, Position(5, 1)},              // }
+    };
+
+    std::vector<std::pair<std::string, int>> expected_elements = {
+        {"Program;[1:1]", 0},
+        {"FunctionDefinition;[1:1]", 1},
+        {"FunctionSignature;[1:1];type=function<none:int>,identifier=main", 2},
+        {"CodeBlock;[1:19]", 2},
+        {"VariableDeclaration;[2:5]", 3},
+        {"TypedIdentifier;[2:9];type=int,name=x", 4},
+        {"LiteralInt;[2:18];value=4", 4},
+        {"ExpressionStatement;[3:5]", 3},
+        {"FunctionCall;[3:5]", 4},
+        {"Identifier;[3:5];name=print", 5},
+        {"Identifier;[3:11];name=x", 5},
+        {"ReturnStatement;[4:5]", 3},
+        {"LiteralInt;[4:12];value=0", 4},
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+
+    ParserTestVisitor t_visit{};
+    program->accept(t_visit);
+
+    BOOST_CHECK(expected_elements == t_visit.elements);
+
+    Printer printer{};
+    program->accept(printer);
 }
+
+// def nth_fibonacci(n: int) -> int {
+//     if (n <= 1) {
+//         return n;
+//     }
+//
+//     return nth_fibonacci(n - 1) + nth_fibonacci(n - 2);
+// }
+//
+// def main() -> int {
+//     let n: int = 5;
+//
+//     print("For " + n as string + " sequence number is " + nth_fibonacci(n) as string);
+//     return 0;
+// }
+BOOST_AUTO_TEST_CASE(test_fibonacci) {
+    std::vector<Token> tokens = {
+        // nth_fibonacci function
+        Token{TokenType::T_DEF, Position(1, 1)},
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "nth_fibonacci"},
+        Token{TokenType::T_L_PAREN, Position(1, 18)},
+        Token{TokenType::T_IDENTIFIER, Position(1, 19), "n"},
+        Token{TokenType::T_COLON, Position(1, 20)},
+        Token{TokenType::T_INT, Position(1, 22)},
+        Token{TokenType::T_R_PAREN, Position(1, 25)},
+        Token{TokenType::T_ARROW, Position(1, 27)},
+        Token{TokenType::T_INT, Position(1, 30)},
+        Token{TokenType::T_L_BRACE, Position(1, 34)},
+        Token{TokenType::T_IF, Position(2, 5)},
+        Token{TokenType::T_L_PAREN, Position(2, 8)},
+        Token{TokenType::T_IDENTIFIER, Position(2, 9), "n"},
+        Token{TokenType::T_LESS_EQUAL, Position(2, 11)},
+        Token{TokenType::T_LITERAL_INT, Position(2, 14), 1},
+        Token{TokenType::T_R_PAREN, Position(2, 15)},
+        Token{TokenType::T_L_BRACE, Position(2, 17)},
+        Token{TokenType::T_RETURN, Position(3, 9)},
+        Token{TokenType::T_IDENTIFIER, Position(3, 16), "n"},
+        Token{TokenType::T_SEMICOLON, Position(3, 17)},
+        Token{TokenType::T_R_BRACE, Position(4, 5)},
+        Token{TokenType::T_RETURN, Position(6, 5)},
+        Token{TokenType::T_IDENTIFIER, Position(6, 12), "nth_fibonacci"},
+        Token{TokenType::T_L_PAREN, Position(6, 25)},
+        Token{TokenType::T_IDENTIFIER, Position(6, 26), "n"},
+        Token{TokenType::T_MINUS, Position(6, 28)},
+        Token{TokenType::T_LITERAL_INT, Position(6, 30), 1},
+        Token{TokenType::T_R_PAREN, Position(6, 31)},
+        Token{TokenType::T_PLUS, Position(6, 33)},
+        Token{TokenType::T_IDENTIFIER, Position(6, 35), "nth_fibonacci"},
+        Token{TokenType::T_L_PAREN, Position(6, 48)},
+        Token{TokenType::T_IDENTIFIER, Position(6, 49), "n"},
+        Token{TokenType::T_MINUS, Position(6, 51)},
+        Token{TokenType::T_LITERAL_INT, Position(6, 53), 2},
+        Token{TokenType::T_R_PAREN, Position(6, 54)},
+        Token{TokenType::T_SEMICOLON, Position(6, 55)},
+        Token{TokenType::T_R_BRACE, Position(7, 1)},
+
+        // main function
+        Token{TokenType::T_DEF, Position(9, 1)},
+        Token{TokenType::T_IDENTIFIER, Position(9, 5), "main"},
+        Token{TokenType::T_L_PAREN, Position(9, 9)},
+        Token{TokenType::T_R_PAREN, Position(9, 10)},
+        Token{TokenType::T_ARROW, Position(9, 12)},
+        Token{TokenType::T_INT, Position(9, 15)},
+        Token{TokenType::T_L_BRACE, Position(9, 19)},
+        Token{TokenType::T_LET, Position(10, 5)},
+        Token{TokenType::T_IDENTIFIER, Position(10, 9), "n"},
+        Token{TokenType::T_COLON, Position(10, 10)},
+        Token{TokenType::T_INT, Position(10, 12)},
+        Token{TokenType::T_ASSIGN, Position(10, 16)},
+        Token{TokenType::T_LITERAL_INT, Position(10, 18), 5},
+        Token{TokenType::T_SEMICOLON, Position(10, 19)},
+        Token{TokenType::T_IDENTIFIER, Position(12, 5), "print"},
+        Token{TokenType::T_L_PAREN, Position(12, 10)},
+        Token{TokenType::T_LITERAL_STRING, Position(12, 11), "For "},
+        Token{TokenType::T_PLUS, Position(12, 18)},
+        Token{TokenType::T_IDENTIFIER, Position(12, 20), "n"},
+        Token{TokenType::T_AS, Position(12, 22)},
+        Token{TokenType::T_STRING, Position(12, 25)},
+        Token{TokenType::T_PLUS, Position(12, 32)},
+        Token{TokenType::T_LITERAL_STRING, Position(12, 34), " sequence number is "},
+        Token{TokenType::T_PLUS, Position(12, 57)},
+        Token{TokenType::T_IDENTIFIER, Position(12, 59), "nth_fibonacci"},
+        Token{TokenType::T_L_PAREN, Position(12, 72)},
+        Token{TokenType::T_IDENTIFIER, Position(12, 73), "n"},
+        Token{TokenType::T_R_PAREN, Position(12, 74)},
+        Token{TokenType::T_AS, Position(12, 76)},
+        Token{TokenType::T_STRING, Position(12, 79)},
+        Token{TokenType::T_R_PAREN, Position(12, 85)},
+        Token{TokenType::T_SEMICOLON, Position(12, 86)},
+        Token{TokenType::T_RETURN, Position(13, 5)},
+        Token{TokenType::T_LITERAL_INT, Position(13, 12), 0},
+        Token{TokenType::T_SEMICOLON, Position(13, 13)},
+        Token{TokenType::T_R_BRACE, Position(14, 1)},
+    };
+
+    std::vector<std::pair<std::string, int>> expected_elements = {
+        {"Program;[1:1]", 0},
+        {"FunctionDefinition;[1:1]", 1},
+        {"FunctionSignature;[1:1];type=function<int:int>,identifier=nth_fibonacci", 2},
+        {"TypedIdentifier;[1:19];type=int,name=n", 3},
+        {"CodeBlock;[1:34]", 2},
+        {"IfStatement;[2:5]", 3},
+        {"LessEqual;[2:9]", 4},
+        {"Identifier;[2:9];name=n", 5},
+        {"LiteralInt;[2:14];value=1", 5},
+        {"CodeBlock;[2:17]", 4},
+        {"ReturnStatement;[3:9]", 5},
+        {"Identifier;[3:16];name=n", 6},
+        {"ReturnStatement;[6:5]", 3},
+        {"Addition;[6:12]", 4},
+        {"FunctionCall;[6:12]", 5},
+        {"Identifier;[6:12];name=nth_fibonacci", 6},
+        {"Subtraction;[6:26]", 6},
+        {"Identifier;[6:26];name=n", 7},
+        {"LiteralInt;[6:30];value=1", 7},
+        {"FunctionCall;[6:35]", 5},
+        {"Identifier;[6:35];name=nth_fibonacci", 6},
+        {"Subtraction;[6:49]", 6},
+        {"Identifier;[6:49];name=n", 7},
+        {"LiteralInt;[6:53];value=2", 7},
+        {"FunctionDefinition;[9:1]", 1},
+        {"FunctionSignature;[9:1];type=function<none:int>,identifier=main", 2},
+        {"CodeBlock;[9:19]", 2},
+        {"VariableDeclaration;[10:5]", 3},
+        {"TypedIdentifier;[10:9];type=int,name=n", 4},
+        {"LiteralInt;[10:18];value=5", 4},
+        {"ExpressionStatement;[12:5]", 3},
+        {"FunctionCall;[12:5]", 4},
+        {"Identifier;[12:5];name=print", 5},
+        {"Addition;[12:11]", 5},
+        {"Addition;[12:11]", 6},
+        {"Addition;[12:11]", 7},
+        {R"(LiteralString;[12:11];value="For ")", 8},
+        {"TypeCast;[12:20];to_type=string", 8},
+        {"Identifier;[12:20];name=n", 9},
+        {R"(LiteralString;[12:34];value=" sequence number is ")", 7},
+        {"TypeCast;[12:59];to_type=string", 6},
+        {"FunctionCall;[12:59]", 7},
+        {"Identifier;[12:59];name=nth_fibonacci", 8},
+        {"Identifier;[12:73];name=n", 8},
+        {"ReturnStatement;[13:5]", 3},
+        {"LiteralInt;[13:12];value=0", 4},
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+
+    BOOST_CHECK_EQUAL(program->statements.size(), 2);
+
+    ParserTestVisitor t_visit{};
+    program->accept(t_visit);
+
+    BOOST_CHECK(expected_elements == t_visit.elements);
+
+    Printer printer{};  // for reference
+    program->accept(printer);
+}
+
+// BOOST_AUTO_TEST_CASE(test_fail) {
+//     BOOST_CHECK_EQUAL(1, 0);
+// }

@@ -6,8 +6,8 @@ std::unique_ptr<Program> Parser::parse_program() {
     Position position{_token.get_position()};
     up_statement_vec statements{};
 
-    while (auto statement = _try_parse_statement()) {
-        statements.push_back(std::move(statement));
+    while (auto function_definition = _try_parse_function_definition()) {
+        statements.push_back(std::move(function_definition));
     }
 
     _token_must_be(TokenType::T_EOF);
@@ -34,8 +34,6 @@ up_statement Parser::_try_parse_statement() {
     if ((statement = _try_parse_if_statement())) return statement;
 
     if ((statement = _try_parse_for_loop())) return statement;
-
-    if ((statement = _try_parse_function_definition())) return statement;
 
     if ((statement = _try_parse_assignment_or_expression_statement())) return statement;
 

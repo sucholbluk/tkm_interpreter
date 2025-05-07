@@ -16,12 +16,12 @@ void Printer::_print_expression_header(const Expression& expr, std::string type_
                                        std::string additional_info) const {
     _print_indent();
     std::cout << "[\033[1;34m" << expr_kind_to_str(expr.kind) << type_spec << "\033[0m]"
-              << " <" << &expr << "> at: " << expr.position.get_position_str() << " " << additional_info << std::endl;
+              << " <" << &expr << "> at:" << expr.position.get_position_str() << "" << additional_info << std::endl;
 }
 
 void Printer::_print_header(std::string type_str, const Node& node, std::string additional_info) const {
     std::cout << "[\033[1;32m" << type_str << "\033[0m"
-              << "] <" << &node << "> at: " << node.position.get_position_str() << " " << additional_info << std::endl;
+              << "] <" << &node << "> at:" << node.position.get_position_str() << "" << additional_info << std::endl;
 }
 /* -----------------------------------------------------------------------------*
  *                               PRINTING STATEMENTS                            *
@@ -45,7 +45,7 @@ void Printer::visit(const BreakStatement& break_stmnt) {
 
 void Printer::visit(const ReturnStatement& return_stmnt) {
     _print_indent();
-    _print_header("ReturnStatement ", return_stmnt);
+    _print_header("ReturnStatement", return_stmnt);
     _IndentGuard guard{_indent_level};
     if (return_stmnt.expression) {
         return_stmnt.expression->accept(*this);
@@ -63,7 +63,7 @@ void Printer::visit(const VariableDeclaration& var_decl) {
 
 void Printer::visit(const CodeBlock& code_block) {
     _print_indent();
-    _print_header("CodeBlock ", code_block);
+    _print_header("CodeBlock", code_block);
     {
         _IndentGuard guard{_indent_level};
         std::ranges::for_each(code_block.statements,
@@ -73,7 +73,7 @@ void Printer::visit(const CodeBlock& code_block) {
 
 void Printer::visit(const IfStatement& if_stmnt) {
     _print_indent();
-    _print_header("IfStatement ", if_stmnt);
+    _print_header("IfStatement", if_stmnt);
     {
         _IndentGuard guard{_indent_level};
         _print_indent();
@@ -107,7 +107,7 @@ void Printer::visit(const IfStatement& if_stmnt) {
 
 void Printer::visit(const ElseIf& else_if) {
     _print_indent();
-    _print_header("ElseIf ", else_if);
+    _print_header("ElseIf", else_if);
     _IndentGuard guard{_indent_level};
     _print_indent();
     std::cout << "Condition:" << std::endl;
@@ -125,21 +125,21 @@ void Printer::visit(const ElseIf& else_if) {
 
 void Printer::visit(const AssignStatement& asgn_stmnt) {
     _print_indent();
-    _print_header("AssignStatement ", asgn_stmnt, std::format(" to identifier: {}", asgn_stmnt.identifier));
+    _print_header("AssignStatement", asgn_stmnt, std::format(" to identifier: {}", asgn_stmnt.identifier));
     _IndentGuard guard{_indent_level};
     asgn_stmnt.expr->accept(*this);
 }
 
 void Printer::visit(const ExpressionStatement& expr_stmnt) {
     _print_indent();
-    _print_header("ExpressionStatement ", expr_stmnt);
+    _print_header("ExpressionStatement", expr_stmnt);
     _IndentGuard guard{_indent_level};
     expr_stmnt.expr->accept(*this);
 }
 
 void Printer::visit(const FunctionDefinition& func_def) {
     _print_indent();
-    _print_header("FunctionDefinition ", func_def);
+    _print_header("FunctionDefinition", func_def);
     _IndentGuard guard{_indent_level};
     func_def.signature->accept(*this);
     func_def.body->accept(*this);
@@ -147,7 +147,7 @@ void Printer::visit(const FunctionDefinition& func_def) {
 
 void Printer::visit(const FunctionSignature& func_sig) {
     _print_indent();
-    _print_header("FunctionSignature ", func_sig,
+    _print_header("FunctionSignature", func_sig,
                   std::format(" identifier: {}, type: {}", func_sig.identifier, func_sig.type.to_str()));
     _IndentGuard guard{_indent_level};
 
@@ -250,12 +250,6 @@ void Printer::visit(const BindFront& bind_front_expr) {
     }
 }
 
-void Printer::visit(const ParenExpression& paren_expr) {
-    _print_expression_header(paren_expr);
-    _IndentGuard guard{_indent_level};
-    paren_expr.expr->accept(*this);
-}
-
 void Printer::visit(const Identifier& identifier) {
     _print_expression_header(identifier, "", std::format("name:{}", identifier.name));
 }
@@ -282,6 +276,6 @@ void Printer::visit(const LiteralBool& literal_bool) {
 
 void Printer::visit(const TypedIdentifier& typed_identifier) {
     _print_indent();
-    _print_header("TypedIdentifier ", typed_identifier,
+    _print_header("TypedIdentifier", typed_identifier,
                   std::format(" identifier:{}, type:{}", typed_identifier.name, typed_identifier.type.to_str()));
 }
