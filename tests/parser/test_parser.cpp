@@ -26,8 +26,9 @@ class MockLexer : public ILexer {
     }
 };
 
-// class for testing, visits program and builds vector of pairs (std::string element, int nest_level)
-// vector descibed below with example
+/* -----------------------------------------------------------------------------*
+ *                            TESTS USING MOCK LEXER                            *
+ *------------------------------------------------------------------------------*/
 
 BOOST_AUTO_TEST_CASE(test_minimal_main) {
     auto lexer = std::make_unique<MockLexer>();
@@ -243,6 +244,87 @@ BOOST_AUTO_TEST_CASE(test_invoke_function) {
         {"Identifier;[2:12];name=fun", 5},
         {"Identifier;[2:16];name=a", 5},
         {"Identifier;[2:19];name=b", 5},
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+
+    ParserTestVisitor t_visit{};
+    program->accept(t_visit);
+
+    BOOST_CHECK(expected_elements == t_visit.elements);
+
+    // Printer printer{};
+    // program->accept(printer);
+}
+
+// def bind(fun: function<float, float, float:float>, arg1: float, arg2: float) -> function<float:float> {
+//     return (arg1, arg2) >> fun;
+// }
+BOOST_AUTO_TEST_CASE(test_bind_function) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                  // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "bind"},   // bind
+        Token{TokenType::T_L_PAREN, Position(1, 9)},              // (
+        Token{TokenType::T_IDENTIFIER, Position(1, 10), "fun"},   // fun
+        Token{TokenType::T_COLON, Position(1, 13)},               // :
+        Token{TokenType::T_FUNCTION, Position(1, 15)},            // function
+        Token{TokenType::T_LESS, Position(1, 23)},                // <
+        Token{TokenType::T_FLOAT, Position(1, 24)},               // float
+        Token{TokenType::T_COMMA, Position(1, 29)},               // ,
+        Token{TokenType::T_FLOAT, Position(1, 31)},               // float
+        Token{TokenType::T_COMMA, Position(1, 37)},               // ,
+        Token{TokenType::T_FLOAT, Position(1, 38)},               // float
+        Token{TokenType::T_COLON, Position(1, 43)},               // :
+        Token{TokenType::T_FLOAT, Position(1, 44)},               // float
+        Token{TokenType::T_GREATER, Position(1, 49)},             // >
+        Token{TokenType::T_COMMA, Position(1, 50)},               // ,
+        Token{TokenType::T_IDENTIFIER, Position(1, 52), "arg1"},  // arg1
+        Token{TokenType::T_COLON, Position(1, 53)},               // :
+        Token{TokenType::T_FLOAT, Position(1, 58)},               // float
+        Token{TokenType::T_COMMA, Position(1, 63)},               // ,
+        Token{TokenType::T_IDENTIFIER, Position(1, 65), "arg2"},  // arg2
+        Token{TokenType::T_COLON, Position(1, 69)},               // :
+        Token{TokenType::T_FLOAT, Position(1, 71)},               // float
+        Token{TokenType::T_R_PAREN, Position(1, 76)},             // )
+        Token{TokenType::T_ARROW, Position(1, 78)},               // ->
+        Token{TokenType::T_FUNCTION, Position(1, 81)},            // function
+        Token{TokenType::T_LESS, Position(1, 89)},                // <
+        Token{TokenType::T_FLOAT, Position(1, 90)},               // float
+        Token{TokenType::T_COLON, Position(1, 95)},               // :
+        Token{TokenType::T_FLOAT, Position(1, 96)},               // float
+        Token{TokenType::T_GREATER, Position(1, 101)},            // >
+        Token{TokenType::T_L_BRACE, Position(1, 103)},            // {
+        Token{TokenType::T_RETURN, Position(2, 5)},               // return
+        Token{TokenType::T_L_PAREN, Position(2, 12)},             // (
+        Token{TokenType::T_IDENTIFIER, Position(2, 13), "arg1"},  // arg1
+        Token{TokenType::T_COMMA, Position(2, 17)},               // ,
+        Token{TokenType::T_IDENTIFIER, Position(2, 19), "arg2"},  // arg2
+        Token{TokenType::T_R_PAREN, Position(2, 23)},             // )
+        Token{TokenType::T_BIND_FRONT, Position(2, 25)},          // >>
+        Token{TokenType::T_IDENTIFIER, Position(2, 28), "fun"},   // fun
+        Token{TokenType::T_SEMICOLON, Position(2, 31)},           // ;
+        Token{TokenType::T_R_BRACE, Position(3, 1)},              // }
+    };
+
+    std::vector<std::pair<std::string, int>> expected_elements = {
+        {"Program;[1:1]", 0},
+        {"FunctionDefinition;[1:1]", 1},
+        {"FunctionSignature;[1:1];type=function<function<float,float,float:float>,float,float:function<float:float>>,"
+         "identifier=bind",
+         2},
+        {"TypedIdentifier;[1:10];type=function<float,float,float:float>,name=fun", 3},
+        {"TypedIdentifier;[1:52];type=float,name=arg1", 3},
+        {"TypedIdentifier;[1:65];type=float,name=arg2", 3},
+        {"CodeBlock;[1:103]", 2},
+        {"ReturnStatement;[2:5]", 3},
+        {"BindFront;[2:12]", 4},
+        {"Identifier;[2:13];name=arg1", 5},
+        {"Identifier;[2:19];name=arg2", 5},
+        {"Identifier;[2:28];name=fun", 5},
     };
 
     auto lexer = std::make_unique<MockLexer>(tokens);
