@@ -36,6 +36,10 @@ BOOST_AUTO_TEST_CASE(test_minimal_main) {
     auto program = parser.parse_program();
     BOOST_CHECK_EQUAL(program->function_definitions.size(), 0);
 }
+
+// def main() -> int {
+//     return 0;
+// }
 BOOST_AUTO_TEST_CASE(test_main_simple_return) {
     std::vector<Token> tokens = {
         Token{TokenType::T_DEF, Position(1, 1)},                 // def
@@ -498,6 +502,129 @@ BOOST_AUTO_TEST_CASE(test_fibonacci) {
 
     // Printer printer{};  // for reference
     // program->accept(printer);
+}
+/* -----------------------------------------------------------------------------*
+ *                                INCORRECT SYNTAX                              *
+ *------------------------------------------------------------------------------*/
+
+// def main() -> int {
+//     return 0;
+// }
+// 4;
+BOOST_AUTO_TEST_CASE(test_code_outside_function) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_INT, Position(1, 15)},                // int
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_RETURN, Position(2, 5)},              // return
+        Token{TokenType::T_LITERAL_INT, Position(2, 12), 0},     // 0
+        Token{TokenType::T_SEMICOLON, Position(2, 13)},          // ;
+        Token{TokenType::T_R_BRACE, Position(3, 1)},             // }
+        Token{TokenType::T_LITERAL_INT, Position(4, 1), 4},      // 4
+        Token{TokenType::T_SEMICOLON, Position(4, 1)},           // ;
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedFuncOrEOFException);
+}
+
+// def some_function()
+BOOST_AUTO_TEST_CASE(test_missing_function_body) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                          // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "some_function"},  // some_function
+        Token{TokenType::T_L_PAREN, Position(1, 18)},                     // (
+        Token{TokenType::T_R_PAREN, Position(1, 19)},                     // )
+        Token{TokenType::T_ARROW, Position(1, 21)},                       // ->
+        Token{TokenType::T_INT, Position(1, 24)},                         // int
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedFunctionBodyException);
+}
+
+// def (mut : int) -> none {
+// }
+BOOST_AUTO_TEST_CASE(test_missing_identifier_in_function_definition) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},       // def
+        Token{TokenType::T_L_PAREN, Position(1, 5)},   // (
+        Token{TokenType::T_MUT, Position(1, 6)},       // mut
+        Token{TokenType::T_COLON, Position(1, 10)},    // :
+        Token{TokenType::T_INT, Position(1, 12)},      // int
+        Token{TokenType::T_R_PAREN, Position(1, 15)},  // )
+        Token{TokenType::T_ARROW, Position(1, 17)},    // ->
+        Token{TokenType::T_NONE, Position(1, 20)},     // none
+        Token{TokenType::T_L_BRACE, Position(1, 25)},  // {
+        Token{TokenType::T_R_BRACE, Position(2, 1)},   // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedFuncIdentException);
+}
+
+// def some_function -> int {
+// }
+BOOST_AUTO_TEST_CASE(test_missing_argument_list) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                          // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "some_function"},  // some_function
+        Token{TokenType::T_ARROW, Position(1, 18)},                       // ->
+        Token{TokenType::T_INT, Position(1, 21)},                         // int
+        Token{TokenType::T_L_BRACE, Position(1, 25)},                     // {
+        Token{TokenType::T_R_BRACE, Position(2, 1)},                      // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedArgListException);
+}
+
+// def some_function() -> {
+// {
+BOOST_AUTO_TEST_CASE(test_missing_return_type) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                          // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "some_function"},  // some_function
+        Token{TokenType::T_L_PAREN, Position(1, 18)},                     // (
+        Token{TokenType::T_R_PAREN, Position(1, 19)},                     // )
+        Token{TokenType::T_L_BRACE, Position(1, 21)},                     // {
+        Token{TokenType::T_R_BRACE, Position(2, 1)},                      // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedArrowException);
+}
+
+// def some_function() -> {
+// }
+BOOST_AUTO_TEST_CASE(test_missing_return_type_after_arrow) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                          // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "some_function"},  // some_function
+        Token{TokenType::T_L_PAREN, Position(1, 18)},                     // (
+        Token{TokenType::T_R_PAREN, Position(1, 19)},                     // )
+        Token{TokenType::T_ARROW, Position(1, 21)},                       // ->
+        Token{TokenType::T_L_BRACE, Position(1, 24)},                     // {
+        Token{TokenType::T_R_BRACE, Position(2, 1)},                      // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedRetTypeException);
 }
 
 // BOOST_AUTO_TEST_CASE(test_fail) {

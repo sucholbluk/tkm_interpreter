@@ -40,8 +40,7 @@ void CLIApp::_parse_args(int argc, char* const argv[]) {
     p_opt::notify(vm);
 
     if (vm.count("help") or (_input_filename.empty() and not _use_stdin)) {
-        std::cout << "usage: ./TKM_Compiler [file] [options]\n"
-                  << desc << "\n";
+        std::cout << "usage: ./TKM_Compiler [file] [options]\n" << desc << "\n";
         exit(0);
     }
 }
@@ -53,8 +52,7 @@ void CLIApp::_initialize_components() {
         input_stream = std::make_unique<std::istream>(std::cin.rdbuf());
     } else {
         auto file_stream = std::make_unique<std::ifstream>(_input_filename);
-        if (!file_stream->is_open())
-            throw FileOpenException(_input_filename);
+        if (!file_stream->is_open()) throw FileOpenException(_input_filename);
 
         input_stream = std::move(file_stream);
     }

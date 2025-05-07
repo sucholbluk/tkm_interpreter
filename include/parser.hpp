@@ -68,13 +68,21 @@ class Parser {
     std::optional<up_typed_ident_vec> _try_parse_function_params();
 
     std::optional<Type> _try_parse_type();
-    FunctionTypeInfo _parse_function_type_info();
     std::optional<VariableType> _try_parse_function_param_type();
+
+    FunctionTypeInfo _parse_function_type_info();
+    std::optional<Type> _parse_return_type();
 
     void _advance_on_required_token(TokenType token_type);
     Position _get_position_and_digest_token();
-    void _token_must_be(TokenType token_type) const;
     bool _token_type_is(TokenType token_type) const;
+    void _token_must_be(TokenType token_type) const;
+
+    template <typename Exception>
+    void _token_must_be(TokenType token_type) const;
+
+    template <typename Exception>
+    void _advance_on_required_token(TokenType token_type);
 
     std::unique_ptr<ILexer> _lexer;
     Token _token;
@@ -90,4 +98,24 @@ class Parser {
 
     static const std::unordered_map<TokenType, ExprKind> _token_type_to_expr_kind;
 };
+
+// template <typename Except, typename... Args>
+// void Parser::_token_must_be(TokenType token_type, Args&&... args) const {
+//     if (not _token_type_is(token_type)) {
+//         throw Except(std::forward<Args>(args)...);
+//     }
+// }
+template <typename Exception>
+void Parser::_token_must_be(TokenType token_type) const {
+    if (not _token_type_is(token_type)) {
+        throw Exception(_token.get_position());
+    }
+}
+
+template <typename Exception>
+void Parser::_advance_on_required_token(TokenType token_type) {
+    _token_must_be<Exception>(token_type);
+    _get_next_token();
+}
+
 #endif  // PARSER_HPP

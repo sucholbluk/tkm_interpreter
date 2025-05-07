@@ -10,7 +10,7 @@ std::unique_ptr<Program> Parser::parse_program() {
         function_definitions.push_back(std::move(function_definition));
     }
 
-    _token_must_be(TokenType::T_EOF);
+    _token_must_be<ExpectedFuncOrEOFException>(TokenType::T_EOF);
 
     return std::make_unique<Program>(position, std::move(function_definitions));
 }
@@ -26,7 +26,7 @@ up_fun_def Parser::_try_parse_function_definition() {
     }
     up_statement body{_try_parse_code_block()};
     if (not body) {
-        throw std::runtime_error("required function body");
+        throw ExpectedFunctionBodyException(signature->identifier, _token.get_position());
     }
     return std::make_unique<FunctionDefinition>(std::move(signature), std::move(body));
 }
@@ -37,16 +37,22 @@ up_func_sig Parser::_try_parse_function_signature() {
     }
     Position position{_get_position_and_digest_token()};
 
-    _token_must_be(TokenType::T_IDENTIFIER);
+    _token_must_be<ExpectedFuncIdentException>(TokenType::T_IDENTIFIER);
     std::string identifier{_token.get_value_as<std::string>()};
     _get_next_token();
 
     std::optional<up_typed_ident_vec> params{_try_parse_function_params()};
     if (not params.has_value()) {
-        throw std::runtime_error("missing function parameters specification");
+        throw ExpectedArgListException(_token.get_position());
     }
 
-    _advance_on_required_token(TokenType::T_ARROW);
+    std::optional<Type> return_type{_parse_return_type()};
+
+    return std::make_unique<FunctionSignature>(position, identifier, std::move(params.value()), return_type);
+}
+
+std::optional<Type> Parser::_parse_return_type() {
+    _advance_on_required_token<ExpectedArrowException>(TokenType::T_ARROW);
 
     std::optional<Type> return_type{};
     if (_token_type_is(TokenType::T_NONE)) {
@@ -54,11 +60,11 @@ up_func_sig Parser::_try_parse_function_signature() {
     } else {
         std::optional<Type> not_none_type{_try_parse_type()};
         if (not not_none_type.has_value()) {
-            throw std::invalid_argument("missing return type specification");
+            throw ExpectedRetTypeException(_token.get_position());
         }
         return_type = not_none_type;
     }
-    return std::make_unique<FunctionSignature>(position, identifier, std::move(params.value()), return_type);
+    return return_type;
 }
 /* -----------------------------------------------------------------------------*
  *                             PARSING STATEMENTS                               *
