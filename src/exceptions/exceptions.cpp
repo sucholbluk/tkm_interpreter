@@ -67,3 +67,6 @@ ExpectedSemicolException::ExpectedSemicolException(const Position& position)
 
 ExpectedTypedIdentifierException::ExpectedTypedIdentifierException(const Position& position)
     : ParserException(std::format("Expected identifier with specified type at: {}", position.get_position_str())) {}
+
+ExpectedAssignmentException::ExpectedAssignmentException(const Position& position)
+    : ParserException(std::format("Expected assignment operator '=' at: {}", position.get_position_str())) {}

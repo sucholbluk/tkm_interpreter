@@ -132,22 +132,20 @@ up_statement Parser::_try_parse_variable_declaration() {
     if (not _token_type_is(TokenType::T_LET)) {
         return nullptr;
     }
-
     Position position{_get_position_and_digest_token()};
 
     up_typed_identifier typed_identifier = _try_parse_typed_identifier();
-
     if (not typed_identifier) throw ExpectedTypedIdentifierException(_token.get_position());
 
     up_expression assigned_expression{_try_parse_assigned_expression()};
-
-    if (not assigned_expression) throw std::invalid_argument("required assignment in variable declaration");
+    if (not assigned_expression) throw ExpectedAssignmentException(_token.get_position());
 
     _advance_on_required_token<ExpectedSemicolException>(TokenType::T_SEMICOLON);
 
     return std::make_unique<VariableDeclaration>(position, std::move(typed_identifier), std::move(assigned_expression));
 }
 // { statements }
+
 up_statement Parser::_try_parse_code_block() {
     if (not _token_type_is(TokenType::T_L_BRACE)) {
         return nullptr;
@@ -244,7 +242,7 @@ up_statement Parser::_try_parse_for_loop() {
 
     up_expression assigned_expr{_try_parse_assigned_expression()};
     if (not assigned_expr) {
-        throw std::runtime_error("required assignment for loop update");
+        throw ExpectedAssignmentException(_token.get_position());
     }
     up_statement loop_update{std::make_unique<AssignStatement>(asgn_position, identifier, std::move(assigned_expr))};
 
@@ -293,11 +291,11 @@ up_statement Parser::_try_parse_loop_var_declaration() {
 
     up_typed_identifier typed_identifier = _try_parse_typed_identifier();
 
-    if (not typed_identifier) throw std::invalid_argument("couldnt parse typed identifier");
+    if (not typed_identifier) throw ExpectedTypedIdentifierException(_token.get_position());
     typed_identifier->type.is_mutable = true;
 
     up_expression assigned_expr{_try_parse_assigned_expression()};
-    if (not assigned_expr) throw std::invalid_argument("missing assignment to loop var declaration");
+    if (not assigned_expr) throw ExpectedAssignmentException(_token.get_position());
 
     return std::make_unique<VariableDeclaration>(position, std::move(typed_identifier), std::move(assigned_expr));
 }

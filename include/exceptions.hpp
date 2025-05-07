@@ -140,3 +140,8 @@ class ExpectedTypedIdentifierException : public ParserException {
    public:
     explicit ExpectedTypedIdentifierException(const Position& position);
 };
+
+class ExpectedAssignmentException : public ParserException {
+   public:
+    explicit ExpectedAssignmentException(const Position& position);
+};

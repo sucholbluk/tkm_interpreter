@@ -503,6 +503,85 @@ BOOST_AUTO_TEST_CASE(test_fibonacci) {
     // Printer printer{};  // for reference
     // program->accept(printer);
 }
+
+// def main() -> int {
+//     for (i: int = 0; i < 10 ; i = i + 1){
+//         print(i);
+//     }
+//  }
+BOOST_AUTO_TEST_CASE(test_for_loop_with_function_call) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                  // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},   // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},              // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},             // )
+        Token{TokenType::T_ARROW, Position(1, 12)},               // ->
+        Token{TokenType::T_INT, Position(1, 15)},                 // int
+        Token{TokenType::T_L_BRACE, Position(1, 19)},             // {
+        Token{TokenType::T_FOR, Position(2, 5)},                  // for
+        Token{TokenType::T_L_PAREN, Position(2, 9)},              // (
+        Token{TokenType::T_IDENTIFIER, Position(2, 10), "i"},     // i
+        Token{TokenType::T_COLON, Position(2, 11)},               // :
+        Token{TokenType::T_INT, Position(2, 13)},                 // int
+        Token{TokenType::T_ASSIGN, Position(2, 17)},              // =
+        Token{TokenType::T_LITERAL_INT, Position(2, 19), 0},      // 0
+        Token{TokenType::T_SEMICOLON, Position(2, 20)},           // ;
+        Token{TokenType::T_IDENTIFIER, Position(2, 22), "i"},     // i
+        Token{TokenType::T_LESS, Position(2, 24)},                // <
+        Token{TokenType::T_LITERAL_INT, Position(2, 26), 10},     // 10
+        Token{TokenType::T_SEMICOLON, Position(2, 28)},           // ;
+        Token{TokenType::T_IDENTIFIER, Position(2, 30), "i"},     // i
+        Token{TokenType::T_ASSIGN, Position(2, 32)},              // =
+        Token{TokenType::T_IDENTIFIER, Position(2, 34), "i"},     // i
+        Token{TokenType::T_PLUS, Position(2, 36)},                // +
+        Token{TokenType::T_LITERAL_INT, Position(2, 38), 1},      // 1
+        Token{TokenType::T_R_PAREN, Position(2, 39)},             // )
+        Token{TokenType::T_L_BRACE, Position(2, 41)},             // {
+        Token{TokenType::T_IDENTIFIER, Position(3, 9), "print"},  // print
+        Token{TokenType::T_L_PAREN, Position(3, 14)},             // (
+        Token{TokenType::T_IDENTIFIER, Position(3, 15), "i"},     // i
+        Token{TokenType::T_R_PAREN, Position(3, 16)},             // )
+        Token{TokenType::T_SEMICOLON, Position(3, 17)},           // ;
+        Token{TokenType::T_R_BRACE, Position(4, 5)},              // }
+        Token{TokenType::T_R_BRACE, Position(5, 1)},              // }
+    };
+
+    std::vector<std::pair<std::string, int>> expected_elements = {
+        {"Program;[1:1]", 0},
+        {"FunctionDefinition;[1:1]", 1},
+        {"FunctionSignature;[1:1];type=function<none:int>,identifier=main", 2},
+        {"CodeBlock;[1:19]", 2},
+        {"ForLoop;[2:5]", 3},
+        {"VariableDeclaration;[2:10]", 4},
+        {"TypedIdentifier;[2:10];type=mut int,name=i", 5},
+        {"LiteralInt;[2:19];value=0", 5},
+        {"Less;[2:22]", 4},
+        {"Identifier;[2:22];name=i", 5},
+        {"LiteralInt;[2:26];value=10", 5},
+        {"AssignStatement;[2:30];to=i", 4},
+        {"Addition;[2:34]", 5},
+        {"Identifier;[2:34];name=i", 6},
+        {"LiteralInt;[2:38];value=1", 6},
+        {"CodeBlock;[2:41]", 4},
+        {"ExpressionStatement;[3:9]", 5},
+        {"FunctionCall;[3:9]", 6},
+        {"Identifier;[3:9];name=print", 7},
+        {"Identifier;[3:15];name=i", 7},
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+
+    ParserTestVisitor t_visit{};
+    program->accept(t_visit);
+
+    BOOST_CHECK(t_visit.elements == expected_elements);
+
+    // Printer printer{};
+    // program->accept(printer);
+}
+
 /* -----------------------------------------------------------------------------*
  *                                INCORRECT SYNTAX                              *
  *------------------------------------------------------------------------------*/
@@ -720,6 +799,130 @@ BOOST_AUTO_TEST_CASE(test_missing_typed_identifier) {
 
     BOOST_CHECK_THROW(parser.parse_program(), ExpectedTypedIdentifierException);
 }
+
+// def main() -> none {
+//     let x: int 4;
+// }
+BOOST_AUTO_TEST_CASE(test_missing_assignment_var_decl) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_NONE, Position(1, 15)},               // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_LET, Position(2, 5)},                 // let
+        Token{TokenType::T_IDENTIFIER, Position(2, 9), "x"},     // x
+        Token{TokenType::T_COLON, Position(2, 10)},              // :
+        Token{TokenType::T_INT, Position(2, 12)},                // int
+        Token{TokenType::T_LITERAL_INT, Position(2, 16), 4},     // 4
+        Token{TokenType::T_SEMICOLON, Position(2, 17)},          // ;
+        Token{TokenType::T_R_BRACE, Position(3, 1)},             // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedAssignmentException);
+}
+
+// def main() -> int {
+//     for (i: int  0; i < 10 ; i = i + 1){
+//         print(i);
+//     }
+// }
+BOOST_AUTO_TEST_CASE(test_missing_assignment_in_for_loop) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_INT, Position(1, 15)},                // int
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_FOR, Position(2, 5)},                 // for
+        Token{TokenType::T_L_PAREN, Position(2, 9)},             // (
+        Token{TokenType::T_IDENTIFIER, Position(2, 10), "i"},    // i
+        Token{TokenType::T_COLON, Position(2, 11)},              // :
+        Token{TokenType::T_INT, Position(2, 13)},                // int
+        // missing assing
+        Token{TokenType::T_LITERAL_INT, Position(2, 16), 0},      // 0
+        Token{TokenType::T_SEMICOLON, Position(2, 17)},           // ;
+        Token{TokenType::T_IDENTIFIER, Position(2, 19), "i"},     // i
+        Token{TokenType::T_LESS, Position(2, 21)},                // <
+        Token{TokenType::T_LITERAL_INT, Position(2, 23), 10},     // 10
+        Token{TokenType::T_SEMICOLON, Position(2, 25)},           // ;
+        Token{TokenType::T_IDENTIFIER, Position(2, 27), "i"},     // i
+        Token{TokenType::T_ASSIGN, Position(2, 29)},              // =
+        Token{TokenType::T_IDENTIFIER, Position(2, 31), "i"},     // i
+        Token{TokenType::T_PLUS, Position(2, 33)},                // +
+        Token{TokenType::T_LITERAL_INT, Position(2, 35), 1},      // 1
+        Token{TokenType::T_R_PAREN, Position(2, 36)},             // )
+        Token{TokenType::T_L_BRACE, Position(2, 38)},             // {
+        Token{TokenType::T_IDENTIFIER, Position(3, 9), "print"},  // print
+        Token{TokenType::T_L_PAREN, Position(3, 14)},             // (
+        Token{TokenType::T_IDENTIFIER, Position(3, 15), "i"},     // i
+        Token{TokenType::T_R_PAREN, Position(3, 16)},             // )
+        Token{TokenType::T_SEMICOLON, Position(3, 17)},           // ;
+        Token{TokenType::T_R_BRACE, Position(4, 5)},              // }
+        Token{TokenType::T_R_BRACE, Position(5, 1)},              // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedAssignmentException);
+}
+
+// def main() -> int {
+//     for (i: int  0; i < 10 ; i i + 1){
+//         print(i);
+//     }
+// }
+BOOST_AUTO_TEST_CASE(test_missing_assignment_in_for_loop_update) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_INT, Position(1, 15)},                // int
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_FOR, Position(2, 5)},                 // for
+        Token{TokenType::T_L_PAREN, Position(2, 9)},             // (
+        Token{TokenType::T_IDENTIFIER, Position(2, 10), "i"},    // i
+        Token{TokenType::T_COLON, Position(2, 11)},              // :
+        Token{TokenType::T_INT, Position(2, 13)},                // int
+        Token{TokenType::T_ASSIGN, Position(2, 17)},             // =
+        Token{TokenType::T_LITERAL_INT, Position(2, 19), 0},     // 0
+        Token{TokenType::T_SEMICOLON, Position(2, 20)},          // ;
+        Token{TokenType::T_IDENTIFIER, Position(2, 22), "i"},    // i
+        Token{TokenType::T_LESS, Position(2, 24)},               // <
+        Token{TokenType::T_LITERAL_INT, Position(2, 26), 10},    // 10
+        Token{TokenType::T_SEMICOLON, Position(2, 28)},          // ;
+        Token{TokenType::T_IDENTIFIER, Position(2, 30), "i"},    // i
+        // Brak TokenType::T_ASSIGN
+        Token{TokenType::T_IDENTIFIER, Position(2, 32), "i"},     // i
+        Token{TokenType::T_PLUS, Position(2, 34)},                // +
+        Token{TokenType::T_LITERAL_INT, Position(2, 36), 1},      // 1
+        Token{TokenType::T_R_PAREN, Position(2, 37)},             // )
+        Token{TokenType::T_L_BRACE, Position(2, 39)},             // {
+        Token{TokenType::T_IDENTIFIER, Position(3, 9), "print"},  // print
+        Token{TokenType::T_L_PAREN, Position(3, 14)},             // (
+        Token{TokenType::T_IDENTIFIER, Position(3, 15), "i"},     // i
+        Token{TokenType::T_R_PAREN, Position(3, 16)},             // )
+        Token{TokenType::T_SEMICOLON, Position(3, 17)},           // ;
+        Token{TokenType::T_R_BRACE, Position(4, 5)},              // }
+        Token{TokenType::T_R_BRACE, Position(5, 1)},              // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedAssignmentException);
+}
+
 // BOOST_AUTO_TEST_CASE(test_fail) {
 //     BOOST_CHECK_EQUAL(1, 0);
 // }

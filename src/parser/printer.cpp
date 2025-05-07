@@ -174,7 +174,7 @@ void Printer::visit(const ForLoop& for_loop) {
     std::cout << "LoopUpdate:" << std::endl;
     {
         _IndentGuard loop_update_guard{_indent_level};
-        for_loop.condition->accept(*this);
+        for_loop.loop_update->accept(*this);
     }
     _print_indent();
     std::cout << "Body:" << std::endl;
