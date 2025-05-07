@@ -8,9 +8,9 @@
 #include "statement.hpp"
 
 struct Program : public Node {
-    Program(const Position& position, up_statement_vec statements);
+    Program(const Position& position, up_fun_def_vec function_definitions);
     void accept(Visitor& visitor) const override;
-    up_statement_vec statements;
+    up_fun_def_vec function_definitions;
 };
 
 #endif  // PROGRAM_HPP

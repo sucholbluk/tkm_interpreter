@@ -17,6 +17,9 @@ class Parser {
    private:
     void _get_next_token();
 
+    up_fun_def _try_parse_function_definition();
+    up_func_sig _try_parse_function_signature();
+
     up_statement _try_parse_statement();
 
     up_statement _try_parse_variable_declaration();
@@ -26,7 +29,6 @@ class Parser {
     up_statement _try_parse_return_statement();
     up_statement _try_parse_break_statement();
     up_statement _try_parse_continue_statement();
-    up_statement _try_parse_function_definition();
     up_statement _try_parse_assignment_or_expression_statement();
     up_statement _try_parse_loop_var_declaration();
 
@@ -64,8 +66,6 @@ class Parser {
 
     up_typed_identifier _try_parse_typed_identifier();
     std::optional<up_typed_ident_vec> _try_parse_function_params();
-
-    up_func_sig _try_parse_function_signature();
 
     std::optional<Type> _try_parse_type();
     FunctionTypeInfo _parse_function_type_info();

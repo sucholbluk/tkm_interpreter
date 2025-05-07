@@ -1,7 +1,7 @@
 #include "program.hpp"
 
-Program::Program(const Position& position, up_statement_vec statements)
-    : Node{position}, statements{std::move(statements)} {};
+Program::Program(const Position& position, up_fun_def_vec function_definitions)
+    : Node{position}, function_definitions{std::move(function_definitions)} {};
 
 void Program::accept(Visitor& visitor) const {
     visitor.visit(*this);

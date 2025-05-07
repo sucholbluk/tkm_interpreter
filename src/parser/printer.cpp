@@ -30,7 +30,7 @@ void Printer::_print_header(std::string type_str, const Node& node, std::string 
 void Printer::visit(const Program& program) {
     _print_header("Program", program);
     _IndentGuard guard(_indent_level);
-    std::ranges::for_each(program.statements, [this](const up_statement& statement) { statement->accept(*this); });
+    std::ranges::for_each(program.function_definitions, [this](const auto& statement) { statement->accept(*this); });
 }
 
 void Printer::visit(const ContinueStatement& continue_stmnt) {

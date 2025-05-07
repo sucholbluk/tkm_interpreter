@@ -7,7 +7,7 @@
 void ParserTestVisitor::visit(const Program& program) {
     elements.emplace_back(_get_name_position_str(program, "Program"), _nest_level);
     _NestGuard guard{_nest_level};
-    std::ranges::for_each(program.statements, [this](const auto& stmnt) { stmnt->accept(*this); });
+    std::ranges::for_each(program.function_definitions, [this](const auto& fun_def) { fun_def->accept(*this); });
 }
 
 void ParserTestVisitor::visit(const ContinueStatement& continue_stmnt) {

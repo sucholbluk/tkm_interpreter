@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(test_minimal_main) {
     auto lexer = std::make_unique<MockLexer>();
     Parser parser{std::move(lexer)};
     auto program = parser.parse_program();
-    BOOST_CHECK_EQUAL(program->statements.size(), 0);
+    BOOST_CHECK_EQUAL(program->function_definitions.size(), 0);
 }
 BOOST_AUTO_TEST_CASE(test_main_simple_return) {
     std::vector<Token> tokens = {
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(test_main_simple_return) {
     Parser parser{std::move(lexer)};
     auto program = parser.parse_program();
 
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+    BOOST_CHECK_EQUAL(program->function_definitions.size(), 1);
 
     ParserTestVisitor t_visit{};
     program->accept(t_visit);
@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(test_increment_function) {
     Parser parser{std::move(lexer)};
     auto program = parser.parse_program();
 
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+    BOOST_CHECK_EQUAL(program->function_definitions.size(), 1);
 
     ParserTestVisitor t_visit{};
     program->accept(t_visit);
@@ -179,7 +179,7 @@ BOOST_AUTO_TEST_CASE(test_main_simple_asgn_func_call) {
     Parser parser{std::move(lexer)};
     auto program = parser.parse_program();
 
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+    BOOST_CHECK_EQUAL(program->function_definitions.size(), 1);
 
     ParserTestVisitor t_visit{};
     program->accept(t_visit);
@@ -250,7 +250,7 @@ BOOST_AUTO_TEST_CASE(test_invoke_function) {
     Parser parser{std::move(lexer)};
     auto program = parser.parse_program();
 
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+    BOOST_CHECK_EQUAL(program->function_definitions.size(), 1);
 
     ParserTestVisitor t_visit{};
     program->accept(t_visit);
@@ -331,7 +331,7 @@ BOOST_AUTO_TEST_CASE(test_bind_function) {
     Parser parser{std::move(lexer)};
     auto program = parser.parse_program();
 
-    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+    BOOST_CHECK_EQUAL(program->function_definitions.size(), 1);
 
     ParserTestVisitor t_visit{};
     program->accept(t_visit);
@@ -489,7 +489,7 @@ BOOST_AUTO_TEST_CASE(test_fibonacci) {
     Parser parser{std::move(lexer)};
     auto program = parser.parse_program();
 
-    BOOST_CHECK_EQUAL(program->statements.size(), 2);
+    BOOST_CHECK_EQUAL(program->function_definitions.size(), 2);
 
     ParserTestVisitor t_visit{};
     program->accept(t_visit);

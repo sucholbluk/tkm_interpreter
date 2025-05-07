@@ -4,17 +4,62 @@ Parser::Parser(std::unique_ptr<ILexer> lexer) : _lexer{std::move(lexer)}, _token
 
 std::unique_ptr<Program> Parser::parse_program() {
     Position position{_token.get_position()};
-    up_statement_vec statements{};
+    up_fun_def_vec function_definitions{};
 
     while (auto function_definition = _try_parse_function_definition()) {
-        statements.push_back(std::move(function_definition));
+        function_definitions.push_back(std::move(function_definition));
     }
 
     _token_must_be(TokenType::T_EOF);
 
-    return std::make_unique<Program>(position, std::move(statements));
+    return std::make_unique<Program>(position, std::move(function_definitions));
 }
 
+/* -----------------------------------------------------------------------------*
+ *                                   FUNCTION                                   *
+ *------------------------------------------------------------------------------*/
+
+up_fun_def Parser::_try_parse_function_definition() {
+    up_func_sig signature{_try_parse_function_signature()};
+    if (not signature) {
+        return nullptr;
+    }
+    up_statement body{_try_parse_code_block()};
+    if (not body) {
+        throw std::runtime_error("required function body");
+    }
+    return std::make_unique<FunctionDefinition>(std::move(signature), std::move(body));
+}
+
+up_func_sig Parser::_try_parse_function_signature() {
+    if (not _token_type_is(TokenType::T_DEF)) {
+        return nullptr;
+    }
+    Position position{_get_position_and_digest_token()};
+
+    _token_must_be(TokenType::T_IDENTIFIER);
+    std::string identifier{_token.get_value_as<std::string>()};
+    _get_next_token();
+
+    std::optional<up_typed_ident_vec> params{_try_parse_function_params()};
+    if (not params.has_value()) {
+        throw std::runtime_error("missing function parameters specification");
+    }
+
+    _advance_on_required_token(TokenType::T_ARROW);
+
+    std::optional<Type> return_type{};
+    if (_token_type_is(TokenType::T_NONE)) {
+        _get_next_token();
+    } else {
+        std::optional<Type> not_none_type{_try_parse_type()};
+        if (not not_none_type.has_value()) {
+            throw std::invalid_argument("missing return type specification");
+        }
+        return_type = not_none_type;
+    }
+    return std::make_unique<FunctionSignature>(position, identifier, std::move(params.value()), return_type);
+}
 /* -----------------------------------------------------------------------------*
  *                             PARSING STATEMENTS                               *
  *------------------------------------------------------------------------------*/
@@ -163,6 +208,7 @@ up_statement Parser::_try_parse_if_statement() {
     return std::make_unique<IfStatement>(if_position, std::move(condition), std::move(if_body), std::move(else_ifs),
                                          std::move(else_block));
 }
+
 up_statement Parser::_try_parse_for_loop() {
     if (not _token_type_is(TokenType::T_FOR)) {
         return nullptr;
@@ -206,17 +252,6 @@ up_statement Parser::_try_parse_for_loop() {
 
     return std::make_unique<ForLoop>(position, std::move(var_decl), std::move(condition), std::move(loop_update),
                                      std::move(body));
-}
-up_statement Parser::_try_parse_function_definition() {
-    up_func_sig signature{_try_parse_function_signature()};
-    if (not signature) {
-        return nullptr;
-    }
-    up_statement body{_try_parse_code_block()};
-    if (not body) {
-        throw std::runtime_error("required function body");
-    }
-    return std::make_unique<FunctionDefinition>(std::move(signature), std::move(body));
 }
 
 up_statement Parser::_try_parse_assignment_or_expression_statement() {
@@ -600,38 +635,6 @@ std::optional<up_typed_ident_vec> Parser::_try_parse_function_params() {
     return params;
 }
 
-/* -----------------------------------------------------------------------------*
- *                             FUNCTION SIGNATURE                               *
- *------------------------------------------------------------------------------*/
-up_func_sig Parser::_try_parse_function_signature() {
-    if (not _token_type_is(TokenType::T_DEF)) {
-        return nullptr;
-    }
-    Position position{_get_position_and_digest_token()};
-
-    _token_must_be(TokenType::T_IDENTIFIER);
-    std::string identifier{_token.get_value_as<std::string>()};
-    _get_next_token();
-
-    std::optional<up_typed_ident_vec> params{_try_parse_function_params()};
-    if (not params.has_value()) {
-        throw std::runtime_error("missing function parameters specification");
-    }
-
-    _advance_on_required_token(TokenType::T_ARROW);
-
-    std::optional<Type> return_type{};
-    if (_token_type_is(TokenType::T_NONE)) {
-        _get_next_token();
-    } else {
-        std::optional<Type> not_none_type{_try_parse_type()};
-        if (not not_none_type.has_value()) {
-            throw std::invalid_argument("missing return type specification");
-        }
-        return_type = not_none_type;
-    }
-    return std::make_unique<FunctionSignature>(position, identifier, std::move(params.value()), return_type);
-}
 /* -----------------------------------------------------------------------------*
  *                                   TYPE                                       *
  *------------------------------------------------------------------------------*/

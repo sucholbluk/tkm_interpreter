@@ -14,12 +14,15 @@ struct Statement : public Node {
 struct CodeBlock;
 struct ElseIf;
 struct FunctionSignature;
+struct FunctionDefinition;
 
 using up_statement = std::unique_ptr<Statement>;
 using up_statement_vec = std::vector<up_statement>;
 using up_else_if = std::unique_ptr<ElseIf>;
 using up_else_if_vec = std::vector<up_else_if>;
 using up_func_sig = std::unique_ptr<FunctionSignature>;
+using up_fun_def = std::unique_ptr<FunctionDefinition>;
+using up_fun_def_vec = std::vector<up_fun_def>;
 
 struct ContinueStatement : public Statement {
     using Statement::Statement;
