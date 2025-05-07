@@ -24,6 +24,11 @@ class MockLexer : public ILexer {
         return token;
     }
 };
+template <typename T1, typename T2>
+std::ostream& operator<<(std::ostream& os, const std::pair<T1, T2> pair) {
+    os << std::format("({}, {})", pair.first, pair.second);
+    return os;
+}
 
 // class for testing, visits program and builds vector of pairs (std::string element, int nest_level)
 // vector descibed below with example
@@ -44,6 +49,7 @@ struct TestVisitor : public Visitor {
 
     void visit(const ReturnStatement& return_stmnt) override {
         elements.emplace_back(_get_name_position_str(return_stmnt, "ReturnStatement"), _nest_level);
+        _NestGuard guard{_nest_level};
         return_stmnt.expression->accept(*this);
     }
 
@@ -683,6 +689,11 @@ BOOST_AUTO_TEST_CASE(test_for_loop_with_variable_declaration) {
     // Użycie Printer do wypisania struktury AST
     Printer printer{};
     program->accept(printer);
+
+    TestVisitor t_visit{};
+    program->accept(t_visit);
+    std::ranges::for_each(t_visit.elements, [](auto& element) { std::cout << element << " "; });
+    std::cout << std::endl;
 }
 
 // return -10;
@@ -694,6 +705,13 @@ BOOST_AUTO_TEST_CASE(test_return_negative_literal_int) {
         Token{TokenType::T_SEMICOLON, Position()},        // ;
     };
 
+    std::vector<std::pair<std::string, int>> expected_elements = {
+        {"Program;[1:1]", 0},
+        {"ReturnStatement;[1:1]", 1},
+        {"UnaryMinus;[1:1]", 2},
+        {"LiteralInt;[1:1];value=10", 3},
+    };
+
     auto lexer = std::make_unique<MockLexer>(tokens);
     Parser parser{std::move(lexer)};
     auto program = parser.parse_program();
@@ -702,6 +720,10 @@ BOOST_AUTO_TEST_CASE(test_return_negative_literal_int) {
 
     Printer printer{};
     program->accept(printer);
+
+    TestVisitor t_visit{};
+    program->accept(t_visit);
+    BOOST_CHECK(expected_elements == t_visit.elements);
 }
 
 BOOST_AUTO_TEST_CASE(test_fail) {

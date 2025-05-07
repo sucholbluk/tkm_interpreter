@@ -383,7 +383,7 @@ up_expression Parser::_try_parse_bind_front_or_function_call() {
         if (argument_list.size() != 1) {
             throw std::runtime_error("missing >> after argument list");
         }
-        return _try_parse_function_call(std::make_unique<ParenExpression>(position, std::move(argument_list[0])));
+        return _try_parse_function_call(std::move(argument_list[0]));
     }
 
     _get_next_token();
