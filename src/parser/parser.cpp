@@ -668,7 +668,15 @@ FunctionTypeInfo Parser::_parse_function_type_info() {
         _get_next_token();
     } else {
         std::optional<VariableType> param{};
-        do {
+        param = _try_parse_function_param_type();
+
+        if (not param.has_value()) {
+            throw std::invalid_argument("expected type");
+        }  // TODO: replace
+        params.push_back(*param);
+
+        while (_token_type_is(TokenType::T_COMMA)) {
+            _get_next_token();
             param = _try_parse_function_param_type();
 
             if (not param.has_value()) {
@@ -676,7 +684,7 @@ FunctionTypeInfo Parser::_parse_function_type_info() {
             }  // TODO: replace
 
             params.push_back(std::move(*param));
-        } while (_token_type_is(TokenType::T_COMMA));
+        }
     }
     _advance_on_required_token(TokenType::T_COLON);
 

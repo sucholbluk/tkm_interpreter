@@ -70,8 +70,8 @@ BOOST_AUTO_TEST_CASE(test_main_simple_return) {
 
     BOOST_CHECK(expected_elements == t_visit.elements);
 
-    Printer printer{};
-    program->accept(printer);
+    // Printer printer{};
+    // program->accept(printer);
 }
 
 // def increment(mut i: int) -> none {
@@ -122,10 +122,8 @@ BOOST_AUTO_TEST_CASE(test_increment_function) {
 
     BOOST_CHECK(expected_elements == t_visit.elements);
 
-    std::ranges::for_each(t_visit.elements, [](auto elem) { std::cout << elem << std::endl; });
-
-    Printer printer{};
-    program->accept(printer);
+    // Printer printer{};
+    // program->accept(printer);
 }
 
 // def main() -> int {
@@ -187,8 +185,79 @@ BOOST_AUTO_TEST_CASE(test_main_simple_asgn_func_call) {
 
     BOOST_CHECK(expected_elements == t_visit.elements);
 
-    Printer printer{};
-    program->accept(printer);
+    // Printer printer{};
+    // program->accept(printer);
+}
+
+// def invoke(fun: function<int, int:int>, a: int, b: int) -> int {
+//     return fun(a, b);
+// }
+BOOST_AUTO_TEST_CASE(test_invoke_function) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                   // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "invoke"},  // invoke
+        Token{TokenType::T_L_PAREN, Position(1, 11)},              // (
+        Token{TokenType::T_IDENTIFIER, Position(1, 12), "fun"},    // fun
+        Token{TokenType::T_COLON, Position(1, 15)},                // :
+        Token{TokenType::T_FUNCTION, Position(1, 17)},             // function
+        Token{TokenType::T_LESS, Position(1, 25)},                 // <
+        Token{TokenType::T_INT, Position(1, 26)},                  // int
+        Token{TokenType::T_COMMA, Position(1, 29)},                // ,
+        Token{TokenType::T_INT, Position(1, 31)},                  // int
+        Token{TokenType::T_COLON, Position(1, 34)},                // :
+        Token{TokenType::T_INT, Position(1, 35)},                  // int
+        Token{TokenType::T_GREATER, Position(1, 38)},              // >
+        Token{TokenType::T_COMMA, Position(1, 39)},                // ,
+        Token{TokenType::T_IDENTIFIER, Position(1, 41), "a"},      // a
+        Token{TokenType::T_COLON, Position(1, 42)},                // :
+        Token{TokenType::T_INT, Position(1, 44)},                  // int
+        Token{TokenType::T_COMMA, Position(1, 47)},                // ,
+        Token{TokenType::T_IDENTIFIER, Position(1, 49), "b"},      // b
+        Token{TokenType::T_COLON, Position(1, 50)},                // :
+        Token{TokenType::T_INT, Position(1, 52)},                  // int
+        Token{TokenType::T_R_PAREN, Position(1, 55)},              // )
+        Token{TokenType::T_ARROW, Position(1, 57)},                // ->
+        Token{TokenType::T_INT, Position(1, 60)},                  // int
+        Token{TokenType::T_L_BRACE, Position(1, 64)},              // {
+        Token{TokenType::T_RETURN, Position(2, 5)},                // return
+        Token{TokenType::T_IDENTIFIER, Position(2, 12), "fun"},    // fun
+        Token{TokenType::T_L_PAREN, Position(2, 15)},              // (
+        Token{TokenType::T_IDENTIFIER, Position(2, 16), "a"},      // a
+        Token{TokenType::T_COMMA, Position(2, 17)},                // ,
+        Token{TokenType::T_IDENTIFIER, Position(2, 19), "b"},      // b
+        Token{TokenType::T_R_PAREN, Position(2, 20)},              // )
+        Token{TokenType::T_SEMICOLON, Position(2, 21)},            // ;
+        Token{TokenType::T_R_BRACE, Position(3, 1)},               // }
+    };
+
+    std::vector<std::pair<std::string, int>> expected_elements = {
+        {"Program;[1:1]", 0},
+        {"FunctionDefinition;[1:1]", 1},
+        {"FunctionSignature;[1:1];type=function<function<int,int:int>,int,int:int>,identifier=invoke", 2},
+        {"TypedIdentifier;[1:12];type=function<int,int:int>,name=fun", 3},
+        {"TypedIdentifier;[1:41];type=int,name=a", 3},
+        {"TypedIdentifier;[1:49];type=int,name=b", 3},
+        {"CodeBlock;[1:64]", 2},
+        {"ReturnStatement;[2:5]", 3},
+        {"FunctionCall;[2:12]", 4},
+        {"Identifier;[2:12];name=fun", 5},
+        {"Identifier;[2:16];name=a", 5},
+        {"Identifier;[2:19];name=b", 5},
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+    auto program = parser.parse_program();
+
+    BOOST_CHECK_EQUAL(program->statements.size(), 1);
+
+    ParserTestVisitor t_visit{};
+    program->accept(t_visit);
+
+    BOOST_CHECK(expected_elements == t_visit.elements);
+
+    // Printer printer{};
+    // program->accept(printer);
 }
 
 // def nth_fibonacci(n: int) -> int {
@@ -345,8 +414,8 @@ BOOST_AUTO_TEST_CASE(test_fibonacci) {
 
     BOOST_CHECK(expected_elements == t_visit.elements);
 
-    Printer printer{};  // for reference
-    program->accept(printer);
+    // Printer printer{};  // for reference
+    // program->accept(printer);
 }
 
 // BOOST_AUTO_TEST_CASE(test_fail) {
