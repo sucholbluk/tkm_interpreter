@@ -624,9 +624,102 @@ BOOST_AUTO_TEST_CASE(test_missing_return_type_after_arrow) {
     auto lexer = std::make_unique<MockLexer>(tokens);
     Parser parser{std::move(lexer)};
 
-    BOOST_CHECK_THROW(parser.parse_program(), ExpectedRetTypeException);
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedTypeSpecException);
+}
+// def main() -> int {
+//     return 0
+// }
+BOOST_AUTO_TEST_CASE(test_missing_semicolon_in_return) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_INT, Position(1, 15)},                // int
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_RETURN, Position(2, 5)},              // return
+        Token{TokenType::T_LITERAL_INT, Position(2, 12), 0},     // 0
+        Token{TokenType::T_R_BRACE, Position(3, 1)},             // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedSemicolException);
+}
+// semantically incorrect but parser should parse if there was ;
+// def main() -> none {
+//     continue
+// }
+BOOST_AUTO_TEST_CASE(test_missing_semicolon_after_continue) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_NONE, Position(1, 15)},               // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_CONTINUE, Position(2, 5)},            // continue
+        Token{TokenType::T_R_BRACE, Position(3, 1)},             // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedSemicolException);
 }
 
+// semantically incorrect but parser should parse if there was ;
+// def main() -> none {
+//     4 + 4
+// }
+BOOST_AUTO_TEST_CASE(test_missing_semicolon_after_expression) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_NONE, Position(1, 15)},               // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_LITERAL_INT, Position(2, 5), 4},      // 4
+        Token{TokenType::T_PLUS, Position(2, 7)},                // +
+        Token{TokenType::T_LITERAL_INT, Position(2, 9), 4},      // 4
+        Token{TokenType::T_R_BRACE, Position(3, 1)},             // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedSemicolException);
+}
+
+// def main() -> none {
+//     let = 4;
+// }
+BOOST_AUTO_TEST_CASE(test_missing_typed_identifier) {
+    std::vector<Token> tokens = {
+        Token{TokenType::T_DEF, Position(1, 1)},                 // def
+        Token{TokenType::T_IDENTIFIER, Position(1, 5), "main"},  // main
+        Token{TokenType::T_L_PAREN, Position(1, 9)},             // (
+        Token{TokenType::T_R_PAREN, Position(1, 10)},            // )
+        Token{TokenType::T_ARROW, Position(1, 12)},              // ->
+        Token{TokenType::T_NONE, Position(1, 15)},               // none
+        Token{TokenType::T_L_BRACE, Position(1, 19)},            // {
+        Token{TokenType::T_LET, Position(2, 5)},                 // let
+        Token{TokenType::T_ASSIGN, Position(2, 9)},              // =
+        Token{TokenType::T_LITERAL_INT, Position(2, 11), 4},     // 4
+        Token{TokenType::T_SEMICOLON, Position(2, 12)},          // ;
+        Token{TokenType::T_R_BRACE, Position(3, 1)},             // }
+    };
+
+    auto lexer = std::make_unique<MockLexer>(tokens);
+    Parser parser{std::move(lexer)};
+
+    BOOST_CHECK_THROW(parser.parse_program(), ExpectedTypedIdentifierException);
+}
 // BOOST_AUTO_TEST_CASE(test_fail) {
 //     BOOST_CHECK_EQUAL(1, 0);
 // }

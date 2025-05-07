@@ -56,5 +56,14 @@ ExpectedArgListException ::ExpectedArgListException(const Position& position)
 ExpectedArrowException ::ExpectedArrowException(const Position& position)
     : ParserException(std::format("Expected '->' for return type specification at: {}", position.get_position_str())) {}
 
-ExpectedRetTypeException::ExpectedRetTypeException(const Position& position)
-    : ParserException(std::format("Expected return type at: {}", position.get_position_str())) {}
+ExpectedTypeSpecException::ExpectedTypeSpecException(const Position& position)
+    : ParserException(std::format("Expected none or type at: {}", position.get_position_str())) {}
+
+ExpectedTypeException::ExpectedTypeException(const Position& position)
+    : ParserException(std::format("Expected type at: {}", position.get_position_str())) {}
+
+ExpectedSemicolException::ExpectedSemicolException(const Position& position)
+    : ParserException(std::format("Expected ';' at: {}", position.get_position_str())) {}
+
+ExpectedTypedIdentifierException::ExpectedTypedIdentifierException(const Position& position)
+    : ParserException(std::format("Expected identifier with specified type at: {}", position.get_position_str())) {}

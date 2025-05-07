@@ -121,7 +121,22 @@ class ExpectedArrowException : public ParserException {
     explicit ExpectedArrowException(const Position& position);
 };
 
-class ExpectedRetTypeException : public ParserException {
+class ExpectedTypeSpecException : public ParserException {
    public:
-    explicit ExpectedRetTypeException(const Position& position);
+    explicit ExpectedTypeSpecException(const Position& position);
+};
+
+class ExpectedTypeException : public ParserException {
+   public:
+    explicit ExpectedTypeException(const Position& position);
+};
+
+class ExpectedSemicolException : public ParserException {
+   public:
+    explicit ExpectedSemicolException(const Position& position);
+};
+
+class ExpectedTypedIdentifierException : public ParserException {
+   public:
+    explicit ExpectedTypedIdentifierException(const Position& position);
 };

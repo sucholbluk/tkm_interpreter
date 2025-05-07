@@ -54,17 +54,16 @@ up_func_sig Parser::_try_parse_function_signature() {
 std::optional<Type> Parser::_parse_return_type() {
     _advance_on_required_token<ExpectedArrowException>(TokenType::T_ARROW);
 
-    std::optional<Type> return_type{};
     if (_token_type_is(TokenType::T_NONE)) {
         _get_next_token();
-    } else {
-        std::optional<Type> not_none_type{_try_parse_type()};
-        if (not not_none_type.has_value()) {
-            throw ExpectedRetTypeException(_token.get_position());
-        }
-        return_type = not_none_type;
+        return std::nullopt;
     }
-    return return_type;
+
+    if (std::optional<Type> type = _try_parse_type()) {
+        return type;
+    }
+
+    throw ExpectedTypeSpecException(_token.get_position());
 }
 /* -----------------------------------------------------------------------------*
  *                             PARSING STATEMENTS                               *
@@ -98,7 +97,7 @@ up_statement Parser::_try_parse_continue_statement() {
 
     Position position{_get_position_and_digest_token()};
 
-    _advance_on_required_token(TokenType::T_SEMICOLON);
+    _advance_on_required_token<ExpectedSemicolException>(TokenType::T_SEMICOLON);
 
     return std::make_unique<ContinueStatement>(position);
 }
@@ -110,7 +109,7 @@ up_statement Parser::_try_parse_break_statement() {
 
     Position position{_get_position_and_digest_token()};
 
-    _advance_on_required_token(TokenType::T_SEMICOLON);
+    _advance_on_required_token<ExpectedSemicolException>(TokenType::T_SEMICOLON);
 
     return std::make_unique<BreakStatement>(position);
 }
@@ -123,7 +122,7 @@ up_statement Parser::_try_parse_return_statement() {
     Position position{_get_position_and_digest_token()};
     up_expression expression = _try_parse_expression();
 
-    _advance_on_required_token(TokenType::T_SEMICOLON);
+    _advance_on_required_token<ExpectedSemicolException>(TokenType::T_SEMICOLON);
 
     return std::make_unique<ReturnStatement>(position, std::move(expression));
 }
@@ -138,13 +137,13 @@ up_statement Parser::_try_parse_variable_declaration() {
 
     up_typed_identifier typed_identifier = _try_parse_typed_identifier();
 
-    if (not typed_identifier) throw std::invalid_argument("couldnt parse typed identifier");  // TODO: replace
+    if (not typed_identifier) throw ExpectedTypedIdentifierException(_token.get_position());
 
     up_expression assigned_expression{_try_parse_assigned_expression()};
 
     if (not assigned_expression) throw std::invalid_argument("required assignment in variable declaration");
 
-    _advance_on_required_token(TokenType::T_SEMICOLON);
+    _advance_on_required_token<ExpectedSemicolException>(TokenType::T_SEMICOLON);
 
     return std::make_unique<VariableDeclaration>(position, std::move(typed_identifier), std::move(assigned_expression));
 }
@@ -228,14 +227,14 @@ up_statement Parser::_try_parse_for_loop() {
         throw std::runtime_error("loop requires loop var declaration");
     }
 
-    _advance_on_required_token(TokenType::T_SEMICOLON);
+    _advance_on_required_token<ExpectedSemicolException>(TokenType::T_SEMICOLON);
 
     up_expression condition{_try_parse_expression()};
     if (not condition) {
         throw std::runtime_error("loop requires condition");
     }
 
-    _advance_on_required_token(TokenType::T_SEMICOLON);
+    _advance_on_required_token<ExpectedSemicolException>(TokenType::T_SEMICOLON);
 
     if (not _token_type_is(TokenType::T_IDENTIFIER)) {
         throw std::runtime_error("required identifier for loop update");
@@ -272,7 +271,7 @@ up_statement Parser::_try_parse_assignment_or_expression_statement() {
         return nullptr;
     }
     if (not _token_type_is(TokenType::T_ASSIGN)) {
-        _advance_on_required_token(TokenType::T_SEMICOLON);
+        _advance_on_required_token<ExpectedSemicolException>(TokenType::T_SEMICOLON);
         return std::make_unique<ExpressionStatement>(std::move(expr));
     }
 
@@ -284,7 +283,7 @@ up_statement Parser::_try_parse_assignment_or_expression_statement() {
     // zgloszony na poziomie _try_parse_assigned_expression()
     up_expression assigned_expr{_try_parse_assigned_expression()};
 
-    _advance_on_required_token(TokenType::T_SEMICOLON);
+    _advance_on_required_token<ExpectedSemicolException>(TokenType::T_SEMICOLON);
 
     return std::make_unique<AssignStatement>(expr->position, identifier, std::move(assigned_expr));
 }
@@ -723,7 +722,7 @@ std::optional<VariableType> Parser::_try_parse_function_param_type() {
 
     if (not type.has_value()) {
         if (is_mutable) {  // przejedliśmy mut a nie dostaliśmy typu -> błąd
-            throw std::invalid_argument("couldnt parse variable type");  // TODO: replace
+            throw ExpectedTypeException(_token.get_position());
         }
         return std::nullopt;  // nie było mut - po prostu nie sparsowaliśmy typu
     }
