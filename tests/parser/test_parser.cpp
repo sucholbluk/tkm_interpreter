@@ -232,8 +232,6 @@ BOOST_AUTO_TEST_CASE(test_function_composition) {
 
     ParserTestVisitor t_visit{};
     program->accept(t_visit);
-    Printer p{};
-    program->accept(p);
 
     BOOST_CHECK(expected_elements == t_visit.elements);
 }

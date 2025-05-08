@@ -6,13 +6,14 @@
 
 #include "expression.hpp"
 #include "ilexer.hpp"
+#include "iparser.hpp"
 #include "program.hpp"
 #include "statement.hpp"
 
-class Parser {
+class Parser : public IParser {
    public:
     Parser(std::unique_ptr<ILexer> lexer);
-    std::unique_ptr<Program> parse_program();
+    std::unique_ptr<Program> parse_program() override;
 
    private:
     void _get_next_token();

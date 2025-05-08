@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "ilexer.hpp"
+#include "iparser.hpp"
 
 /*
  * @brief to represent program
@@ -16,7 +17,7 @@ class CLIApp {  // nazwa tymczasowa - potem moze do zmiany
     void run();
 
    private:
-    std::unique_ptr<ILexer> _lexer;
+    std::unique_ptr<IParser> _parser;
     // TODO: make struct for options
     bool _verbose;
     bool _use_stdin;

@@ -7,6 +7,7 @@ add_library(parser STATIC
             typed_identifier.cpp
             printer.cpp
             expression.cpp
+            verbose_parser.cpp
 )
 
 target_link_libraries(parser PUBLIC lexer)
