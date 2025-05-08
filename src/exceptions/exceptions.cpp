@@ -53,9 +53,6 @@ ExpectedFuncIdentException ::ExpectedFuncIdentException(const Position& position
 ExpectedArgListException ::ExpectedArgListException(const Position& position)
     : ParserException(std::format("Expected argument list at: {}", position.get_position_str())) {}
 
-ExpectedArrowException ::ExpectedArrowException(const Position& position)
-    : ParserException(std::format("Expected '->' for return type specification at: {}", position.get_position_str())) {}
-
 ExpectedTypeSpecException::ExpectedTypeSpecException(const Position& position)
     : ParserException(std::format("Expected none or type at: {}", position.get_position_str())) {}
 
@@ -115,3 +112,51 @@ ExpectedIfConditionException::ExpectedIfConditionException(const Position& posit
 
 ExpectedConditionalStatementBodyException::ExpectedConditionalStatementBodyException(const Position& position)
     : ParserException(std::format("Expected body for conditional statement at: {}", position.get_position_str())) {}
+
+ExpectedLoopVarDeclException::ExpectedLoopVarDeclException(const Position& position)
+    : ParserException(std::format("Expected loop variable declaration in at: {}", position.get_position_str())) {}
+
+ExpectedLoopConditionException::ExpectedLoopConditionException(const Position& position)
+    : ParserException(std::format("Expected condition in loop statement at: {}", position.get_position_str())) {}
+
+ExpectedLoopBodyException::ExpectedLoopBodyException(const Position& position)
+    : ParserException(std::format("Expected body for loop statement at: {}", position.get_position_str())) {}
+
+ExpectedExprException::ExpectedExprException(const Position& position)
+    : ParserException(std::format("Expected expression at: {}", position.get_position_str())) {}
+
+ExpectedLoopVarUpdateException::ExpectedLoopVarUpdateException(const Position& position)
+    : ParserException(std::format("Expected assignment as loop variable update at: {}", position.get_position_str())) {}
+
+InvalidAssignTargetException::InvalidAssignTargetException(const Position& position)
+    : ParserException(std::format("Invalid assignment target at: {}", position.get_position_str())) {}
+
+InvalidFunctionParamTypeException::InvalidFunctionParamTypeException(const Position& position)
+    : ParserException(std::format("Invalid type for param in function type spec at: {}", position.get_position_str())) {
+}
+
+ExpectedArrowException ::ExpectedArrowException(const Position& position)
+    : ParserException(std::format("Expected '->' for return type specification at: {}", position.get_position_str())) {}
+
+ExpectedRBraceException::ExpectedRBraceException(const Position& position)
+    : ParserException(std::string("Expected '}' at: ") + position.get_position_str()) {}
+
+ExpectedLParenException::ExpectedLParenException(const Position& position)
+    : ParserException(std::format("Expected '(' at: {}", position.get_position_str())) {}
+
+ExpectedRParenException::ExpectedRParenException(const Position& position)
+    : ParserException(std::format("Expected ')' at: {}", position.get_position_str())) {}
+
+ExpectedColException::ExpectedColException(const Position& position)
+    : ParserException(std::format("Expected ':' at: {}", position.get_position_str())) {}
+
+ExpectedLessException::ExpectedLessException(const Position& position)
+    : ParserException(std::format("Expected '<' for function param spec opening at: {}", position.get_position_str())) {
+}
+
+ExpectedGreaterException::ExpectedGreaterException(const Position& position)
+    : ParserException(std::format("Expected '>' for function param spec closing at: {}", position.get_position_str())) {
+}
+
+ExpectedIdentifierException::ExpectedIdentifierException(const Position& position)
+    : ParserException(std::format("Expected identifier at: {}", position.get_position_str())) {}

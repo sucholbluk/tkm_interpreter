@@ -158,7 +158,7 @@ up_statement Parser::_try_parse_code_block() {
         statements.push_back(std::move(statement));
     }
 
-    _advance_on_required_token(TokenType::T_R_BRACE);
+    _advance_on_required_token<ExpectedRBraceException>(TokenType::T_R_BRACE);
 
     return std::make_unique<CodeBlock>(position, std::move(statements));
 }
@@ -218,24 +218,24 @@ up_statement Parser::_try_parse_for_loop() {
     }
     Position position{_get_position_and_digest_token()};
 
-    _advance_on_required_token(TokenType::T_L_PAREN);
+    _advance_on_required_token<ExpectedLParenException>(TokenType::T_L_PAREN);
 
     up_statement var_decl{_try_parse_loop_var_declaration()};
     if (not var_decl) {
-        throw std::runtime_error("loop requires loop var declaration");
+        throw ExpectedLoopVarDeclException(_token.get_position());
     }
 
     _advance_on_required_token<ExpectedSemicolException>(TokenType::T_SEMICOLON);
 
     up_expression condition{_try_parse_expression()};
     if (not condition) {
-        throw std::runtime_error("loop requires condition");
+        throw ExpectedLoopConditionException(_token.get_position());
     }
 
     _advance_on_required_token<ExpectedSemicolException>(TokenType::T_SEMICOLON);
 
     if (not _token_type_is(TokenType::T_IDENTIFIER)) {
-        throw std::runtime_error("required identifier for loop update");
+        throw ExpectedLoopVarUpdateException(_token.get_position());
     }
     std::string identifier{_token.get_value_as<std::string>()};
     Position asgn_position{_get_position_and_digest_token()};
@@ -246,11 +246,11 @@ up_statement Parser::_try_parse_for_loop() {
     }
     up_statement loop_update{std::make_unique<AssignStatement>(asgn_position, identifier, std::move(assigned_expr))};
 
-    _advance_on_required_token(TokenType::T_R_PAREN);
+    _advance_on_required_token<ExpectedRParenException>(TokenType::T_R_PAREN);
 
     up_statement body{_try_parse_code_block()};
     if (not body) {
-        throw std::runtime_error("required body for ForLoop");
+        throw ExpectedLoopBodyException(_token.get_position());
     }
 
     return std::make_unique<ForLoop>(position, std::move(var_decl), std::move(condition), std::move(loop_update),
@@ -274,7 +274,7 @@ up_statement Parser::_try_parse_assignment_or_expression_statement() {
     }
 
     if (expr->kind != ExprKind::IDENTIFIER) {
-        throw std::runtime_error("invalid assign target");
+        throw InvalidAssignTargetException(_token.get_position());
     }
 
     // tu już jestesmy pewni, że token jest T_ASSIGN, wiec jesli wystapi blad to bedzie
@@ -311,7 +311,7 @@ up_expression Parser::_try_parse_condition() {
 
     up_expression condition{_try_parse_expression()};
 
-    _advance_on_required_token(TokenType::T_R_PAREN);
+    _advance_on_required_token<ExpectedRParenException>(TokenType::T_R_PAREN);
 
     return condition;
 }
@@ -331,30 +331,35 @@ up_expression Parser::_try_parse_logical_and() {
         [this]() { throw ExpectedExprAfterAndException(this->_token.get_position()); });
 }
 
+// expr == expr , !=
 up_expression Parser::_try_parse_equality_expression() {
     return _try_parse_single_binary_expression(
         [this]() { return _try_parse_comparison_expression(); }, Parser::_equality_token_types,
         [this]() { throw ExpectedExprAfterEqualityException(this->_token.get_position()); });
 }
 
+// expr > expr., >=, <=, <
 up_expression Parser::_try_parse_comparison_expression() {
     return _try_parse_single_binary_expression(
         [this]() { return _try_parse_additive_expression(); }, Parser::_comparison_token_types,
         [this]() { throw ExpectedExprAfterComparisonException(this->_token.get_position()); });
 }
 
+// expr + expr, -
 up_expression Parser::_try_parse_additive_expression() {
     return _try_parse_chained_binary_expression(
         [this]() { return _try_parse_multiplicative_expression(); }, Parser::_additive_token_types,
         [this]() { throw ExpectedExprAfterAdditiveException(this->_token.get_position()); });
 }
 
+// *, /
 up_expression Parser::_try_parse_multiplicative_expression() {
     return _try_parse_chained_binary_expression(
         [this]() { return _try_parse_type_cast(); }, Parser::_multipicative_token_types,
         [this]() { throw ExpectedExprAfterMultiplicativeException(this->_token.get_position()); });
 }
 
+// expr as type
 up_expression Parser::_try_parse_type_cast() {
     up_expression expr{_try_parse_unary_expression()};
     if (not expr) {
@@ -372,6 +377,7 @@ up_expression Parser::_try_parse_type_cast() {
     return expr;
 }
 
+// -expr | not expr
 up_expression Parser::_try_parse_unary_expression() {
     if (not(_token_type_is(TokenType::T_NOT) or _token_type_is(TokenType::T_MINUS))) {
         return _try_parse_function_composition();  // to nie unary - delegujemy dalej
@@ -501,7 +507,7 @@ up_expression Parser::_try_parse_assigned_expression() {
     _get_next_token();
     up_expression assigned_expr{_try_parse_expression()};
     if (not assigned_expr) {
-        throw std::runtime_error("assignment requires expression");
+        throw ExpectedExprException(_token.get_position());
     }
     return assigned_expr;
 }
@@ -565,7 +571,7 @@ std::optional<up_expression_vec> Parser::_try_parse_argument_list() {
 
     up_expression argument = _try_parse_expression();
     if (not argument) {
-        _advance_on_required_token(TokenType::T_R_PAREN);
+        _advance_on_required_token<ExpectedRParenException>(TokenType::T_R_PAREN);
         return arguments;
     }
 
@@ -575,12 +581,12 @@ std::optional<up_expression_vec> Parser::_try_parse_argument_list() {
         _get_next_token();
         argument = _try_parse_expression();
         if (not argument) {
-            throw std::runtime_error("required argument after , in arg list");  // TODO
+            throw ExpectedExprException(_token.get_position());
         }
         arguments.push_back(std::move(argument));
     }
 
-    _advance_on_required_token(TokenType::T_R_PAREN);
+    _advance_on_required_token<ExpectedRParenException>(TokenType::T_R_PAREN);
 
     return arguments;
 }
@@ -597,7 +603,7 @@ up_typed_identifier Parser::_try_parse_typed_identifier() {
     if (_token_type_is(TokenType::T_MUT)) {
         is_mutable = true;
         _get_next_token();
-        _token_must_be(TokenType::T_IDENTIFIER);  // już zjedliśmy token, teraz wymagamy identyfikatora
+        _token_must_be<ExpectedIdentifierException>(TokenType::T_IDENTIFIER);  // już zjedliśmy token - wymagany ident
     } else if (not _token_type_is(TokenType::T_IDENTIFIER)) {
         return nullptr;
     }
@@ -605,11 +611,11 @@ up_typed_identifier Parser::_try_parse_typed_identifier() {
     std::string identifier{_token.get_value_as<std::string>()};
     _get_next_token();
 
-    _advance_on_required_token(TokenType::T_COLON);
+    _advance_on_required_token<ExpectedColException>(TokenType::T_COLON);
 
     std::optional<Type> type{_try_parse_type()};
     if (not type.has_value()) {
-        throw std::invalid_argument("couldnt parse typed identifier");
+        throw ExpectedTypeException(_token.get_position());
     }  // TODO: replace
 
     return std::make_unique<TypedIdentifier>(position, identifier, VariableType{type.value(), is_mutable});
@@ -634,7 +640,7 @@ std::optional<up_typed_ident_vec> Parser::_try_parse_function_params() {
             params.push_back(std::move(param));
         }
     }
-    _advance_on_required_token(TokenType::T_R_PAREN);
+    _advance_on_required_token<ExpectedRParenException>(TokenType::T_R_PAREN);
 
     return params;
 }
@@ -668,7 +674,7 @@ std::optional<Type> Parser::_try_parse_type() {
 }
 // examples: <int:string>, <float,float:float>, <function<string,mut string:none>,string:function<mut string:none>
 FunctionTypeInfo Parser::_parse_function_type_info() {
-    _advance_on_required_token(TokenType::T_LESS);
+    _advance_on_required_token<ExpectedLessException>(TokenType::T_LESS);
 
     std::vector<VariableType> params{};  // if none, then params vector is empty
     if (_token_type_is(TokenType::T_NONE)) {
@@ -678,8 +684,8 @@ FunctionTypeInfo Parser::_parse_function_type_info() {
         param = _try_parse_function_param_type();
 
         if (not param.has_value()) {
-            throw std::invalid_argument("expected type");
-        }  // TODO: replace
+            throw InvalidFunctionParamTypeException(_token.get_position());
+        }
         params.push_back(*param);
 
         while (_token_type_is(TokenType::T_COMMA)) {
@@ -687,17 +693,17 @@ FunctionTypeInfo Parser::_parse_function_type_info() {
             param = _try_parse_function_param_type();
 
             if (not param.has_value()) {
-                throw std::invalid_argument("expected type");
-            }  // TODO: replace
+                throw InvalidFunctionParamTypeException(_token.get_position());
+            }
 
             params.push_back(std::move(*param));
         }
     }
-    _advance_on_required_token(TokenType::T_COLON);
+    _advance_on_required_token<ExpectedColException>(TokenType::T_COLON);
 
     std::optional<Type> return_type{_parse_return_type()};
 
-    _advance_on_required_token(TokenType::T_GREATER);
+    _advance_on_required_token<ExpectedGreaterException>(TokenType::T_GREATER);
 
     return FunctionTypeInfo{params, return_type};
 }
@@ -725,23 +731,17 @@ std::optional<VariableType> Parser::_try_parse_function_param_type() {
  *------------------------------------------------------------------------------*/
 
 void Parser::_get_next_token() {
-    _token = _lexer->get_next_token();
-}
-
-void Parser::_advance_on_required_token(TokenType token_type) {
-    _token_must_be(token_type);
-    _get_next_token();
+    Token token{_lexer->get_next_token()};
+    while (token.get_type() == TokenType::T_COMMENT) {
+        token = _lexer->get_next_token();
+    }
+    _token = token;
 }
 
 Position Parser::_get_position_and_digest_token() {
     Position position{_token.get_position()};
     _get_next_token();
     return position;
-}
-
-void Parser::_token_must_be(TokenType token_type) const {
-    if (not _token_type_is(token_type))
-        throw std::invalid_argument("required token of type ...");  // TODO: create custom exception for ts
 }
 
 bool Parser::_token_type_is(TokenType token_type) const {

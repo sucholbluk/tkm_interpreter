@@ -116,11 +116,6 @@ class ExpectedArgListException : public ParserException {
     explicit ExpectedArgListException(const Position& position);
 };
 
-class ExpectedArrowException : public ParserException {
-   public:
-    explicit ExpectedArrowException(const Position& position);
-};
-
 class ExpectedTypeSpecException : public ParserException {
    public:
     explicit ExpectedTypeSpecException(const Position& position);
@@ -129,11 +124,6 @@ class ExpectedTypeSpecException : public ParserException {
 class ExpectedTypeException : public ParserException {
    public:
     explicit ExpectedTypeException(const Position& position);
-};
-
-class ExpectedSemicolException : public ParserException {
-   public:
-    explicit ExpectedSemicolException(const Position& position);
 };
 
 class ExpectedTypedIdentifierException : public ParserException {
@@ -209,4 +199,84 @@ class ExpectedIfConditionException : public ParserException {
 class ExpectedConditionalStatementBodyException : public ParserException {
    public:
     explicit ExpectedConditionalStatementBodyException(const Position& position);
+};
+
+class ExpectedLoopVarDeclException : public ParserException {
+   public:
+    explicit ExpectedLoopVarDeclException(const Position& position);
+};
+
+class ExpectedLoopConditionException : public ParserException {
+   public:
+    explicit ExpectedLoopConditionException(const Position& position);
+};
+
+class ExpectedLoopBodyException : public ParserException {
+   public:
+    explicit ExpectedLoopBodyException(const Position& position);
+};
+
+class ExpectedExprException : public ParserException {
+   public:
+    explicit ExpectedExprException(const Position& position);
+};
+
+class ExpectedLoopVarUpdateException : public ParserException {
+   public:
+    explicit ExpectedLoopVarUpdateException(const Position& position);
+};
+
+class InvalidAssignTargetException : public ParserException {
+   public:
+    explicit InvalidAssignTargetException(const Position& position);
+};
+
+class InvalidFunctionParamTypeException : public ParserException {
+   public:
+    explicit InvalidFunctionParamTypeException(const Position& position);
+};
+
+class ExpectedArrowException : public ParserException {
+   public:
+    explicit ExpectedArrowException(const Position& position);
+};
+
+class ExpectedSemicolException : public ParserException {
+   public:
+    explicit ExpectedSemicolException(const Position& position);
+};
+
+class ExpectedRBraceException : public ParserException {
+   public:
+    explicit ExpectedRBraceException(const Position& position);
+};
+
+class ExpectedLParenException : public ParserException {
+   public:
+    explicit ExpectedLParenException(const Position& position);
+};
+
+class ExpectedRParenException : public ParserException {
+   public:
+    explicit ExpectedRParenException(const Position& position);
+};
+
+class ExpectedColException : public ParserException {
+   public:
+    explicit ExpectedColException(const Position& position);
+};
+
+class ExpectedLessException : public ParserException {
+   public:
+    explicit ExpectedLessException(const Position& position);
+};
+
+class ExpectedGreaterException : public ParserException {
+   public:
+    explicit ExpectedGreaterException(const Position& position);
+};
+
+class ExpectedIdentifierException : public ParserException {
+   public:
+    explicit ExpectedIdentifierException(const Position& position);
 };

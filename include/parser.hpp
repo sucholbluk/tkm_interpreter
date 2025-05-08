@@ -73,14 +73,11 @@ class Parser {
     FunctionTypeInfo _parse_function_type_info();
     std::optional<Type> _parse_return_type();
 
-    void _advance_on_required_token(TokenType token_type);
     Position _get_position_and_digest_token();
     bool _token_type_is(TokenType token_type) const;
-    void _token_must_be(TokenType token_type) const;
 
     template <typename Exception>
     void _token_must_be(TokenType token_type) const;
-
     template <typename Exception>
     void _advance_on_required_token(TokenType token_type);
 
