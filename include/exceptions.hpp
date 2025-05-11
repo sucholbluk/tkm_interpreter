@@ -1,7 +1,6 @@
 #ifndef EXCEPTIONS_HPP
 #define EXCEPTIONS_HPP
 
-#endif  // EXCEPTIONS_HPP
 #include <format>
 #include <stdexcept>
 #include <string>
@@ -280,3 +279,4 @@ class ExpectedIdentifierException : public ParserException {
    public:
     explicit ExpectedIdentifierException(const Position& position);
 };
+#endif  // EXCEPTIONS_HPP

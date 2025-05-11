@@ -231,6 +231,7 @@ przykład:
 def sum_two(a: int, b: int) -> int {
     return a + b;
 }
+...
 
 let a: int = 9;
 let b: int = sum_two(a, 9); # OK
@@ -372,10 +373,9 @@ add_5_and_2(4); # daje 9
 - Działanie: Zmienia pierwszą literę stringa na dużą, a resztę na małe
 ## EBNF
 ```
-program = { statement };
+program = { function_definition };
 
-statement = function_definition
-          | code_block
+statement = code_block
           | ( variable_declaration, ";" )
           | ( expression, ";" )
           | ( assignment, ";" )
@@ -410,8 +410,8 @@ code_block       = "{", { statement }, "}";
 expression              = logical_or_expression;
 logical_or_expression   = logical_and_expression, { or, logical_and_expression };
 logical_and_expression  = equality_expression, { and, equality_expression };
-equality_expression     = comparison_expression, { equality_operator, comparison_expression };
-comparison_expression   = term, { comparison_operator, term };
+equality_expression     = comparison_expression, [ equality_operator, comparison_expression ];
+comparison_expression   = term, [ comparison_operator, term ];
 term                    = factor, { additive_operator, factor };
 factor                  = cast, { multiplicative_operator, cast };
 cast                    = unary, [ as, type ];
@@ -575,17 +575,16 @@ function = "function";
 - Moduł obsługi błędów:
     - Klasyfikacja błędów
     - Przechowywanie informacji o błędach (rodzaj błedu, miejsce wystąpienia)
-    - Przerwanie programu w przypadku błędu krytycznego
+    - Przerwanie programu w przypadku błędu
     - Wyświetlenie informacji o błędach.
 ### Testowanie
 - **testy jednostkowe** - testowanie czy pojedyncze komponenty zwracają wyniki zgodne z oczekiwaniami
 - **testy integracyjne** - testowanie całego ciągu transformacji lub jego segmentów
 ## Obsługa błędów
-Na każdym z etapów kompilacji może zostać zgłoszona informacja o błędzie.
-W przypadku wystąpienia błędów zastosowane zostaną poprawki i program będzie kontynuował działanie w celu zwrócenia większej ilości informacji diagnostycznych.
+Na każdym z etapów kompilacji może zostać zgłoszona informacja o błędzie. W takiej sytuacji użytkownikowi zostanie wyświetlona informacja o błędzie i miejscu jego wystąpienia
 
 **Informacja o błędzie**
-- linia z informacją o błędzie: `Error:{plik-jeśli czytamy z pliku} {LINIA}:{KOLUMNA} {OPIS BŁĘDU}`
+- linia z informacją o błędzie: `[error] {informacja o błędzie} at: [{LINIA}:{KOLUMNA}] {OPIS BŁĘDU}`
 - linia z błędem
 - podkreślenie wystąpienia błędu poprzez `^`
 
@@ -605,44 +604,32 @@ a = 10;
 ```
 Informacja o błędzie:
 ```
-a = 10;
-  ^
-Error:main.tkom 2:3 Assignment to immutable variable
+[error] Assignment to immutable variable at" [1:2]
 ```
-Obsługa: Pominięcie instrukcji
 ##### **Użycie operatora przypisania do literału**
 ```
 4 = 10;
 ```
 Informacja o błędzie:
 ```
-400 = 10
-    ^
-Error:main.tkom 1:5 Assigment to literal
+[error] Assignment to literal at" [1:1]
 ```
-Obsługa: Pominięcie instrukcji
 ##### **Użycie niepoprawnych znaków w identyfikatorze**
 ```
 let ca$h: int = 32;
 ```
 Informacja o błędzie:
 ```
-let ca$h: int = 32;
-      ^
-Error:main.tkom 1:5 Illegal symol in identifier
+[error] Unexpected char $ at [7:1]
 ```
-Obsługa: Zastąpienie nielegalnego symbolu przez `_`
 ##### **Nazwa zmiennej jest słowem kluczowym**
 ```
 let if: float = 4.01;
 ```
 Informacja o błędzie:
 ```
-let if: float = 4.01;
-    ^
-Error:main.tkom 1:5 Reseved word used as identifier
+[error] SyntaxError: Expected identifier with specified type at: [1:5]
 ```
-Obsługa: Zastąpienie każdego znaku słowa kluczowego przez `_`
 ##### **Wołanie funkcji podając argument typu innego niż przyjmowany**
 ```
 def my_func(a: int) -> int {
@@ -655,9 +642,8 @@ Informacja o błędzie:
 ```
 my_func("4");
         ^
-Error:main.tkom 5:9 Function call with illegal argument type
+[error] TypeMismatchError: expected argument of type int, got string at: [5:9]
 ```
-Obsługa: Dodanie konwersji typu, `"4"` -> `"4" as int`
 ##### **Wołanie funkcji ze zbyt wieloma argumentami**
 ```
 def my_func(a: int) -> int {
@@ -668,22 +654,16 @@ my_func(4, 5, 6)
 ```
 Informacja o błędzie:
 ```
-my_func(4, 5, 6)
-       ^
-Error:main.tkom 5:8 Function call with too many arguments
+[error] ArgumentsCountMismatchError: Function call with expected 1 argument(/s), got 3 at: [5:8]
 ```
-Obsługa: Usunięcie dodatkowych elementów z listy argumentów
 ##### **Użycie operatora bind front bez podania funkcji**
 ```
 let fun: function<int:int> = (4, 3) >>;
 ```
 Informacja o błędzie:
 ```
-let fun: function<int:int> = (4, 3) >>;
-                                      ^
-Error:main.tkom 1:39 Bind front operator without function identifier
+[error] SyntaxError: Expected bind target at: [1:39]
 ```
-Obsługa: Pominięcie instrukcji
 ##### **Redefinicja funkcji**
 ```
 def my_add(a: int, b: int) -> int {
@@ -696,9 +676,7 @@ def my_add(a: int, b: int, c: int) -> int {
 ```
 Informacja o błędzie:
 ```
-def my_add(a: int, b: int, c: int) -> int {
-    ^
-Error:main.tkom 5:5 Function redefinition
+[error] FunctionRedefinitionError: function my_add redefinition at: [5:1]
 ```
 Obsługa: dodanie `_` na końcu identyfikatora
 
@@ -726,9 +704,12 @@ def nth_fibonacci(n: int) -> int {
     return nth_fibonacci(n - 1) + nthFibonacci(n - 2);
 }
 
-let n: int = 5;
+def main() -> int {
+    let n: int = 5;
 
-print("For " + n as string + " sequence number is " + nth_fibonacci(n) as string);
+    print("For " + n as string + " sequence number is " + nth_fibonacci(n) as string);
+    return 0;
+}
 ```
 Output:
 ```
@@ -736,24 +717,29 @@ For 5 sequence number is 5
 ```
 #### counter - przykrycie 
 ```
-let mut counter: int = 0;
-
-def increment_counter() -> none {
+def increment_counter(counter) -> none {
     counter = counter + 1;
 }
 
-{
-    let mut counter: int = 10;
-    increment_counter();
-    print("In child scope: " + counter as string); # counter = 10 - funkcja ma dostęp tylko do globalnego countera
-}
+def main() -> int {
+    let mut counter: int = 0;
+    
+    
+    {
+        let mut counter: int = 10;
+        increment_counter(counter); # counter called with shadowed value
+        print("In child scope: " + counter as string);
+    }
+    
+    print("In parent scope: " + counter as string); # counter = 0
 
-print("In parent scope: " + counter as string); # counter = 1
+    return 0;
+}
 ```
 Output
 ```
-In child scope: 10
-In parent scope: 1
+In child scope: 11
+In parent scope: 0
 ```
 #### kombinacja bind front i składania funkcji
 ```
@@ -765,9 +751,13 @@ def half(a: int) -> float {
     return a as float / 2;
 }
 
-let composed: function<int:float> = (4) >> add & half;
+def main() -> int {
+    let composed: function<int:float> = (4) >> add & half;
 
-print(composed(7))
+    print(composed(7))
+
+    return 0;
+}
 ```
 Output:
 ```
@@ -806,28 +796,34 @@ def occupy_fridge() -> none {
     print("odchodzisz i zamykasz za soba lodowke");
 }
 
-occupy_fridge()
+def main () -> int {
+    occupy_fridge()
+}
 ```
 
 #### until yes
 ```
-let mut cont: bool = true;
-let mut postfix: string = "st";
+def main() -> int {
+    let mut cont: bool = true;
+    let mut postfix: string = "st";
 
-# dla przykladu, ze warunek nie musi zawierac i
-for (i: int = 1; cont; i = i + 1) {
-    if (i == 2) {
-        postfix = "nd";
-    } else if ( i == 3) {
-        postfix = "rd";
-    } else if (i == 4) {
-        postfix = "th";
-    }
-    print("asking " + i as string + postfix + " time");
-    print("yes or no?");
+    # dla przykladu, ze warunek nie musi zawierac i
+    for (i: int = 1; cont; i = i + 1) {
+        if (i == 2) {
+            postfix = "nd";
+        } else if ( i == 3) {
+            postfix = "rd";
+        } else if (i == 4) {
+            postfix = "th";
+        }
+        print("asking " + i as string + postfix + " time");
+        print("yes or no?");
 
-    if (input() == "yes") {
-        cont = false;
+        if (input() == "yes") {
+            cont = false;
+        }
     }
+
+    return 0;
 }
 ```
