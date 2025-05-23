@@ -13,7 +13,7 @@ Token LoggingLexer::get_next_token() {
         return token;
     } catch (const std::exception& e) {
         _log_encountered_error(e);
-        throw;  // just log and propagate to error handling object
+        throw e;  // just log and propagate to error handling object
     }
 }
 

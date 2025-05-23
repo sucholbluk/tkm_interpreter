@@ -12,14 +12,16 @@ Lexer::Lexer(std::unique_ptr<SourceHandler> source_handler) : _source_handler{st
 Token Lexer::get_next_token() {
     _ignore_white_chars();
 
-    if (auto it = _simple_builders_map.find(_character); it != _simple_builders_map.end())
+    if (auto it = _simple_builders_map.find(_character); it != _simple_builders_map.end()) {
         return std::invoke(it->second, *this);
+    }
 
-    if (auto token = _try_build_identifier_or_keyword())
+    if (auto token = _try_build_identifier_or_keyword()) {
         return *token;
-
-    if (auto token = _try_build_literal_int_or_float())
+    }
+    if (auto token = _try_build_literal_int_or_float()) {
         return *token;
+    }
 
     throw UnexpectedCharacterException(_position, _character);
 }
@@ -31,20 +33,21 @@ void Lexer::_get_next_char() {
 }
 
 void Lexer::_ignore_white_chars() {
-    while (std::isspace(_character))
-        _get_next_char();
+    while (std::isspace(_character)) _get_next_char();
 }
 
 std::optional<Token> Lexer::_try_build_identifier_or_keyword() {
-    if (not(std::isalpha(_character) or _character == '_'))
+    if (not(std::isalpha(_character) or _character == '_')) {
         return std::nullopt;
+    }
 
     std::string lexeme{};
     Position token_position{_position};
 
     do {
-        if (lexeme.length() == MAX_IDENTIFIER_LEN)
+        if (lexeme.length() == MAX_IDENTIFIER_LEN) {
             throw IdentifierTooLongException(_position);
+        }
 
         lexeme += _character;
         _get_next_char();
@@ -62,8 +65,9 @@ Token Lexer::_build_literal_string() {
     _get_next_char();
 
     while (token_value.length() < MAX_STR_LITERAL_LEN and _character != '\"') {
-        if (_character == '\n' or _character == EOF_CHAR)
+        if (_character == '\n' or _character == EOF_CHAR) {
             throw UnfinishedStringException(_position);
+        }
         if (_character == '\\') {
             _get_next_char();
             switch (_character) {
@@ -95,8 +99,9 @@ Token Lexer::_build_literal_string() {
 }
 
 std::optional<Token> Lexer::_try_build_literal_int_or_float() {
-    if (not std::isdigit(_character))
+    if (not std::isdigit(_character)) {
         return std::nullopt;
+    }
 
     Position position{_position};
     int digit{_character - '0'};
@@ -105,7 +110,8 @@ std::optional<Token> Lexer::_try_build_literal_int_or_float() {
 
     if (integer_value) {
         while (std::isdigit(_character)) {
-            if (integer_value > (std::numeric_limits<int>::max() - digit) / 10) {  // equivalent to token_value * 10 + digit > INT_MAX
+            // equivalent to token_value * 10 + digit > INT_MAX
+            if (integer_value > (std::numeric_limits<int>::max() - digit) / 10) {
                 throw ParseIntOverflowException(position);
             }
             digit = _character - '0';
@@ -114,12 +120,14 @@ std::optional<Token> Lexer::_try_build_literal_int_or_float() {
         }
     }
 
-    if (_character != '.')
+    if (_character != '.') {
         return Token{TokenType::T_LITERAL_INT, position, integer_value};
+    }
     _get_next_char();
 
-    if (not std::isdigit(_character))
+    if (not std::isdigit(_character)) {
         throw UnexpectedCharacterException(_position, _character);
+    }
 
     unsigned long fraction_value{0};
     int fraction_digits{1};
@@ -130,9 +138,9 @@ std::optional<Token> Lexer::_try_build_literal_int_or_float() {
     while (std::isdigit(_character)) {
         digit = _character - '0';
 
-        if (fraction_value > (std::numeric_limits<unsigned long>::max() - digit) / 10)  // lets say 20 decimal nums will be enough
+        if (fraction_value > (std::numeric_limits<unsigned long>::max() - digit) / 10) {
             throw ParseFractionRangeExceededException(position);
-
+        }
         fraction_value = fraction_value * 10 + digit;
         fraction_digits += 1;
         _get_next_char();
@@ -152,8 +160,7 @@ std::function<Token(Lexer&)> Lexer::_create_unequivocal_operator_builder(TokenTy
     };
 }
 
-std::function<Token(Lexer&)> Lexer::_create_equivocal_operator_builder(TokenType type,
-                                                                       char lookahead_char,
+std::function<Token(Lexer&)> Lexer::_create_equivocal_operator_builder(TokenType type, char lookahead_char,
                                                                        TokenType extended_type) {
     return [type, lookahead_char, extended_type](Lexer& lexer) -> Token {
         Position position{lexer._position};
@@ -168,27 +175,90 @@ std::function<Token(Lexer&)> Lexer::_create_equivocal_operator_builder(TokenType
 }
 
 const std::unordered_map<std::string, std::function<Token(Position)>> Lexer::_keywords_build_map = {
-    {"int", [](Position pos) { return Token{TokenType::T_INT, pos}; }},
-    {"float", [](Position pos) { return Token{TokenType::T_FLOAT, pos}; }},
-    {"bool", [](Position pos) { return Token{TokenType::T_BOOL, pos}; }},
-    {"string", [](Position pos) { return Token{TokenType::T_STRING, pos}; }},
-    {"function", [](Position pos) { return Token{TokenType::T_FUNCTION, pos}; }},
-    {"none", [](Position pos) { return Token{TokenType::T_NONE, pos}; }},
-    {"not", [](Position pos) { return Token{TokenType::T_NOT, pos}; }},
-    {"and", [](Position pos) { return Token{TokenType::T_AND, pos}; }},
-    {"or", [](Position pos) { return Token{TokenType::T_OR, pos}; }},
-    {"def", [](Position pos) { return Token{TokenType::T_DEF, pos}; }},
-    {"let", [](Position pos) { return Token{TokenType::T_LET, pos}; }},
-    {"mut", [](Position pos) { return Token{TokenType::T_MUT, pos}; }},
-    {"as", [](Position pos) { return Token{TokenType::T_AS, pos}; }},
-    {"if", [](Position pos) { return Token{TokenType::T_IF, pos}; }},
-    {"else", [](Position pos) { return Token{TokenType::T_ELSE, pos}; }},
-    {"break", [](Position pos) { return Token{TokenType::T_BREAK, pos}; }},
-    {"continue", [](Position pos) { return Token{TokenType::T_CONTINUE, pos}; }},
-    {"return", [](Position pos) { return Token{TokenType::T_RETURN, pos}; }},
-    {"for", [](Position pos) { return Token{TokenType::T_FOR, pos}; }},
-    {"true", [](Position pos) { return Token{TokenType::T_LITERAL_BOOL, pos, true}; }},
-    {"false", [](Position pos) { return Token{TokenType::T_LITERAL_BOOL, pos, false}; }},
+    {"int",
+     [](Position pos) {
+         return Token{TokenType::T_INT, pos};
+     }},
+    {"float",
+     [](Position pos) {
+         return Token{TokenType::T_FLOAT, pos};
+     }},
+    {"bool",
+     [](Position pos) {
+         return Token{TokenType::T_BOOL, pos};
+     }},
+    {"string",
+     [](Position pos) {
+         return Token{TokenType::T_STRING, pos};
+     }},
+    {"function",
+     [](Position pos) {
+         return Token{TokenType::T_FUNCTION, pos};
+     }},
+    {"none",
+     [](Position pos) {
+         return Token{TokenType::T_NONE, pos};
+     }},
+    {"not",
+     [](Position pos) {
+         return Token{TokenType::T_NOT, pos};
+     }},
+    {"and",
+     [](Position pos) {
+         return Token{TokenType::T_AND, pos};
+     }},
+    {"or",
+     [](Position pos) {
+         return Token{TokenType::T_OR, pos};
+     }},
+    {"def",
+     [](Position pos) {
+         return Token{TokenType::T_DEF, pos};
+     }},
+    {"let",
+     [](Position pos) {
+         return Token{TokenType::T_LET, pos};
+     }},
+    {"mut",
+     [](Position pos) {
+         return Token{TokenType::T_MUT, pos};
+     }},
+    {"as",
+     [](Position pos) {
+         return Token{TokenType::T_AS, pos};
+     }},
+    {"if",
+     [](Position pos) {
+         return Token{TokenType::T_IF, pos};
+     }},
+    {"else",
+     [](Position pos) {
+         return Token{TokenType::T_ELSE, pos};
+     }},
+    {"break",
+     [](Position pos) {
+         return Token{TokenType::T_BREAK, pos};
+     }},
+    {"continue",
+     [](Position pos) {
+         return Token{TokenType::T_CONTINUE, pos};
+     }},
+    {"return",
+     [](Position pos) {
+         return Token{TokenType::T_RETURN, pos};
+     }},
+    {"for",
+     [](Position pos) {
+         return Token{TokenType::T_FOR, pos};
+     }},
+    {"true",
+     [](Position pos) {
+         return Token{TokenType::T_LITERAL_BOOL, pos, true};
+     }},
+    {"false",
+     [](Position pos) {
+         return Token{TokenType::T_LITERAL_BOOL, pos, false};
+     }},
 };
 
 const std::unordered_map<char, std::function<Token(Lexer&)>> Lexer::_simple_builders_map = {
@@ -209,7 +279,8 @@ const std::unordered_map<char, std::function<Token(Lexer&)>> Lexer::_simple_buil
     {'=', _create_equivocal_operator_builder(TokenType::T_ASSIGN, '=', TokenType::T_EQUAL)},
     {'<', _create_equivocal_operator_builder(TokenType::T_LESS, '=', TokenType::T_LESS_EQUAL)},
     {'\"', [](Lexer& lexer) -> Token { return lexer._build_literal_string(); }},
-    {'>', [](Lexer& lexer) -> Token {  // can be >, >= or >>
+    {'>',
+     [](Lexer& lexer) -> Token {  // can be >, >= or >>
          Position position{lexer._position};
          lexer._get_next_char();
 
@@ -222,15 +293,16 @@ const std::unordered_map<char, std::function<Token(Lexer&)>> Lexer::_simple_buil
          }
          return Token{TokenType::T_GREATER, position};
      }},
-    {'!', [](Lexer& lexer) -> Token {
+    {'!',
+     [](Lexer& lexer) -> Token {
          Position position{lexer._position};
          lexer._get_next_char();
-         if (lexer._character != '=')
-             throw UnexpectedCharacterException(position, lexer._character);
+         if (lexer._character != '=') throw UnexpectedCharacterException(position, lexer._character);
          lexer._get_next_char();
          return Token{TokenType::T_NOT_EQUAL, position};
      }},
-    {'#', [](Lexer& lexer) -> Token {
+    {'#',
+     [](Lexer& lexer) -> Token {
          Position position{lexer._position};
          std::string token_value{};
          lexer._get_next_char();

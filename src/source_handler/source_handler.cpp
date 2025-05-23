@@ -1,7 +1,6 @@
 #include "source_handler.hpp"
 
-SourceHandler::SourceHandler(std::unique_ptr<std::istream> source)
-    : _source{std::move(source)}, _position{} {}
+SourceHandler::SourceHandler(std::unique_ptr<std::istream> source) : _source{std::move(source)}, _position{} {}
 
 std::pair<char, Position> SourceHandler::get_char_and_position() {
     char current_char = _get_char();
@@ -14,11 +13,13 @@ std::pair<char, Position> SourceHandler::get_char_and_position() {
 char SourceHandler::_get_char() {
     char c;
 
-    if (not _source->get(c))
+    if (not _source->get(c)) {
         return EOF_CHAR;
+    }
 
-    if (c == CR_CHAR and _source->peek() == LF_CHAR)
+    if (c == CR_CHAR and _source->peek() == LF_CHAR) {
         _source->get(c);
+    }
 
     return c;
 }
