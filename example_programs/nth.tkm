@@ -1,0 +1,14 @@
+def nth_fibonacci(n: int) -> int {
+    if (n <= 1) {
+        return n;
+    }
+
+    return nth_fibonacci(n - 1) + nth_fibonacci(n - 2);
+}
+
+def main() -> int {
+    let n: int = 5;
+
+    print("For " + n as string + " sequence number is " + nth_fibonacci(n) as string);
+    return 0;
+}

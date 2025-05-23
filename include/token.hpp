@@ -48,8 +48,9 @@ class Token {
  */
 template <typename T>
 T Token::get_value_as() const {
-    if (auto value = std::get_if<T>(&_value))
+    if (auto value = std::get_if<T>(&_value)) {
         return *value;
+    }
     throw InvalidGetTokenValueError(this->repr());
 }
 

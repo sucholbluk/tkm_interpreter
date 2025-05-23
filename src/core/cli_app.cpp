@@ -1,26 +1,26 @@
+#include "cli_app.hpp"
+
 #include <boost/program_options.hpp>
 #include <fstream>
 #include <iostream>
 
 #include "lexer.hpp"
 #include "logging_lexer.hpp"
-#include "program.hpp"
+#include "parser.hpp"
+#include "verbose_parser.hpp"
 
 namespace p_opt = boost::program_options;
 
-Program::Program(int argc, char* const argv[]) : _use_stdin{false}, _verbose{false} {
+CLIApp::CLIApp(int argc, char* const argv[]) : _use_stdin{false}, _verbose{false} {
     _parse_args(argc, argv);
     _initialize_components();
 }
 
-void Program::run() {
-    Token current_token{_lexer->get_next_token()};
-    do {
-        current_token = _lexer->get_next_token();
-    } while (current_token.get_type() != TokenType::T_EOF);
+void CLIApp::run() {
+    _parser->parse_program();
 }
 
-void Program::_parse_args(int argc, char* const argv[]) {
+void CLIApp::_parse_args(int argc, char* const argv[]) {
     p_opt::options_description desc{"available options:"};
     p_opt::options_description hidden{"positional arguments:"};
     p_opt::positional_options_description p;
@@ -39,28 +39,31 @@ void Program::_parse_args(int argc, char* const argv[]) {
     p_opt::notify(vm);
 
     if (vm.count("help") or (_input_filename.empty() and not _use_stdin)) {
-        std::cout << "usage: ./TKM_Compiler [file] [options]\n"
-                  << desc << "\n";
+        std::cout << "usage: ./TKM_Compiler [file] [options]\n" << desc << "\n";
         exit(0);
     }
 }
 
-void Program::_initialize_components() {
+void CLIApp::_initialize_components() {
     std::unique_ptr<std::istream> input_stream;
-    // tymczasowe rozwiązanie
+    // tymczasowe rozwiązanie - potem naprawie ten syf
     if (_use_stdin) {
         input_stream = std::make_unique<std::istream>(std::cin.rdbuf());
     } else {
         auto file_stream = std::make_unique<std::ifstream>(_input_filename);
-        if (!file_stream->is_open())
-            throw FileOpenException(_input_filename);
+        if (!file_stream->is_open()) throw FileOpenException(_input_filename);
 
         input_stream = std::move(file_stream);
     }
 
     std::unique_ptr<SourceHandler> source_handler = std::make_unique<SourceHandler>(std::move(input_stream));
-    _lexer = std::make_unique<Lexer>(std::move(source_handler));
+    std::unique_ptr<ILexer> _lexer = std::make_unique<Lexer>(std::move(source_handler));
     if (_verbose) {
         _lexer = std::make_unique<LoggingLexer>(std::move(_lexer));
+    }
+    _parser = std::make_unique<Parser>(std::move(_lexer));
+
+    if (_verbose) {
+        _parser = std::make_unique<VerboseParser>(std::move(_parser));
     }
 }

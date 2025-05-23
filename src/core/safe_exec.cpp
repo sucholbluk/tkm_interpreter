@@ -12,6 +12,8 @@ void safe_exec::run_safe(const std::function<void()>& task) noexcept {
         spdlog::error("[IMPLEMENTATION ERROR!!!]: {} msg: {}", typeid(e).name(), e.what());
     } catch (const LexerException& e) {
         spdlog::error("{} message: {}", typeid(e).name(), e.what());
+    } catch (const ParserException& e) {
+        spdlog::error("SyntaxError: {}", e.what());
     } catch (const FileOpenException& e) {
         spdlog::error("FileOpenException: {}", e.what());
     } catch (const std::exception& e) {

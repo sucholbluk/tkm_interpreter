@@ -1,7 +1,7 @@
 #ifndef EXCEPTIONS_HPP
 #define EXCEPTIONS_HPP
 
-#endif  // EXCEPTIONS_HPP
+#include <format>
 #include <stdexcept>
 #include <string>
 
@@ -13,22 +13,23 @@
  */
 class ImplementationError : public std::logic_error {
    public:
-    explicit ImplementationError(const std::string& message)
-        : std::logic_error(message) {}
+    explicit ImplementationError(const std::string& message);
 };
+/* -----------------------------------------------------------------------------*
+ *                                LEXER ERRORS                                  *
+ *------------------------------------------------------------------------------*/
+
 /*
  * @brief Base for errors in checked code.
  */
 class LexerException : public std::runtime_error {
    public:
-    explicit LexerException(const std::string& message)
-        : std::runtime_error(message) {}
+    explicit LexerException(const std::string& message);
 };
 
 class FileOpenException : public std::runtime_error {
    public:
-    explicit FileOpenException(const std::string& filename)
-        : std::runtime_error("Failed to open file: " + filename) {}
+    explicit FileOpenException(const std::string& filename);
 };
 
 /*
@@ -36,8 +37,7 @@ class FileOpenException : public std::runtime_error {
  */
 class InvalidTokenValueError : public ImplementationError {
    public:
-    explicit InvalidTokenValueError(const TokenType& type)
-        : ImplementationError(std::string{"Invalid token value for"} + type_to_str(type)) {}
+    explicit InvalidTokenValueError(const TokenType& type);
 };
 
 /*
@@ -45,8 +45,7 @@ class InvalidTokenValueError : public ImplementationError {
  */
 class InvalidGetTokenValueError : public ImplementationError {
    public:
-    explicit InvalidGetTokenValueError(const std::string& message)
-        : ImplementationError("Invalid get_value in token: " + message) {}
+    explicit InvalidGetTokenValueError(const std::string& message);
 };
 
 /*
@@ -54,8 +53,7 @@ class InvalidGetTokenValueError : public ImplementationError {
  */
 class UnexpectedCharacterException : public LexerException {
    public:
-    explicit UnexpectedCharacterException(const Position& position, char character)
-        : LexerException(std::string("Unexpected char:") + character + " at: " + position.get_position_str()) {}
+    explicit UnexpectedCharacterException(const Position& position, char character);
 };
 
 /*
@@ -63,8 +61,7 @@ class UnexpectedCharacterException : public LexerException {
  */
 class ParseIntOverflowException : public LexerException {
    public:
-    explicit ParseIntOverflowException(const Position& position)
-        : LexerException("Value too large at : " + position.get_position_str()) {}
+    explicit ParseIntOverflowException(const Position& position);
 };
 
 /*
@@ -72,8 +69,7 @@ class ParseIntOverflowException : public LexerException {
  */
 class ParseFractionRangeExceededException : public LexerException {
    public:
-    explicit ParseFractionRangeExceededException(const Position& position)
-        : LexerException(std::string("Exceeded max fraction precision parsing value at: ") + position.get_position_str()) {}
+    explicit ParseFractionRangeExceededException(const Position& position);
 };
 
 /*
@@ -81,8 +77,7 @@ class ParseFractionRangeExceededException : public LexerException {
  */
 class UnfinishedStringException : public LexerException {
    public:
-    explicit UnfinishedStringException(const Position& position)
-        : LexerException("String literal build interrupted by newline at: " + position.get_position_str()) {}
+    explicit UnfinishedStringException(const Position& position);
 };
 
 /*
@@ -90,7 +85,198 @@ class UnfinishedStringException : public LexerException {
  */
 class IdentifierTooLongException : public LexerException {
    public:
-    explicit IdentifierTooLongException(const Position& position)
-        : LexerException(std::string{"Identifier at: "} + position.get_position_str() +
-                         +", exceeds max identifier len: " + std::to_string(MAX_IDENTIFIER_LEN)) {}
+    explicit IdentifierTooLongException(const Position& position);
 };
+/* -----------------------------------------------------------------------------*
+ *                               PARSER ERRORS                                  *
+ *------------------------------------------------------------------------------*/
+class ParserException : public std::runtime_error {
+   public:
+    explicit ParserException(const std::string& message);
+};
+
+class ExpectedFuncOrEOFException : public ParserException {
+   public:
+    explicit ExpectedFuncOrEOFException(const Position& position);
+};
+
+class ExpectedFunctionBodyException : public ParserException {
+   public:
+    explicit ExpectedFunctionBodyException(const std::string& function_name, const Position& position);
+};
+
+class ExpectedFuncIdentException : public ParserException {
+   public:
+    explicit ExpectedFuncIdentException(const Position& position);
+};
+
+class ExpectedArgListException : public ParserException {
+   public:
+    explicit ExpectedArgListException(const Position& position);
+};
+
+class ExpectedTypeSpecException : public ParserException {
+   public:
+    explicit ExpectedTypeSpecException(const Position& position);
+};
+
+class ExpectedTypeException : public ParserException {
+   public:
+    explicit ExpectedTypeException(const Position& position);
+};
+
+class ExpectedTypedIdentifierException : public ParserException {
+   public:
+    explicit ExpectedTypedIdentifierException(const Position& position);
+};
+
+class ExpectedAssignmentException : public ParserException {
+   public:
+    explicit ExpectedAssignmentException(const Position& position);
+};
+
+class ExpectedTypeForTypeCastException : public ParserException {
+   public:
+    explicit ExpectedTypeForTypeCastException(const Position& position);
+};
+
+class ExpectedExprAfterOrException : public ParserException {
+   public:
+    explicit ExpectedExprAfterOrException(const Position& position);
+};
+
+class ExpectedExprAfterAndException : public ParserException {
+   public:
+    explicit ExpectedExprAfterAndException(const Position& position);
+};
+
+class ExpectedExprAfterEqualityException : public ParserException {
+   public:
+    explicit ExpectedExprAfterEqualityException(const Position& position);
+};
+
+class ExpectedExprAfterComparisonException : public ParserException {
+   public:
+    explicit ExpectedExprAfterComparisonException(const Position& position);
+};
+
+class ExpectedExprAfterAdditiveException : public ParserException {
+   public:
+    explicit ExpectedExprAfterAdditiveException(const Position& position);
+};
+
+class ExpectedExprAfterMultiplicativeException : public ParserException {
+   public:
+    explicit ExpectedExprAfterMultiplicativeException(const Position& position);
+};
+
+class ExpectedExprAfterUnaryException : public ParserException {
+   public:
+    explicit ExpectedExprAfterUnaryException(const Position& position);
+};
+
+class ExpectedExprAfterFuncCompException : public ParserException {
+   public:
+    explicit ExpectedExprAfterFuncCompException(const Position& position);
+};
+
+class ExpectedBindFrontOperatorException : public ParserException {
+   public:
+    explicit ExpectedBindFrontOperatorException(const Position& position);
+};
+
+class ExpectedBindFrontTargetException : public ParserException {
+   public:
+    explicit ExpectedBindFrontTargetException(const Position& position);
+};
+
+class ExpectedIfConditionException : public ParserException {
+   public:
+    explicit ExpectedIfConditionException(const Position& position);
+};
+
+class ExpectedConditionalStatementBodyException : public ParserException {
+   public:
+    explicit ExpectedConditionalStatementBodyException(const Position& position);
+};
+
+class ExpectedLoopVarDeclException : public ParserException {
+   public:
+    explicit ExpectedLoopVarDeclException(const Position& position);
+};
+
+class ExpectedLoopConditionException : public ParserException {
+   public:
+    explicit ExpectedLoopConditionException(const Position& position);
+};
+
+class ExpectedLoopBodyException : public ParserException {
+   public:
+    explicit ExpectedLoopBodyException(const Position& position);
+};
+
+class ExpectedExprException : public ParserException {
+   public:
+    explicit ExpectedExprException(const Position& position);
+};
+
+class ExpectedLoopVarUpdateException : public ParserException {
+   public:
+    explicit ExpectedLoopVarUpdateException(const Position& position);
+};
+
+class InvalidAssignTargetException : public ParserException {
+   public:
+    explicit InvalidAssignTargetException(const Position& position);
+};
+
+class InvalidFunctionParamTypeException : public ParserException {
+   public:
+    explicit InvalidFunctionParamTypeException(const Position& position);
+};
+
+class ExpectedArrowException : public ParserException {
+   public:
+    explicit ExpectedArrowException(const Position& position);
+};
+
+class ExpectedSemicolException : public ParserException {
+   public:
+    explicit ExpectedSemicolException(const Position& position);
+};
+
+class ExpectedRBraceException : public ParserException {
+   public:
+    explicit ExpectedRBraceException(const Position& position);
+};
+
+class ExpectedLParenException : public ParserException {
+   public:
+    explicit ExpectedLParenException(const Position& position);
+};
+
+class ExpectedRParenException : public ParserException {
+   public:
+    explicit ExpectedRParenException(const Position& position);
+};
+
+class ExpectedColException : public ParserException {
+   public:
+    explicit ExpectedColException(const Position& position);
+};
+
+class ExpectedLessException : public ParserException {
+   public:
+    explicit ExpectedLessException(const Position& position);
+};
+
+class ExpectedGreaterException : public ParserException {
+   public:
+    explicit ExpectedGreaterException(const Position& position);
+};
+
+class ExpectedIdentifierException : public ParserException {
+   public:
+    explicit ExpectedIdentifierException(const Position& position);
+};
+#endif  // EXCEPTIONS_HPP

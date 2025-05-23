@@ -2,10 +2,10 @@
 BasedOnStyle: Google
 IndentWidth: 4
 UseTab: Never
-ColumnLimit: 0
+ColumnLimit: 120
 PointerAlignment: Left
 SpacesBeforeTrailingComments: 2
-AllowShortFunctionsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: Empty
 NamespaceIndentation: None
 
 

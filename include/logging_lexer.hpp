@@ -6,7 +6,7 @@
 #include "ilexer.hpp"
 
 /*
- * @brief Decorator for a lexer that adds logging functionality.
+ * @brief Decorator for lexer that adds logging functionality.
  */
 class LoggingLexer : public ILexer {
    public:
