@@ -5,6 +5,10 @@
 #include <optional>
 #include <vector>
 
+/**
+ * @ingroup parser
+ * @brief Possible type kinds.
+ */
 enum class TypeKind {
     INT,
     FLOAT,
@@ -14,7 +18,10 @@ enum class TypeKind {
 };
 
 struct FunctionTypeInfo;
-
+/**
+ * @ingroup parser
+ * @brief Type representation.
+ */
 struct Type {
     TypeKind kind;
     std::shared_ptr<FunctionTypeInfo> function_type_info = nullptr;
@@ -25,7 +32,10 @@ struct Type {
 
     std::string to_str() const;
 };
-
+/**
+ * @ingroup parser
+ * @brief Contains type kind and mutability information.
+ */
 struct VariableType {
     Type type;
     bool is_mutable = false;
@@ -37,6 +47,10 @@ struct VariableType {
 
 // empty param_types vector means that function is of type function<none:XXX>
 // non-existent return_type means the function is of type function<XXX:none>
+/**
+ * @ingroup parser
+ * @brief Contains function parameter types and return type.
+ */
 struct FunctionTypeInfo {
     std::vector<VariableType> param_types;
     std::optional<Type> return_type;

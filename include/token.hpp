@@ -9,7 +9,8 @@
 
 using optional_token_value = std::variant<std::monostate, int, double, bool, std::string>;
 
-/*
+/**
+ * @ingroup lexer
  * @brief Class representing Token
  *
  * There are 6 posible @ref Token Types that have value:
@@ -41,7 +42,7 @@ class Token {
     std::string _stringify_value() const;
 };
 
-/*
+/**
  * @brief Tries to return value of requested type.
  *
  * Usage must follow logic: check token type -> request the right type

@@ -5,7 +5,10 @@
 #include "visitor.hpp"
 
 struct Expression;
-
+/**
+ * @ingroup parser
+ * @brief Visitor that prints the program tree.
+ */
 class Printer : public Visitor {
    public:
     void visit(const Program& program) override;

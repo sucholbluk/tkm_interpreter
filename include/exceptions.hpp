@@ -8,6 +8,12 @@
 #include "constants.hpp"
 #include "position.hpp"
 #include "token_type.hpp"
+/**
+ * @defgroup exceptions Exceptions
+ * @brief Exceptions used in the project.
+ * @{
+ */
+
 /*
  * @brief Base for other errors that originate in program's incorrect code.
  */
@@ -279,4 +285,5 @@ class ExpectedIdentifierException : public ParserException {
    public:
     explicit ExpectedIdentifierException(const Position& position);
 };
+/** @} */
 #endif  // EXCEPTIONS_HPP

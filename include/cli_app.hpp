@@ -6,7 +6,13 @@
 #include "ilexer.hpp"
 #include "iparser.hpp"
 
-/*
+/**
+ * @defgroup app_core Application Core
+ * @brief Module responsible for the CLI and handling program execution with information.
+ */
+
+/**
+ * @ingroup app_core
  * @brief to represent program
  *
  * Perhaps to break into smaller pieces in future

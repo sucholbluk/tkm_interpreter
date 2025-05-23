@@ -2,6 +2,10 @@
 #define VERBOSE_PARSER_HPP
 
 #include "iparser.hpp"
+/**
+ * @ingroup parser
+ * @brief Decorator for parser that adds logging functionality.
+ */
 class VerboseParser : public IParser {
    public:
     explicit VerboseParser(std::unique_ptr<IParser> real_parser);

@@ -1,7 +1,8 @@
 #ifndef TOKEN_TYPE_HPP
 #define TOKEN_TYPE_HPP
 #include <string>
-/*
+/**
+ * @ingroup lexer
  * @brief Class to represent token types
  */
 enum class TokenType {

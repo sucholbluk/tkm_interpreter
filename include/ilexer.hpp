@@ -2,7 +2,8 @@
 #define ILEXER_HPP
 
 #include "token.hpp"
-/*
+/**
+ * @ingroup lexer
  * @brief Interface for lexer component.
  */
 class ILexer {

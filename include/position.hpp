@@ -4,7 +4,13 @@
 #include <ostream>
 #include <string>
 
-/*
+/**
+ * @defgroup position Position
+ * @brief Module responsible for position representation.
+ */
+
+/**
+ * @ingroup position
  * @brief Position representation. Allowes to advance itself to the next column/line
  */
 class Position {

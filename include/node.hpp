@@ -3,6 +3,10 @@
 #include "position.hpp"
 #include "visitor.hpp"
 
+/**
+ * @ingroup parser
+ * @brief Node base class for
+ */
 struct Node {
     explicit Node(const Position& position);
     Position position;

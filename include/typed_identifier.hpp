@@ -5,6 +5,10 @@
 #include "node.hpp"
 #include "type.hpp"
 
+/**
+ * @ingroup parser
+ * @brief EBNF TypedIdentifier representation.
+ */
 struct TypedIdentifier : public Node {
     std::string name;
     VariableType type;

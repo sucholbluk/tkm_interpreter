@@ -9,7 +9,15 @@
 #include "iparser.hpp"
 #include "program.hpp"
 #include "statement.hpp"
+/**
+ * @defgroup parser Parser
+ * @brief Module responsible for syntax analysis of the source code.
+ */
 
+/**
+ * @ingroup parser
+ * @brief Concrete Parser. Builds tree representation on request.
+ */
 class Parser : public IParser {
    public:
     Parser(std::unique_ptr<ILexer> lexer);

@@ -6,6 +6,10 @@
 #include "node.hpp"
 #include "type.hpp"
 
+/**
+ * @ingroup parser
+ * @brief Possible expression kinds.
+ */
 enum class ExprKind {
     LOGICAL_OR,
     LOGICAL_AND,
@@ -34,6 +38,10 @@ enum class ExprKind {
 
 std::string expr_kind_to_str(const ExprKind& expr_kind);
 
+/**
+ * @ingroup parser
+ * @brief Base class for all expressions.
+ */
 struct Expression : Node {
     explicit Expression(const Position& position, ExprKind expr_kind);
     ExprKind kind;
@@ -42,6 +50,10 @@ struct Expression : Node {
 using up_expression = std::unique_ptr<Expression>;
 using up_expression_vec = std::vector<up_expression>;
 
+/**
+ * @ingroup parser
+ * @brief Binary expression representation.
+ */
 struct BinaryExpression : Expression {
     explicit BinaryExpression(ExprKind kind, up_expression left, up_expression right);
     up_expression left;
@@ -52,7 +64,10 @@ struct BinaryExpression : Expression {
     static const std::unordered_set<ExprKind> binary_kinds;
     static std::unique_ptr<BinaryExpression> create(ExprKind kind, up_expression left, up_expression right);
 };
-
+/**
+ * @ingroup parser
+ * @brief Unary expression representation.
+ */
 struct UnaryExpression : Expression {
     explicit UnaryExpression(const Position& position, ExprKind kind, up_expression expr);
     up_expression expr;
@@ -63,6 +78,10 @@ struct UnaryExpression : Expression {
     static std::unique_ptr<UnaryExpression> create(const Position& position, ExprKind kind, up_expression expr);
 };
 
+/**
+ * @ingroup parser
+ * @brief Function call representation.
+ */
 struct FunctionCall : Expression {
     explicit FunctionCall(up_expression callee, up_expression_vec argument_list);
     up_expression callee;
@@ -71,6 +90,10 @@ struct FunctionCall : Expression {
     void accept(Visitor& visitor) const override;
 };
 
+/**
+ * @ingroup parser
+ * @brief Bind front representation.
+ */
 struct BindFront : Expression {
     explicit BindFront(const Position& position, up_expression_vec argument_list, up_expression target);
     up_expression_vec argument_list;
@@ -79,6 +102,10 @@ struct BindFront : Expression {
     void accept(Visitor& visitor) const override;
 };
 
+/**
+ * @ingroup parser
+ * @brief Type cast representation.
+ */
 struct TypeCastExpression : Expression {
     explicit TypeCastExpression(up_expression expr, Type target_type);
     up_expression expr;
@@ -87,13 +114,20 @@ struct TypeCastExpression : Expression {
     void accept(Visitor& visitor) const override;
 };
 
+/**
+ * @ingroup parser
+ * @brief Identifier as expression representation.
+ */
 struct Identifier : Expression {
     explicit Identifier(const Position& position, std::string name);
     std::string name;
 
     void accept(Visitor& visitor) const override;
 };
-
+/**
+ * @ingroup parser
+ * @brief Literal integer representation.
+ */
 struct LiteralInt : Expression {
     explicit LiteralInt(const Position& position, int value);
     Type type;
@@ -101,7 +135,10 @@ struct LiteralInt : Expression {
 
     void accept(Visitor& visitor) const override;
 };
-
+/**
+ * @ingroup parser
+ * @brief Literal float representation.
+ */
 struct LiteralFloat : Expression {
     explicit LiteralFloat(const Position& position, double value);
     Type type = Type(TypeKind::INT);
@@ -110,6 +147,10 @@ struct LiteralFloat : Expression {
     void accept(Visitor& visitor) const override;
 };
 
+/**
+ * @ingroup parser
+ * @brief Literal string representation.
+ */
 struct LiteralString : Expression {
     explicit LiteralString(const Position& position, std::string value);
     Type type = Type(TypeKind::STRING);
@@ -118,6 +159,10 @@ struct LiteralString : Expression {
     void accept(Visitor& visitor) const override;
 };
 
+/**
+ * @ingroup parser
+ * @brief Literal boolean representation.
+ */
 struct LiteralBool : Expression {
     explicit LiteralBool(const Position& position, bool value);
     Type type = Type(TypeKind::BOOL);

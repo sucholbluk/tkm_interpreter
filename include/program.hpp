@@ -6,7 +6,10 @@
 
 #include "node.hpp"
 #include "statement.hpp"
-
+/**
+ * @ingroup parser
+ * @brief Representation of the whole program.
+ */
 struct Program : public Node {
     Program(const Position& position, up_fun_def_vec function_definitions);
     void accept(Visitor& visitor) const override;

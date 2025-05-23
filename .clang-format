@@ -6,10 +6,4 @@ ColumnLimit: 120
 PointerAlignment: Left
 SpacesBeforeTrailingComments: 2
 AllowShortFunctionsOnASingleLine: Empty
-NamespaceIndentation: None
 
-
-BraceWrapping:
-  AfterFunction: true
-  AfterControlStatement: true
-  AfterClass: true

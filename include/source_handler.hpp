@@ -7,8 +7,14 @@
 #include "constants.hpp"
 #include "position.hpp"
 
-/*
- * @bref Class providing chars for @ref Lexer and controlling the positon in stream.
+/**
+ * @defgroup source_handler SourceHandler
+ * @brief Module responsible for reading characters from the source.
+ */
+
+/**
+ * @ingroup source_handler
+ * @brief Class providing chars for @ref Lexer and controlling the positon in stream.
  */
 class SourceHandler {
    public:

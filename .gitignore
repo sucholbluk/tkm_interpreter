@@ -47,6 +47,7 @@ include/divisible/*
 
 .idea/*.xml
 .vscode/**
+doxydoc/**/*
 
 build/**/*
 
