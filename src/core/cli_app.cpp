@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "interpreter.hpp"
 #include "lexer.hpp"
 #include "logging_lexer.hpp"
 #include "parser.hpp"
@@ -17,7 +18,9 @@ CLIApp::CLIApp(int argc, char* const argv[]) : _use_stdin{false}, _verbose{false
 }
 
 void CLIApp::run() {
-    _parser->parse_program();
+    std::unique_ptr<Program> program = _parser->parse_program();
+    Interpreter inter{};
+    program->accept(inter);
 }
 
 void CLIApp::_parse_args(int argc, char* const argv[]) {
