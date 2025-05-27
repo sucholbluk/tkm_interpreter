@@ -2,6 +2,7 @@ set(INTERPRETER_TEST_SOURCES
     test_interpreter.cpp
     test_type_handler.cpp
     test_scope.cpp
+    test_call_frame.cpp
 )
 
 find_package(Boost 1.88.0 REQUIRED COMPONENTS unit_test_framework)

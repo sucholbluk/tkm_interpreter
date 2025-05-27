@@ -8,9 +8,9 @@
  */
 class Scope {
    public:
-    sp_variable get_variable(std::string identifier);
+    sp_variable get_variable(const std::string& identifier);
     // to check if variable declared in scope
-    bool contains_variable(std::string identifier);
+    bool contains_variable(const std::string& identifier);
     void add_variable(std::string identifier, sp_variable variable);
 
    private:

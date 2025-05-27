@@ -10,7 +10,9 @@
  */
 class CallFrame {
    public:
-    void push_scope(const Scope& scope);
+    CallFrame() : _scopes{Scope{}} {}
+
+    void push_scope();
     void pop_scope();
     void add_variable(std::string identifier, sp_variable variable);
     sp_variable find_variable(const std::string& identifier);

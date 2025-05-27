@@ -4,6 +4,7 @@ add_library(interpreter STATIC
     builtin_functions.cpp
     type_handler.cpp
     scope.cpp
+    call_frame.cpp
 )
 
 target_link_libraries(interpreter PUBLIC parser)
