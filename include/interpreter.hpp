@@ -2,9 +2,9 @@
 #define INTERPRETER_HPP
 
 #include "call_frame.hpp"
+#include "environment.hpp"
 #include "visitor.hpp"
 
-class Callable;
 class PrintFunction;
 
 /**
@@ -18,7 +18,7 @@ class PrintFunction;
  */
 class Interpreter : public Visitor {
    public:
-    Interpreter();
+    Interpreter() = default;
     void visit(const Program& program) override;
 
     void visit(const ContinueStatement& continue_stmnt) override{};
@@ -46,8 +46,8 @@ class Interpreter : public Visitor {
     void visit(const TypedIdentifier& typed_ident) override{};
 
     //    private:
-    std::stack<CallFrame> _call_frame_stack;
-    std::unordered_map<std::string, std::shared_ptr<Callable>> _functions;
+    std::optional<value> _temp_result;
+    Environment env;
 
     void _register_function(const FunctionDefinition& function);
     void _execute_main(const Program& program);

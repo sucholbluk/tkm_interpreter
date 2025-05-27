@@ -1,4 +1,10 @@
-add_library(interpreter STATIC interpreter.cpp global_function.cpp)
+add_library(interpreter STATIC 
+    interpreter.cpp
+    global_function.cpp
+    builtin_functions.cpp
+    type_handler.cpp
+    scope.cpp
+)
 
 target_link_libraries(interpreter PUBLIC parser)
 

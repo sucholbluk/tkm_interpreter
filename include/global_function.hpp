@@ -10,6 +10,7 @@ class GlobalFunction : public Callable {
    public:
     GlobalFunction(const FunctionDefinition& function);
     void call(Interpreter& interpreter, arg_list call_args) override{};
+    Type get_type() const override;
     ~GlobalFunction() = default;
 
    private:

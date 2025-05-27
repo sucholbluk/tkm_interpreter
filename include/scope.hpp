@@ -7,6 +7,7 @@
  * @brief Scope representation. Contains variables in scope.
  */
 class Scope {
+   public:
     sp_variable get_variable(std::string identifier);
     // to check if variable declared in scope
     bool contains_variable(std::string identifier);

@@ -1,6 +1,6 @@
 #ifndef CALL_FRAME_HPP
 #define CALL_FRAME_HPP
-#include <stack>
+#include <deque>
 
 #include "scope.hpp"
 
@@ -17,7 +17,7 @@ class CallFrame {
     bool is_in_current_scope(const std::string& identifier);
 
    private:
-    std::stack<Scope> _scope_stack;
+    std::deque<Scope> _scopes;
 };
 
 #endif  // CALL_FRAME_HPP
