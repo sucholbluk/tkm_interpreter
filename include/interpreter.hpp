@@ -47,10 +47,9 @@ class Interpreter : public Visitor {
 
     //    private:
     std::optional<value> _temp_result;
-    // Environment env;
+    Environment _env;
 
-    void _register_function(const FunctionDefinition& function);
-    void _execute_main(const Program& program);
+    void _execute_main();
 };
 
 #endif  // INTERPRETER_HPP

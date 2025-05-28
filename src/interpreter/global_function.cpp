@@ -9,3 +9,7 @@ GlobalFunction::GlobalFunction(const FunctionDefinition& function) : _function{f
 Type GlobalFunction::get_type() const {
     return _function.signature->type;
 }
+
+namespace MainProperties {
+const Type type = Type{FunctionTypeInfo({}, Type{TypeKind::INT})};
+}

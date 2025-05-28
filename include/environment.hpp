@@ -12,7 +12,6 @@ class Environment {
     void register_function(const FunctionDefinition& function);
 
     void declare_variable(std::string identifier, VariableHolder var_holder);
-    void declare_variable(std::string identifier, value val);
 
     void calling_function();
     void exiting_function();
@@ -22,6 +21,7 @@ class Environment {
 
     bool var_in_current_scope(const std::string& identifier);
     std::optional<VariableHolder> get_by_identifier(const std::string& identifier);
+    std::shared_ptr<Callable> get_global_function(const std::string& identifier);
 
    private:
     std::unordered_map<std::string, std::shared_ptr<Callable>> _functions;

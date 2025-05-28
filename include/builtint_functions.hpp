@@ -12,14 +12,14 @@ using function_impl = std::function<void(Interpreter&, arg_list)>;
  */
 class BuiltinFunction : public Callable {
    public:
-    BuiltinFunction(Type type, function_impl& impl);
-    void call(Interpreter& interpreter, arg_list call_args) override{};
+    BuiltinFunction(Type type, function_impl impl);
+    void call(Interpreter& interpreter, arg_list call_args) override;
     Type get_type() const override;
     ~BuiltinFunction() = default;
 
    private:
     Type _type;
-    function_impl& _impl;
+    function_impl _impl;
 };
 
 struct BuiltinFunctionInfo {
