@@ -48,11 +48,11 @@ BOOST_AUTO_TEST_CASE(modify_variable_value_test) {
     auto var = std::make_shared<Variable>(VariableType{TypeHandler::deduce_type(7)}, 7);
     frame.add_variable("num", var);
 
-    // Modyfikacja wartości
+    // modification
     var->var_value = 99;
     auto found = frame.find_variable("num");
     BOOST_CHECK(found);
-    BOOST_CHECK(std::get<int>(found.value().var->var_value) == 99);
+    BOOST_CHECK(found.value().get_value_as<int>() == 99);
 
     // shadowing
     frame.push_scope();
@@ -61,10 +61,10 @@ BOOST_AUTO_TEST_CASE(modify_variable_value_test) {
     var2->var_value = 123;
     auto found2 = frame.find_variable("num");
     BOOST_CHECK(found2);
-    BOOST_CHECK(std::get<int>(found2.value().var->var_value) == 123);
+    BOOST_CHECK(found2.value().get_value_as<int>() == 123);
 
     frame.pop_scope();
     auto found3 = frame.find_variable("num");
     BOOST_CHECK(found3);
-    BOOST_CHECK(std::get<int>(found3.value().var->var_value) == 99);
+    BOOST_CHECK(found3.value().get_value_as<int>() == 99);
 }

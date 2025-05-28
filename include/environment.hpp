@@ -10,7 +10,9 @@ class Environment {
    public:
     Environment();
     void register_function(const FunctionDefinition& function);
-    void declare_variable();
+
+    void declare_variable(std::string identifier, VariableHolder var_holder);
+    void declare_variable(std::string identifier, value val);
 
     void calling_function();
     void exiting_function();
@@ -18,8 +20,8 @@ class Environment {
     void entering_block();
     void exiting_block();
 
-    bool var_in_current_scope(std::string identifier);
-    sp_variable get_by_identifier(std::string identifier);
+    bool var_in_current_scope(const std::string& identifier);
+    std::optional<VariableHolder> get_by_identifier(const std::string& identifier);
 
    private:
     std::unordered_map<std::string, std::shared_ptr<Callable>> _functions;

@@ -29,12 +29,44 @@ struct VariableHolder {
     Type get_type() const;
     sp_variable var;
     bool can_change_var;
+
+    template <typename T>
+    T get_value_as() const;
 };
 
 // to represent variable value
 // argument can be variable reference or rvalue -> to let variables be modified inside other functions
 using arg = std::variant<VariableHolder, value>;
 using arg_list = std::vector<arg>;
+
+template <typename T>
+T VariableHolder::get_value_as() const {
+    if (auto value = std::get_if<T>(&var->var_value)) {
+        return *value;
+    }
+    throw std::logic_error("impl err");  // TODO: change
+}
+
+template <typename T>
+T get_value_as(value val) {
+    if (auto value = std::get_if<T>(&val)) {
+        return *value;
+    }
+    throw std::logic_error("impl err");  // TODO: change
+}
+
+template <typename T>
+T get_value_as(arg argument) {
+    return std::visit(
+        []<typename U>(const U& argument) -> T {
+            if constexpr (std::same_as<VariableHolder, U>) {
+                return argument.template get_value_as<T>();
+            } else if constexpr (std::same_as<value, U>) {
+                return get_value_as<T>(argument);
+            }
+        },
+        argument);
+}
 
 std::ostream& operator<<(std::ostream& os, const VariableHolder& var_hold);
 std::ostream& operator<<(std::ostream& os, const value& v);
