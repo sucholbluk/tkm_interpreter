@@ -1,5 +1,6 @@
 #ifndef BUILTIN_FUNCTIONS_HPP
 #define BUILTIN_FUNCTIONS_HPP
+#include <array>
 #include <functional>
 
 #include "callable.hpp"
@@ -21,10 +22,14 @@ class BuiltinFunction : public Callable {
     function_impl& _impl;
 };
 
-namespace Builtins {
-extern const Type print_type;
-extern function_impl print_impl;
+struct BuiltinFunctionInfo {
+    std::string identifier;
+    Type type;
+    function_impl impl;
+};
 
+namespace Builtins {
+extern const std::array<BuiltinFunctionInfo, 1> builtin_function_infos;
 }  // namespace Builtins
 
 #endif  // BUILTIN_FUNCTIONS_HPP

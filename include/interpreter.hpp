@@ -47,7 +47,7 @@ class Interpreter : public Visitor {
 
     //    private:
     std::optional<value> _temp_result;
-    Environment env;
+    // Environment env;
 
     void _register_function(const FunctionDefinition& function);
     void _execute_main(const Program& program);

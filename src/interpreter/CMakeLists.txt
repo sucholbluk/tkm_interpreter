@@ -5,6 +5,9 @@ add_library(interpreter STATIC
     type_handler.cpp
     scope.cpp
     call_frame.cpp
+    "environment.cpp"
+    variable.cpp
+    callable.cpp
 )
 
 target_link_libraries(interpreter PUBLIC parser)

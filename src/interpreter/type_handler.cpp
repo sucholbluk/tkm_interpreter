@@ -1,8 +1,12 @@
 #include "type_handler.hpp"
 
+#include <algorithm>
+#include <ranges>
+
 #include "callable.hpp"
 
-Type TypeHandler::deduce_type(value val) {
+namespace TypeHandler {
+Type deduce_type(value val) {
     return std::visit(
         []<typename T>(const T& _val) -> Type {
             if constexpr (std::same_as<int, T>) {
@@ -19,3 +23,27 @@ Type TypeHandler::deduce_type(value val) {
         },
         val);
 }
+
+bool args_match_params(arg_list args, std::vector<VariableType> param_types) {
+    if (args.size() != param_types.size()) return false;
+
+    return std::ranges::all_of(std::views::iota(size_t{0}, args.size()),
+                               [&](size_t i) { return arg_matches_param(args[i], param_types[i]); });
+}
+
+bool arg_matches_param(arg argument, VariableType param_type) {
+    return std::visit(
+        [param_type]<typename T>(const T& argument) -> bool {
+            if constexpr (std::same_as<value, T>) {
+                return deduce_type(argument) == param_type.type;
+            } else if constexpr (std::same_as<VariableHolder, T>) {
+                if (param_type.is_mutable and not argument.can_change_var) return false;
+
+                // mutable variable can be passed as immutable variable - the other way no
+                return argument.get_type() == param_type.type;
+            }
+        },
+        argument);
+}
+
+}  // namespace TypeHandler

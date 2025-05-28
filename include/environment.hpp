@@ -8,6 +8,7 @@
 
 class Environment {
    public:
+    Environment();
     void register_function(const FunctionDefinition& function);
     void declare_variable();
 
@@ -21,7 +22,7 @@ class Environment {
     sp_variable get_by_identifier(std::string identifier);
 
    private:
-    std::unordered_map<std::string, std::shared_ptr<Callable>> _global_functions;
+    std::unordered_map<std::string, std::shared_ptr<Callable>> _functions;
     std::stack<CallFrame> _call_frames;
 };
 #endif  // ENVIRONMENT_HPP

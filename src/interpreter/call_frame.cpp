@@ -8,15 +8,15 @@ void CallFrame::pop_scope() {
     _scopes.pop_front();
 }
 
-void CallFrame::add_variable(std::string identifier, sp_variable variable) {
+void CallFrame::add_variable(std::string identifier, VariableHolder variable) {
     _scopes.front().add_variable(identifier, variable);
 }
 
-sp_variable CallFrame::find_variable(const std::string& identifier) {
+std::optional<VariableHolder> CallFrame::find_variable(const std::string& identifier) {
     for (auto& scope : _scopes) {
         if (auto var = scope.get_variable(identifier)) return var;
     }
-    return nullptr;
+    return std::nullopt;
 }
 
 bool CallFrame::is_in_current_scope(const std::string& identifier) {

@@ -8,13 +8,13 @@
  */
 class Scope {
    public:
-    sp_variable get_variable(const std::string& identifier);
+    std::optional<VariableHolder> get_variable(const std::string& identifier);
     // to check if variable declared in scope
     bool contains_variable(const std::string& identifier);
-    void add_variable(std::string identifier, sp_variable variable);
+    void add_variable(std::string identifier, VariableHolder variable);
 
    private:
-    std::unordered_map<std::string, sp_variable> _variables;
+    std::unordered_map<std::string, VariableHolder> _variables;
 };
 
 #endif  // SCOPE_HPP
