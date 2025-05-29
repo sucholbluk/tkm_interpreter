@@ -10,6 +10,7 @@
  */
 class CallFrame {
    public:
+    // scope for function params
     CallFrame() : _scopes{Scope{}} {}
 
     void push_scope();

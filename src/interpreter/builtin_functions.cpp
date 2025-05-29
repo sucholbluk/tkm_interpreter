@@ -1,4 +1,5 @@
 #include "builtint_functions.hpp"
+#include "type_handler.hpp"
 
 BuiltinFunction::BuiltinFunction(Type type, function_impl impl) : _type{type}, _impl{impl} {}
 
@@ -16,7 +17,7 @@ const Type _print_type{FunctionTypeInfo{std::vector<VariableType>{VariableType{T
 function_impl _print_impl = [](Interpreter& interpreter, arg_list args) {
     // interpreter will check if arg_list matches taken params - here we have:
     // string value or variable holder(values passed as references) of string type
-    std::cout << get_value_as<std::string>(args[0]) << std::endl;
+    std::cout << TypeHandler::get_value_as<std::string>(args[0]) << std::endl;
 };
 
 const std::array<BuiltinFunctionInfo, 1> builtin_function_infos{{

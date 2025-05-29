@@ -46,4 +46,18 @@ bool arg_matches_param(arg argument, VariableType param_type) {
         argument);
 }
 
+arg maybe_value_to_arg(const std::variant<std::monostate, VariableHolder, value>& maybe_val_or_holder) {
+    return std::visit(
+        []<typename T>(const T& v_or_vh) -> arg {
+            if constexpr (std::same_as<T, VariableHolder>) {
+                return v_or_vh;
+            } else if constexpr (std::same_as<T, value>) {
+                return v_or_vh;
+            } else if constexpr (std::same_as<T, std::monostate>) {
+                throw std::logic_error("impl err - check if not monostate before calling");
+            }
+        },
+        maybe_val_or_holder);
+}
+
 }  // namespace TypeHandler

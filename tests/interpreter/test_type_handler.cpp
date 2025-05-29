@@ -78,3 +78,32 @@ BOOST_AUTO_TEST_CASE(var_match_type_test) {
     // should be invalid for mutable param type - variables are passed by reference
     BOOST_CHECK(not TypeHandler::arg_matches_param(var_hold, VariableType{Type{TypeKind::STRING}, true}));
 }
+
+BOOST_AUTO_TEST_CASE(value_type_is_for_value) {
+    value v_int = 123;
+    std::variant<std::monostate, VariableHolder, value> val1 = v_int;
+    BOOST_CHECK(TypeHandler::value_type_is<int>(val1));
+    BOOST_CHECK(!TypeHandler::value_type_is<double>(val1));
+    BOOST_CHECK_EQUAL(TypeHandler::get_value_as<int>(val1), 123);
+
+    value v_str = std::string("abc");
+    std::variant<std::monostate, VariableHolder, value> val2 = v_str;
+    BOOST_CHECK(TypeHandler::value_type_is<std::string>(val2));
+    BOOST_CHECK(!TypeHandler::value_type_is<int>(val2));
+    BOOST_CHECK_EQUAL(TypeHandler::get_value_as<std::string>(val2), "abc");
+}
+
+BOOST_AUTO_TEST_CASE(value_type_is_for_variableholder) {
+    auto var = std::make_shared<Variable>(VariableType{Type{TypeKind::FLOAT}}, 3.14);
+    VariableHolder vh{var};
+    std::variant<std::monostate, VariableHolder, value> val3 = vh;
+    BOOST_CHECK(TypeHandler::value_type_is<double>(val3));
+    BOOST_CHECK(!TypeHandler::value_type_is<int>(val3));
+    BOOST_CHECK_CLOSE(TypeHandler::get_value_as<double>(val3), 3.14, 1e-9);
+}
+
+BOOST_AUTO_TEST_CASE(value_type_is_for_monostate) {
+    std::variant<std::monostate, VariableHolder, value> val4 = std::monostate{};
+    BOOST_CHECK(!TypeHandler::value_type_is<int>(val4));
+    BOOST_CHECK_THROW(TypeHandler::get_value_as<int>(val4), std::logic_error);
+}

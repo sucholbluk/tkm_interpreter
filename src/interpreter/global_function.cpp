@@ -1,5 +1,6 @@
 #include "global_function.hpp"
 
+#include "interpreter.hpp"
 #include "statement.hpp"
 
 GlobalFunction::GlobalFunction(const FunctionDefinition& function) : _function{function} {
@@ -8,6 +9,11 @@ GlobalFunction::GlobalFunction(const FunctionDefinition& function) : _function{f
 
 Type GlobalFunction::get_type() const {
     return _function.signature->type;
+}
+
+void GlobalFunction::call(Interpreter& interpreter, arg_list arguments) {
+    // TODO - init variables based on params
+    _function.body->accept(interpreter);
 }
 
 namespace MainProperties {

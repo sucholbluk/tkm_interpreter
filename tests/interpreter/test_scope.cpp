@@ -48,5 +48,5 @@ BOOST_AUTO_TEST_CASE(modify_variable_after_get_test) {
     auto result = scope.get_variable("x");
     BOOST_CHECK(result);
     result.value().var->var_value = "Goodbye";
-    BOOST_CHECK(get_value_as<std::string>(var->var_value) == "Goodbye");
+    BOOST_CHECK(TypeHandler::get_value_as<std::string>(var->var_value) == "Goodbye");
 }

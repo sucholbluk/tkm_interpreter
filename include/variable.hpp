@@ -47,27 +47,6 @@ T VariableHolder::get_value_as() const {
     throw std::logic_error("impl err");  // TODO: change
 }
 
-template <typename T>
-T get_value_as(value val) {
-    if (auto value = std::get_if<T>(&val)) {
-        return *value;
-    }
-    throw std::logic_error("impl err");  // TODO: change
-}
-
-template <typename T>
-T get_value_as(arg argument) {
-    return std::visit(
-        []<typename U>(const U& argument) -> T {
-            if constexpr (std::same_as<VariableHolder, U>) {
-                return argument.template get_value_as<T>();
-            } else if constexpr (std::same_as<value, U>) {
-                return get_value_as<T>(argument);
-            }
-        },
-        argument);
-}
-
 std::ostream& operator<<(std::ostream& os, const VariableHolder& var_hold);
 std::ostream& operator<<(std::ostream& os, const value& v);
 std::ostream& operator<<(std::ostream& os, const arg& a);
