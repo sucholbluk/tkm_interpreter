@@ -22,6 +22,18 @@ bool arg_matches_param(arg argument, VariableType param_type);
 
 arg maybe_value_to_arg(const std::variant<std::monostate, VariableHolder, value>& maybe_val_or_holder);
 
+value extract_value(const std::variant<std::monostate, VariableHolder, value>& maybe_val_or_holder);
+
+std::optional<value> as_type(Type primitive_type_kind, value val);
+
+std::optional<value> as_int(const value& val);
+
+std::optional<value> as_float(const value& val);
+
+std::optional<value> as_bool(const value& val);
+
+std::optional<value> as_string(const value& val);
+
 template <typename T>
 bool value_type_is(const std::variant<std::monostate, VariableHolder, value>& maybe_val_or_holder) {
     return std::visit(

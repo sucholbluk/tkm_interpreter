@@ -60,4 +60,117 @@ arg maybe_value_to_arg(const std::variant<std::monostate, VariableHolder, value>
         maybe_val_or_holder);
 }
 
+value extract_value(const std::variant<std::monostate, VariableHolder, value>& maybe_val_or_holder) {
+    return std::visit(
+        []<typename T>(const T& v_or_vh) -> value {
+            if constexpr (std::same_as<T, VariableHolder>) {
+                return v_or_vh.var->var_value;
+            } else if constexpr (std::same_as<T, value>) {
+                return v_or_vh;
+            } else if constexpr (std::same_as<T, std::monostate>) {
+                throw std::logic_error("impl err - should never be called with monostate");
+            }
+        },
+        maybe_val_or_holder);
+}
+
+std::optional<value> as_type(Type type, value val) {
+    switch (type.kind) {
+        case TypeKind::INT:
+            return as_int(val);
+        case TypeKind::FLOAT:
+            return as_float(val);
+        case TypeKind::BOOL:
+            return as_bool(val);
+        case TypeKind::STRING:
+            return as_string(val);
+        default:
+            return std::nullopt;
+    }
+}
+
+std::optional<value> as_string(const value& val) {
+    return std::visit(
+        []<typename T>(const T& val) -> std::optional<value> {
+            if constexpr (std::same_as<int, T>) {
+                return std::format("{}", val);
+            } else if constexpr (std::same_as<double, T>) {
+                return std::format("{}", val);
+            } else if constexpr (std::same_as<bool, T>) {
+                return std::format("{}", val ? "true" : "false");
+            } else if constexpr (std::same_as<std::string, T>) {
+                return val;
+            } else {
+                return std::nullopt;
+            }
+        },
+        val);
+}
+
+std::optional<value> as_int(const value& val) {
+    return std::visit(
+        []<typename T>(const T& val) -> std::optional<value> {
+            if constexpr (std::same_as<int, T>) {
+                return val;
+            } else if constexpr (std::same_as<double, T>) {
+                return (int)val;
+            } else if constexpr (std::same_as<bool, T>) {
+                return (int)val;
+            } else if constexpr (std::same_as<std::string, T>) {
+                try {
+                    return std::stoi(val);
+                } catch (const std::invalid_argument&) {
+                    return std::nullopt;
+                } catch (const std::out_of_range&) {
+                    return std::nullopt;
+                }
+            } else {
+                return std::nullopt;
+            }
+        },
+        val);
+}
+
+std::optional<value> as_float(const value& val) {
+    return std::visit(
+        []<typename T>(const T& val) -> std::optional<value> {
+            if constexpr (std::same_as<int, T>) {
+                return (double)val;
+            } else if constexpr (std::same_as<double, T>) {
+                return val;
+            } else if constexpr (std::same_as<bool, T>) {
+                return (int)val;
+            } else if constexpr (std::same_as<std::string, T>) {
+                try {
+                    return std::stod(val);
+                } catch (const std::invalid_argument&) {
+                    return std::nullopt;
+                } catch (const std::out_of_range&) {
+                    return std::nullopt;
+                }
+            } else {
+                return std::nullopt;
+            }
+        },
+        val);
+}
+
+std::optional<value> as_bool(const value& val) {
+    return std::visit(
+        []<typename T>(const T& val) -> std::optional<value> {
+            if constexpr (std::same_as<int, T>) {
+                return (bool)val;
+            } else if constexpr (std::same_as<double, T>) {
+                return (bool)val;
+            } else if constexpr (std::same_as<bool, T>) {
+                return val;
+            } else if constexpr (std::same_as<std::string, T>) {
+                return not val.empty();
+            } else {
+                return std::nullopt;
+            }
+        },
+        val);
+}
+
 }  // namespace TypeHandler

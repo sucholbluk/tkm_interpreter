@@ -53,18 +53,46 @@ void Interpreter::visit(const CodeBlock& code_block) {
     _env.exiting_block();
 }
 
+void Interpreter::visit(const TypeCastExpression& type_cast_expr) {
+    type_cast_expr.expr->accept(*this);
+    if (_tmp_result_is_empty()) {
+        throw std::runtime_error("expr evaluates to nothing - cannot be converted");
+    }
+
+    value unwraped_value{TypeHandler::extract_value(_tmp_result)};
+    Type target_type{type_cast_expr.target_type};
+
+    if (auto opt_casted = TypeHandler::as_type(target_type, unwraped_value)) {
+        _tmp_result = opt_casted.value();
+        return;
+    }
+
+    throw std::runtime_error("cant convert from source type to target");
+}
+
 void Interpreter::visit(const ExpressionStatement& expr_stmnt) {
     expr_stmnt.expr->accept(*this);
     _clear_tmp_result();
+}
+
+void Interpreter::visit(const ReturnStatement& return_stmnt) {
+    if (return_stmnt.expression) return_stmnt.expression->accept(*this);
+    _is_returning = true;
 }
 
 void Interpreter::visit(const LiteralString& literal_string) {
     _tmp_result = literal_string.value;
 }
 
-void Interpreter::visit(const ReturnStatement& return_stmnt) {
-    if (return_stmnt.expression) return_stmnt.expression->accept(*this);
-    _is_returning = true;
+void Interpreter::visit(const LiteralInt& literal_int) {
+    _tmp_result = literal_int.value;
+}
+void Interpreter::visit(const LiteralFloat& literal_float) {
+    _tmp_result = literal_float.value;
+}
+
+void Interpreter::visit(const LiteralBool& literal_bool) {
+    _tmp_result = literal_bool.value;
 }
 
 void Interpreter::_execute_main() {

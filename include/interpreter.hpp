@@ -26,6 +26,10 @@ class Interpreter : public Visitor {
     void visit(const ReturnStatement& return_stmnt) override;
     void visit(const CodeBlock& code_block) override;
     void visit(const ExpressionStatement& expr_stmnt) override;
+    void visit(const LiteralInt& literal_int) override;
+    void visit(const LiteralFloat& literal_float) override;
+    void visit(const LiteralBool& literal_bool) override;
+    void visit(const TypeCastExpression& type_cast_expr) override;
 
     void visit(const ContinueStatement& continue_stmnt) override{};
     void visit(const BreakStatement& break_stmnt) override{};
@@ -39,10 +43,6 @@ class Interpreter : public Visitor {
     void visit(const BinaryExpression& binary_expr) override{};
     void visit(const UnaryExpression& unary_expr) override{};
     void visit(const BindFront& bind_front_expr) override{};
-    void visit(const TypeCastExpression& type_cast_expr) override{};
-    void visit(const LiteralInt& literal_int) override{};
-    void visit(const LiteralFloat& literal_float) override{};
-    void visit(const LiteralBool& literal_bool) override{};
     void visit(const TypedIdentifier& typed_ident) override{};
 
    private:
