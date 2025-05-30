@@ -57,6 +57,8 @@ class Interpreter : public Visitor {
     arg_list _get_arg_list(const up_expression_vec& arguments);
     bool _tmp_result_is_empty() const;
     bool _should_exit_code_block() const;
+
+    friend class GlobalFunction;
 };
 
 #endif  // INTERPRETER_HPP
