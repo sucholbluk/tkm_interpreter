@@ -20,6 +20,7 @@ class Interpreter : public Visitor {
    public:
     Interpreter() = default;
     void visit(const Program& program) override;
+    void visit(const FunctionDefinition& func_def) override;
     void visit(const FunctionCall& func_call) override;
     void visit(const Identifier& identifier) override;
     void visit(const LiteralString& literal_string) override;
@@ -30,15 +31,14 @@ class Interpreter : public Visitor {
     void visit(const LiteralFloat& literal_float) override;
     void visit(const LiteralBool& literal_bool) override;
     void visit(const TypeCastExpression& type_cast_expr) override;
+    void visit(const VariableDeclaration& var_decl) override;
 
+    void visit(const FunctionSignature& func_sig) override{};
     void visit(const ContinueStatement& continue_stmnt) override{};
     void visit(const BreakStatement& break_stmnt) override{};
-    void visit(const VariableDeclaration& var_decl) override{};
     void visit(const IfStatement& if_stmnt) override{};
     void visit(const ElseIf& else_if) override{};
     void visit(const AssignStatement& asgn_stmnt) override{};
-    void visit(const FunctionDefinition& func_def) override{};
-    void visit(const FunctionSignature& func_sig) override{};
     void visit(const ForLoop& for_loop) override{};
     void visit(const BinaryExpression& binary_expr) override{};
     void visit(const UnaryExpression& unary_expr) override{};
@@ -52,6 +52,7 @@ class Interpreter : public Visitor {
 
     void _execute_main();
     void _clear_tmp_result();
+    void _handle_function_call_end(const std::optional<Type>& ret_type);
     arg_list _get_arg_list(const up_expression_vec& arguments);
     bool _tmp_result_is_empty() const;
     bool _should_exit_code_block() const;

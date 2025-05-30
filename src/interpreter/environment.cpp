@@ -24,6 +24,11 @@ void Environment::declare_variable(std::string identifier, VariableHolder var_ho
     _call_frames.top().add_variable(identifier, var_holder);
 }
 
+void Environment::declare_variable(std::string identifier, VariableType var_type, value var_value) {
+    sp_variable var = std::make_shared<Variable>(var_type, var_value);
+    declare_variable(identifier, VariableHolder{var});
+};
+
 void Environment::calling_function() {
     _call_frames.push(CallFrame{});
 }

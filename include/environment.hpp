@@ -12,6 +12,7 @@ class Environment {
     void register_function(const FunctionDefinition& function);
 
     void declare_variable(std::string identifier, VariableHolder var_holder);
+    void declare_variable(std::string identifier, VariableType var_type, value var_value);
 
     void calling_function();
     void exiting_function();

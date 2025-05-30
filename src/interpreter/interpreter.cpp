@@ -7,9 +7,12 @@
 #include "type_handler.hpp"
 
 void Interpreter::visit(const Program& program) {
-    std::ranges::for_each(program.function_definitions,
-                          [this](const auto& function) { _env.register_function(*function); });
+    std::ranges::for_each(program.function_definitions, [this](const auto& func_def) { func_def->accept(*this); });
     _execute_main();
+}
+
+void Interpreter::visit(const FunctionDefinition& func_def) {
+    _env.register_function(func_def);
 }
 
 void Interpreter::visit(const FunctionCall& func_call) {
@@ -19,16 +22,17 @@ void Interpreter::visit(const FunctionCall& func_call) {
         throw std::runtime_error("not callable");
     }
     auto func{TypeHandler::get_value_as<std::shared_ptr<Callable>>(_tmp_result)};
-    _clear_tmp_result();
+    auto func_type_info{func->get_type().function_type_info};
     arg_list arguments{_get_arg_list(func_call.argument_list)};
+    _clear_tmp_result();
 
-    if (not TypeHandler::args_match_params(arguments, func->get_type().function_type_info->param_types)) {
+    if (not TypeHandler::args_match_params(arguments, func_type_info->param_types)) {
         throw std::runtime_error("arguments dont match required param types");
     }
     _env.calling_function();
-
     func->call(*this, arguments);
-    _env.exiting_function();
+
+    _handle_function_call_end(func_type_info->return_type);
 }
 
 void Interpreter::visit(const Identifier& var_reference) {
@@ -70,6 +74,19 @@ void Interpreter::visit(const TypeCastExpression& type_cast_expr) {
     throw std::runtime_error("cant convert from source type to target");
 }
 
+void Interpreter::visit(const VariableDeclaration& var_decl) {
+    var_decl.assigned_expression->accept(*this);
+    if (_tmp_result_is_empty()) throw std::runtime_error("nothing to assign");  // TODO
+
+    auto value_to_assign{TypeHandler::extract_value(_tmp_result)};
+    auto var_type{var_decl.typed_identifier->type};
+    if (TypeHandler::deduce_type(value_to_assign) != var_type.type) {
+        throw std::runtime_error("in assigning - type mismatch");  // TOOD
+    }
+    _env.declare_variable(var_decl.typed_identifier->name, var_type, value_to_assign);
+    _clear_tmp_result();
+}
+
 void Interpreter::visit(const ExpressionStatement& expr_stmnt) {
     expr_stmnt.expr->accept(*this);
     _clear_tmp_result();
@@ -105,7 +122,7 @@ void Interpreter::_execute_main() {
 
     _env.calling_function();
     main->call(*this, {});
-    _env.exiting_function();
+    _handle_function_call_end(main->get_type().function_type_info->return_type);
 }
 
 arg_list Interpreter::_get_arg_list(const up_expression_vec& arguments) {
@@ -120,6 +137,19 @@ arg_list Interpreter::_get_arg_list(const up_expression_vec& arguments) {
     });
 
     return args;
+}
+
+void Interpreter::_handle_function_call_end(const std::optional<Type>& ret_type) {
+    if (not TypeHandler::matches_return_type(_tmp_result, ret_type)) {
+        throw std::runtime_error("return type mismatch");  // TODO
+    }
+
+    // if function was returning something make sure for it to be a value not var_holder
+    if (not _tmp_result_is_empty()) {
+        _tmp_result = TypeHandler::extract_value(_tmp_result);
+    }
+    _is_returning = false;
+    _env.exiting_function();
 }
 
 bool Interpreter::_tmp_result_is_empty() const {

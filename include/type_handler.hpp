@@ -12,7 +12,8 @@ namespace TypeHandler {
 
 bool are_the_same_type(value lhs, value rhs);
 
-bool matches_type(value val, VariableType type);
+bool matches_return_type(const std::variant<std::monostate, VariableHolder, value>& ret_val,
+                         std::optional<Type> ret_type);
 
 Type deduce_type(value val);
 

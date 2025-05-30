@@ -173,4 +173,12 @@ std::optional<value> as_bool(const value& val) {
         val);
 }
 
+bool matches_return_type(const std::variant<std::monostate, VariableHolder, value>& ret_val,
+                         std::optional<Type> ret_type) {
+    if (not ret_type) {  // returning none
+        return std::holds_alternative<std::monostate>(ret_val);
+    }
+    return deduce_type(extract_value(ret_val)) == ret_type.value();
+}
+
 }  // namespace TypeHandler
