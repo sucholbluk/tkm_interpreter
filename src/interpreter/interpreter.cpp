@@ -81,9 +81,31 @@ void Interpreter::visit(const VariableDeclaration& var_decl) {
     auto value_to_assign{TypeHandler::extract_value(_tmp_result)};
     auto var_type{var_decl.typed_identifier->type};
     if (TypeHandler::deduce_type(value_to_assign) != var_type.type) {
-        throw std::runtime_error("in assigning - type mismatch");  // TOOD
+        throw std::runtime_error("in var delcaration - type mismatch");  // TOOD
     }
     _env.declare_variable(var_decl.typed_identifier->name, var_type, value_to_assign);
+    _clear_tmp_result();
+}
+
+void Interpreter::visit(const AssignStatement& asgn_stmnt) {
+    auto opt_var_holder{_env.get_by_identifier(asgn_stmnt.identifier)};
+    if (not opt_var_holder) {
+        throw std::runtime_error("reference to non-existant var");  // TODO
+    }
+
+    auto var_holder{opt_var_holder.value()};
+    if (not var_holder.can_change_var) {
+        throw std::runtime_error("cannot assign to immutable variable");
+    }
+
+    asgn_stmnt.expr->accept(*this);
+    if (_tmp_result_is_empty()) throw std::runtime_error("nothing to assign");  // TODO
+
+    auto value_to_assign{TypeHandler::extract_value(_tmp_result)};
+    if (TypeHandler::deduce_type(value_to_assign) != var_holder.get_type()) {
+        throw std::runtime_error("in assigning - type mismatch");  // TOOD
+    }
+    var_holder.var->var_value = value_to_assign;
     _clear_tmp_result();
 }
 
