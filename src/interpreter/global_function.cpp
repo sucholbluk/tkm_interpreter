@@ -4,9 +4,7 @@
 #include "statement.hpp"
 #include "type_handler.hpp"
 
-GlobalFunction::GlobalFunction(const FunctionDefinition& function) : _function{function} {
-    std::cout << "Function created: " << _function.signature->identifier << std::endl;
-}
+GlobalFunction::GlobalFunction(const FunctionDefinition& function) : _function{function} {}
 
 Type GlobalFunction::get_type() const {
     return _function.signature->type;

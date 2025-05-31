@@ -35,11 +35,11 @@ class Interpreter : public Visitor {
     void visit(const AssignStatement& asgn_stmnt) override;
     void visit(const BinaryExpression& binary_expr) override;
     void visit(const UnaryExpression& unary_expr) override;
+    void visit(const IfStatement& if_stmnt) override;
+    void visit(const ElseIf& else_if) override;
 
     void visit(const ContinueStatement& continue_stmnt) override{};
     void visit(const BreakStatement& break_stmnt) override{};
-    void visit(const IfStatement& if_stmnt) override{};
-    void visit(const ElseIf& else_if) override{};
     void visit(const ForLoop& for_loop) override{};
     void visit(const BindFront& bind_front_expr) override{};
 
@@ -50,6 +50,7 @@ class Interpreter : public Visitor {
     mb_var_or_val _tmp_result;
     Environment _env;
     bool _is_returning = false;
+    bool _condition_met = false;
 
     void _execute_main();
     void _clear_tmp_result();
@@ -59,6 +60,7 @@ class Interpreter : public Visitor {
     bool _should_exit_code_block() const;
     void _evaluate_binary_expr(const ExprKind& expr_kind, value left, value right);
     void _evaluate_unary_expr(const ExprKind& expr_kind, value val);
+    void _evaluate_condition();
 
     friend class GlobalFunction;
 };

@@ -150,6 +150,39 @@ void Interpreter::visit(const UnaryExpression& unary_expr) {
     _evaluate_unary_expr(unary_expr.kind, TypeHandler::extract_value(_tmp_result));
 }
 
+void Interpreter::visit(const IfStatement& if_stmnt) {
+    if_stmnt.condition->accept(*this);
+    try {
+        _evaluate_condition();
+    } catch (const std::runtime_error& e) {
+        rethrow_with_position(e, if_stmnt.condition->position);
+    }
+    if (_condition_met) {
+        if_stmnt.body->accept(*this);
+    } else {
+        for (size_t i = 0; i < if_stmnt.else_ifs.size(); ++i) {
+            if_stmnt.else_ifs[i]->accept(*this);
+            if (_condition_met) break;
+        }
+
+        if (not _condition_met and if_stmnt.else_body) {
+            if_stmnt.body->accept(*this);
+        }
+    }
+    _condition_met = false;
+}
+
+void Interpreter::visit(const ElseIf& else_if) {
+    else_if.condition->accept(*this);
+    try {
+        _evaluate_condition();
+    } catch (const std::runtime_error& e) {
+        rethrow_with_position(e, else_if.condition->position);
+    }
+
+    if (_condition_met) else_if.body->accept(*this);
+}
+
 void Interpreter::visit(const LiteralString& literal_string) {
     _tmp_result = literal_string.value;
 }
@@ -260,6 +293,14 @@ void Interpreter::_evaluate_unary_expr(const ExprKind& expr_kind, value val) {
     } else {
         throw std::logic_error("invalid expr kind passed to evaluate_unary_expr");
     }
+}
+
+void Interpreter::_evaluate_condition() {
+    if (not TypeHandler::value_type_is<bool>(_tmp_result)) {
+        throw std::runtime_error("condition must be bool type");  // TODO
+    }
+    _condition_met = TypeHandler::get_value_as<bool>(_tmp_result);
+    _clear_tmp_result();
 }
 
 bool Interpreter::_tmp_result_is_empty() const {
