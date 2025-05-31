@@ -8,6 +8,7 @@ add_library(interpreter STATIC
     "environment.cpp"
     variable.cpp
     callable.cpp
+    oper_handler.cpp
 )
 
 target_link_libraries(interpreter PUBLIC parser)

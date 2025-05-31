@@ -12,8 +12,7 @@ namespace TypeHandler {
 
 bool are_the_same_type(value lhs, value rhs);
 
-bool matches_return_type(const std::variant<std::monostate, VariableHolder, value>& ret_val,
-                         std::optional<Type> ret_type);
+bool matches_return_type(const mb_var_or_val& ret_val, std::optional<Type> ret_type);
 
 Type deduce_type(value val);
 
@@ -21,9 +20,11 @@ bool args_match_params(arg_list args, std::vector<VariableType> param_types);
 
 bool arg_matches_param(arg argument, VariableType param_type);
 
-arg maybe_value_to_arg(const std::variant<std::monostate, VariableHolder, value>& maybe_val_or_holder);
+arg maybe_value_to_arg(const mb_var_or_val& maybe_val_or_holder);
 
-value extract_value(const std::variant<std::monostate, VariableHolder, value>& maybe_val_or_holder);
+value extract_value(const mb_var_or_val& maybe_val_or_holder);
+
+bool is_none(const mb_var_or_val& maybe_val_or_holder);
 
 std::optional<value> as_type(Type primitive_type_kind, value val);
 
@@ -36,7 +37,7 @@ std::optional<value> as_bool(const value& val);
 std::optional<value> as_string(const value& val);
 
 template <typename T>
-bool value_type_is(const std::variant<std::monostate, VariableHolder, value>& maybe_val_or_holder) {
+bool value_type_is(const mb_var_or_val& maybe_val_or_holder) {
     return std::visit(
         []<typename U>(const U& v_or_vh) -> bool {
             if constexpr (std::same_as<VariableHolder, U>) {
@@ -71,7 +72,7 @@ T get_value_as(const std::variant<VariableHolder, value>& argument) {
 }
 
 template <typename T>
-T get_value_as(std::variant<std::monostate, VariableHolder, value> maybe_val_or_holder) {
+T get_value_as(mb_var_or_val maybe_val_or_holder) {
     return std::visit(
         []<typename U>(const U& v_or_vh) -> T {
             if constexpr (std::same_as<VariableHolder, U>) {

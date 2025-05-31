@@ -38,6 +38,8 @@ struct VariableHolder {
 // argument can be variable reference or rvalue -> to let variables be modified inside other functions
 using arg = std::variant<VariableHolder, value>;
 using arg_list = std::vector<arg>;
+// contains value, reference to variable or nothing
+using mb_var_or_val = std::variant<std::monostate, VariableHolder, value>;
 
 template <typename T>
 T VariableHolder::get_value_as() const {

@@ -1,7 +1,9 @@
 #include "interpreter.hpp"
 
 #include "builtint_functions.hpp"
+#include "exceptions.hpp"
 #include "global_function.hpp"
+#include "oper_handler.hpp"
 #include "program.hpp"
 #include "statement.hpp"
 #include "type_handler.hpp"
@@ -119,6 +121,27 @@ void Interpreter::visit(const ReturnStatement& return_stmnt) {
     _is_returning = true;
 }
 
+void Interpreter::visit(const BinaryExpression& binary_expr) {
+    binary_expr.left->accept(*this);
+    if (_tmp_result_is_empty()) {
+        throw std::runtime_error("expected evaluable expression in binary expression, got none");  // with left position
+    }
+    auto left{TypeHandler::extract_value(_tmp_result)};
+    _clear_tmp_result();
+
+    binary_expr.right->accept(*this);
+    if (_tmp_result_is_empty()) {
+        throw std::runtime_error("expected evaluable expression in binary expression, got none");  // with right pos
+    }
+    auto right{TypeHandler::extract_value(_tmp_result)};
+    _clear_tmp_result();
+    try {
+        _evaluate_binary_expr(binary_expr.kind, left, right);
+    } catch (const std::runtime_error& e) {
+        rethrow_with_position(e, binary_expr.position);
+    }
+}
+
 void Interpreter::visit(const LiteralString& literal_string) {
     _tmp_result = literal_string.value;
 }
@@ -172,6 +195,53 @@ void Interpreter::_handle_function_call_end(const std::optional<Type>& ret_type)
     }
     _is_returning = false;
     _env.exiting_function();
+}
+
+void Interpreter::_evaluate_binary_expr(const ExprKind& expr_kind, value left, value right) {
+    if (not TypeHandler::are_the_same_type(left, right)) {  // values have to be the same type
+        throw std::runtime_error("type mismatch - // with type strings");
+    }
+
+    switch (expr_kind) {
+        case ExprKind::ADDITION:
+            _tmp_result = OperHandler::add(left, right);
+            break;
+        case ExprKind::SUBTRACTION:
+            _tmp_result = OperHandler::subtract(left, right);
+            break;
+        case ExprKind::MULTIPICATION:
+            _tmp_result = OperHandler::multiply(left, right);
+            break;
+        case ExprKind::DIVISION:
+            _tmp_result = OperHandler::divide(left, right);
+            break;
+        case ExprKind::EQUAL:
+            _tmp_result = OperHandler::check_eq(left, right);
+            break;
+        case ExprKind::NOT_EQUAL:
+            _tmp_result = OperHandler::check_neq(left, right);
+            break;
+        case ExprKind::LESS:
+            _tmp_result = OperHandler::check_lt(left, right);
+            break;
+        case ExprKind::LESS_EQUAL:
+            _tmp_result = OperHandler::check_lteq(left, right);
+            break;
+        case ExprKind::GREATER:
+            _tmp_result = OperHandler::check_gt(left, right);
+            break;
+        case ExprKind::GREATER_EQUAL:
+            _tmp_result = OperHandler::check_gteq(left, right);
+            break;
+        case ExprKind::LOGICAL_AND:
+            _tmp_result = OperHandler::logical_and(left, right);
+            break;
+        case ExprKind::LOGICAL_OR:
+            _tmp_result = OperHandler::logical_or(left, right);
+            break;
+        default:
+            throw std::logic_error("not implemented");
+    }
 }
 
 bool Interpreter::_tmp_result_is_empty() const {

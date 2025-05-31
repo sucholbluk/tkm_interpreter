@@ -46,7 +46,7 @@ bool arg_matches_param(arg argument, VariableType param_type) {
         argument);
 }
 
-arg maybe_value_to_arg(const std::variant<std::monostate, VariableHolder, value>& maybe_val_or_holder) {
+arg maybe_value_to_arg(const mb_var_or_val& maybe_val_or_holder) {
     return std::visit(
         []<typename T>(const T& v_or_vh) -> arg {
             if constexpr (std::same_as<T, VariableHolder>) {
@@ -60,7 +60,7 @@ arg maybe_value_to_arg(const std::variant<std::monostate, VariableHolder, value>
         maybe_val_or_holder);
 }
 
-value extract_value(const std::variant<std::monostate, VariableHolder, value>& maybe_val_or_holder) {
+value extract_value(const mb_var_or_val& maybe_val_or_holder) {
     return std::visit(
         []<typename T>(const T& v_or_vh) -> value {
             if constexpr (std::same_as<T, VariableHolder>) {
@@ -173,12 +173,34 @@ std::optional<value> as_bool(const value& val) {
         val);
 }
 
-bool matches_return_type(const std::variant<std::monostate, VariableHolder, value>& ret_val,
-                         std::optional<Type> ret_type) {
+bool matches_return_type(const mb_var_or_val& ret_val, std::optional<Type> ret_type) {
     if (not ret_type) {  // returning none
         return std::holds_alternative<std::monostate>(ret_val);
     }
     return deduce_type(extract_value(ret_val)) == ret_type.value();
 }
+
+bool are_the_same_type(value lhs, value rhs) {
+    return std::visit([]<typename T, typename U>(const T& left, const U& right) -> bool { return std::same_as<T, U>; },
+                      lhs, rhs);
+}
+
+// bool is_none(const mb_var_or_val& maybe_none) {
+//     return std::holds_alternative<std::monostate>(maybe_none);
+// }
+
+// std::string get_type_str(const mb_var_or_val& mb_val_or_vholder) {
+//     return std::visit(
+//         []<typename T>(const T& mb_val_or_vholder) -> std::string {
+//             if constexpr (std::same_as<std::monostate, T>) {
+//                 return "none";
+//             } else if constexpr (std::same_as<VariableHolder, T>) {
+//                 return mb_val_or_vholder.get_type().to_str();
+//             } else if constexpr (std::same_as<value, T>) {
+//                 return deduce_type(mb_val_or_vholder).to_str();
+//             }
+//         },
+//         mb_val_or_vholder);
+// }
 
 }  // namespace TypeHandler

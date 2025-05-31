@@ -285,5 +285,11 @@ class ExpectedIdentifierException : public ParserException {
    public:
     explicit ExpectedIdentifierException(const Position& position);
 };
+
+template <typename ExceptionT>
+[[noreturn]] void rethrow_with_position(const ExceptionT& e, const Position& position) {
+    throw ExceptionT(std::string(e.what()) + " at: " + position.get_position_str());
+}
+
 /** @} */
 #endif  // EXCEPTIONS_HPP
