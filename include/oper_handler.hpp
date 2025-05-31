@@ -3,6 +3,7 @@
 #include "variable.hpp"
 
 namespace OperHandler {
+// BINARY
 // arithmetic
 value add(value left, value right);
 value subtract(value left, value right);
@@ -20,6 +21,10 @@ bool check_lteq(value left, value right);
 // logical
 bool logical_and(value left, value right);
 bool logical_or(value left, value right);
+
+// UNARY
+value unary_minus(value val);
+bool logical_not(value val);
 
 };  // namespace OperHandler
 

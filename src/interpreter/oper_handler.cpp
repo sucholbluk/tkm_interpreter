@@ -165,4 +165,28 @@ bool logical_or(value left, value right) {
     throw std::runtime_error("logical or cannot operate on {type}");
 }
 
+// UNARY
+
+bool logical_not(value val) {
+    if (auto bool_val = std::get_if<bool>(&val)) {
+        return not *bool_val;
+    }
+    throw std::runtime_error(std::string("cant call logical not with: ") + TypeHandler::deduce_type(val).to_str());
+}
+
+value unary_minus(value val) {
+    return std::visit(
+        []<typename T>(const T& val) -> value {
+            if constexpr (std::same_as<int, T>) {
+                return -val;
+            } else if constexpr (std::same_as<double, T>) {
+                return -val;
+            } else {
+                throw std::runtime_error(std::string{"unary minus doestn operate on: "} +
+                                         TypeHandler::deduce_type(val).to_str());
+            }
+        },
+        val);
+}
+
 }  // namespace OperHandler

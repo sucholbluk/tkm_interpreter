@@ -142,6 +142,14 @@ void Interpreter::visit(const BinaryExpression& binary_expr) {
     }
 }
 
+void Interpreter::visit(const UnaryExpression& unary_expr) {
+    unary_expr.expr->accept(*this);
+    if (_tmp_result_is_empty()) {
+        throw std::runtime_error("expected evaluable expression in unary expression, got none");  // with right pos
+    }
+    _evaluate_unary_expr(unary_expr.kind, TypeHandler::extract_value(_tmp_result));
+}
+
 void Interpreter::visit(const LiteralString& literal_string) {
     _tmp_result = literal_string.value;
 }
@@ -241,6 +249,16 @@ void Interpreter::_evaluate_binary_expr(const ExprKind& expr_kind, value left, v
             break;
         default:
             throw std::logic_error("not implemented");
+    }
+}
+
+void Interpreter::_evaluate_unary_expr(const ExprKind& expr_kind, value val) {
+    if (expr_kind == ExprKind::LOGICAL_NOT) {
+        _tmp_result = OperHandler::logical_not(val);
+    } else if (expr_kind == ExprKind::UNARY_MINUS) {
+        _tmp_result = OperHandler::unary_minus(val);
+    } else {
+        throw std::logic_error("invalid expr kind passed to evaluate_unary_expr");
     }
 }
 
