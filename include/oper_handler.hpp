@@ -29,6 +29,8 @@ bool logical_not(value val);
 // Function Composition
 sp_callable compose_functions(value left, value right);
 
+sp_callable bind_front_function(value bind_target, arg_list args);
+
 };  // namespace OperHandler
 
 #endif  // OPER_HANDLER_HPP

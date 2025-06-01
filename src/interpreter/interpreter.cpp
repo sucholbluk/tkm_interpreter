@@ -33,7 +33,6 @@ void Interpreter::visit(const FunctionCall& func_call) {
     }
     _env.calling_function();
     func->call(*this, arguments);
-
     _handle_function_call_end(func_type_info->return_type);
 }
 
@@ -150,6 +149,20 @@ void Interpreter::visit(const UnaryExpression& unary_expr) {
     _evaluate_unary_expr(unary_expr.kind, TypeHandler::extract_value(_tmp_result));
 }
 
+void Interpreter::visit(const BindFront& bind_front_expr) {
+    auto args{_get_arg_list(bind_front_expr.argument_list)};
+    bind_front_expr.target->accept(*this);
+
+    if (_tmp_result_is_empty()) {
+        throw std::runtime_error("expected evaluable expression in unary expression, got none");  // with right pos
+    }
+    try {
+        _tmp_result = OperHandler::bind_front_function(TypeHandler::extract_value(_tmp_result), args);
+    } catch (const std::runtime_error& e) {
+        rethrow_with_position(e, bind_front_expr.position);
+    }
+}
+
 void Interpreter::visit(const IfStatement& if_stmnt) {
     if_stmnt.condition->accept(*this);
     try {
@@ -217,7 +230,8 @@ arg_list Interpreter::_get_arg_list(const up_expression_vec& arguments) {
         expr->accept(*this);
 
         if (_tmp_result_is_empty()) {
-            throw std::logic_error("temp result should not be empty after evaluating expression");  // TODO
+            // expr->position();
+            throw std::runtime_error("none not accepted as argument");
         }
         args.push_back(TypeHandler::maybe_value_to_arg(_tmp_result));
     });

@@ -10,13 +10,17 @@
  */
 namespace TypeHandler {
 
+Type deduce_type(value val);
+
+Type get_composed_func_type(value left, value right);
+
+Type get_bind_front_func_type(value bind_target, const arg_list& args);
+
 bool are_the_same_type(value lhs, value rhs);
 
 bool matches_return_type(const mb_var_or_val& ret_val, std::optional<Type> ret_type);
 
-Type deduce_type(value val);
-
-bool args_match_params(arg_list args, std::vector<VariableType> param_types);
+bool args_match_params(const arg_list& args, std::vector<VariableType> param_types);
 
 bool arg_matches_param(arg argument, VariableType param_type);
 
@@ -24,7 +28,7 @@ arg maybe_value_to_arg(const mb_var_or_val& maybe_val_or_holder);
 
 value extract_value(const mb_var_or_val& maybe_val_or_holder);
 
-Type get_composed_func_type(value left, value right);
+value extract_value(const std::variant<VariableHolder, value>& val_or_holder);
 
 bool ret_type_matches_param_type(std::optional<Type> ret_type, VariableType param_type);
 

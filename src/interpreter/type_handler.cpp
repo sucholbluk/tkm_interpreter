@@ -24,7 +24,7 @@ Type deduce_type(value val) {
         val);
 }
 
-bool args_match_params(arg_list args, std::vector<VariableType> param_types) {
+bool args_match_params(const arg_list& args, std::vector<VariableType> param_types) {
     if (args.size() != param_types.size()) return false;
 
     return std::ranges::all_of(std::views::iota(size_t{0}, args.size()),
@@ -72,6 +72,18 @@ value extract_value(const mb_var_or_val& maybe_val_or_holder) {
             }
         },
         maybe_val_or_holder);
+}
+
+value extract_value(const std::variant<VariableHolder, value>& val_or_holder) {
+    return std::visit(
+        []<typename T>(const T& v_or_vh) -> value {
+            if constexpr (std::same_as<T, VariableHolder>) {
+                return v_or_vh.var->var_value;
+            } else if constexpr (std::same_as<T, value>) {
+                return v_or_vh;
+            }
+        },
+        val_or_holder);
 }
 
 std::optional<value> as_type(Type type, value val) {
@@ -200,6 +212,29 @@ Type get_composed_func_type(value left, value right) {
     }
 
     return Type{FunctionTypeInfo{l_ftype_info->param_types, r_ftype_info->return_type}};
+}
+
+Type get_bind_front_func_type(value bind_target, const arg_list& args) {
+    if (not std::holds_alternative<sp_callable>(bind_target)) {
+        throw std::runtime_error("Func comp only on functionns -- got ...");  // TODO
+    }
+
+    auto ftype_info{get_value_as<sp_callable>(bind_target)->get_type().function_type_info};
+    auto param_types{ftype_info->param_types};
+
+    if (args.size() > param_types.size()) {
+        throw std::runtime_error("Got to many arguments to bind");  // TODO
+    }
+    auto bound_params{std::vector<VariableType>(param_types.begin(), param_types.begin() + args.size())};
+
+    if (not args_match_params(args, bound_params)) {
+        throw std::runtime_error("bind front arguments dont match function params ");  // TODO
+    }
+    std::vector<VariableType> new_params{};
+    if (args.size() < param_types.size()) {
+        new_params = std::vector<VariableType>(param_types.begin() + args.size(), param_types.end());
+    }
+    return Type{FunctionTypeInfo{new_params, ftype_info->return_type}};
 }
 
 bool ret_type_matches_param_type(std::optional<Type> ret_type, VariableType param_type) {

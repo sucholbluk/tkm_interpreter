@@ -146,7 +146,6 @@ std::optional<Token> Lexer::_try_build_literal_int_or_float() {
         _get_next_char();
     }
 
-    std::cout << std::to_string(fraction_value) << std::endl;
     double float_value = integer_value + ((double)fraction_value / std::pow(10.0, fraction_digits));
 
     return Token{TokenType::T_LITERAL_FLOAT, position, float_value};

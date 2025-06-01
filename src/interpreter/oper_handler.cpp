@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <limits>
 
+#include "bind_front_function.hpp"
 #include "composed_function.hpp"
 #include "type_handler.hpp"
 
@@ -195,5 +196,14 @@ sp_callable compose_functions(value left, value right) {
     // if it passed through getting type, the values are functions and are correct
     return std::make_shared<ComposedFunction>(type, TypeHandler::get_value_as<sp_callable>(left),
                                               TypeHandler::get_value_as<sp_callable>(right));
+}
+
+sp_callable bind_front_function(value bind_target, arg_list args) {
+    // save vars passed by reference as their values
+    arg_list value_args{};
+    std::ranges::for_each(args, [&](auto argument) { value_args.push_back(TypeHandler::extract_value(argument)); });
+    Type bfront_type{TypeHandler::get_bind_front_func_type(bind_target, args)};
+    return std::make_shared<BindFrontFunction>(bfront_type, TypeHandler::get_value_as<sp_callable>(bind_target),
+                                               value_args);
 }
 }  // namespace OperHandler
