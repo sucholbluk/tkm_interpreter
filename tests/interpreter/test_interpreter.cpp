@@ -872,6 +872,119 @@ def main() -> int {
     BOOST_CHECK(output == expected_output);
 }
 
+BOOST_AUTO_TEST_CASE(bind_front_simple_test) {
+    std::string expected_output{"7\n"};
+    std::string mock_file = R"(
+def add(a: int, b: int) -> int {
+    return a + b;
+}
+
+def main() -> int {
+    let add5: function<int:int> = (5) >> add;
+    print(add5(2) as string); # 5 + 2 = 7
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(bind_front_multiple_args_test) {
+    std::string expected_output{"15\n"};
+    std::string mock_file = R"(
+def sum3(a: int, b: int, c: int) -> int {
+    return a + b + c;
+}
+
+def main() -> int {
+    let add10: function<int:int> = (5, 5) >> sum3;
+    print(add10(5) as string); # 5 + 5 + 5 = 15
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(bind_front_with_type_cast_test) {
+    std::string expected_output{"foo42\n"};
+    std::string mock_file = R"(
+def concat(a: string, b: int) -> string {
+    return a + b as string;
+}
+
+def main() -> int {
+    let foo42: function<none:string> = ("foo", 42) >> concat;
+    print(foo42());
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(bind_front_with_func_comp_test) {
+    std::string expected_output{"hello there anakin\nhello there lukasz\n"};
+    std::string mock_file = R"(
+def get_greeter() -> function<string:none> {
+    return (hello() + " ", "there ") >> three_concat & print;
+}
+
+def three_concat(a: string, b: string, c:string) -> string {
+    return a + b + c;
+}
+
+def hello() -> string{
+    return "hello";
+}
+
+def main() -> int {
+    let anakin_greeter: function<none:none> = ("anakin") >> get_greeter();
+    anakin_greeter();
+    get_greeter()("lukasz");
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
 BOOST_AUTO_TEST_CASE(if_condition_false_test) {
     std::string expected_output{""};
     std::string mock_file = R"(
