@@ -137,7 +137,7 @@ std::optional<value> as_float(const value& val) {
             } else if constexpr (std::same_as<double, T>) {
                 return val;
             } else if constexpr (std::same_as<bool, T>) {
-                return (int)val;
+                return (double)val;
             } else if constexpr (std::same_as<std::string, T>) {
                 try {
                     return std::stod(val);
