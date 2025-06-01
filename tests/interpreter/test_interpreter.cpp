@@ -16,19 +16,33 @@ std::unique_ptr<Program> get_program(std::string mock_file) {
     return parser.parse_program();
 }
 
-//     std::string mock_file = R"(
-// def nth_fibonacci(n: int) -> int { #some comment here
-//     if (n <= 1) {
-//         return n;
-//     }
+BOOST_AUTO_TEST_CASE(fib_test) {
+    std::string expected_output{"For 7 sequence number is 13\n"};
+    std::string mock_file = R"(
+def nth_fibonacci(n: int) -> int { #some comment here
+    if (n <= 1) {
+        return n;
+    }
 
-//     return nth_fibonacci(n - 1) + nth_fibonacci(n - 2);
-// }
-// def main() -> int {
-//     let n: int = 5;
-//     print("For " + n as string + " sequence number is " + nth_fibonacci(n) as string);
-// }
-// )";
+    return nth_fibonacci(n - 1) + nth_fibonacci(n - 2);
+}
+def main() -> int {
+    let n: int = 7;
+    print("For " + n as string + " sequence number is " + nth_fibonacci(n) as string);
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
 
 BOOST_AUTO_TEST_CASE(print_literal_string_test) {
     std::string expected_output{"Hello world!\n"};
@@ -248,6 +262,110 @@ def main() -> int {
     inc_and_print(mut_num);
     inc_and_print(mut_num);
 
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(if_condition_true_test) {
+    std::string expected_output{"condition met\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    if (true) {
+        print("condition met");
+    }
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(if_condition_false_test) {
+    std::string expected_output{""};
+    std::string mock_file = R"(
+def main() -> int {
+    if (false) {
+        print("there should be no output");
+    }
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(if_else_condition_test) {
+    std::string expected_output{"else path\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    if (false) {
+        print("if path");
+    } else {
+        print("else path");
+    }
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(if_elseif_else_condition_test) {
+    std::string expected_output{"smaller\ngreater\nequal\n"};
+    std::string mock_file = R"(
+def compare(a: int, b: int) -> none {
+    if (a < b) {
+        print("smaller");
+    } else if (a > b) {
+        print("greater");
+    } else {
+        print("equal");
+    }
+}
+
+def main() -> int {
+    compare(1, 2);
+    compare(8, 7);
+    compare(120, 120);
     return 0;
 }
 )";

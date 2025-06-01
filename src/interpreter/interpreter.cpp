@@ -219,7 +219,7 @@ void Interpreter::visit(const IfStatement& if_stmnt) {
         }
 
         if (not _condition_met and if_stmnt.else_body) {
-            if_stmnt.body->accept(*this);
+            if_stmnt.else_body->accept(*this);
         }
     }
     _condition_met = false;
