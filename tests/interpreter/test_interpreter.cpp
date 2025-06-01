@@ -278,6 +278,262 @@ def main() -> int {
     BOOST_CHECK(output == expected_output);
 }
 
+BOOST_AUTO_TEST_CASE(addition_int_test) {
+    std::string expected_output{"5\n0\n-7\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print((2 + 3) as string);
+    print((2 + -2) as string);
+    print((-3 + -4) as string);
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(addition_float_test) {
+    std::string expected_output{"5.5\n0\n-7.25\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print((2.0 + 3.5) as string);
+    print((2.5 + -2.5) as string);
+    print((-3.0 + -4.25) as string);
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(addition_string_test) {
+    std::string expected_output{"hello world\nfoo42\nabc123def\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print("hello " + "world");
+    print("foo" + 42 as string);
+    print("abc" + 123 as string + "def");
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(subtraction_int_test) {
+    std::string expected_output{"-1\n4\n1\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print((2 - 3) as string);
+    print((6 - 2) as string);
+    print((5 - 4) as string);
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(subtraction_float_test) {
+    std::string expected_output{"-1.5\n4\n0.75\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print((2.0 - 3.5) as string);
+    print((6.0 - 2.0) as string);
+    print((5.25 - 4.5) as string);
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(multiplication_int_test) {
+    std::string expected_output{"6\n0\n-12\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print((2 * 3) as string);
+    print((2 * 0) as string);
+    print((-3 * 4) as string);
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(multiplication_float_test) {
+    std::string expected_output{"7.5\n0\n-19.1625\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print((2.5 * 3.0) as string);
+    print((2.5 * 0.0) as string);
+    print(round(-3.5 * 5.475, 4) as string);
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    std::cout << output;
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(division_int_test) {
+    std::string expected_output{"2\n0\n-3\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print((6 / 3) as string);
+    print((2 / 3) as string);
+    print((-9 / 3) as string);
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(division_float_test) {
+    std::string expected_output{"2.5\n0.66667\n-1.75\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print(round(5.0 / 2.0, 5) as string);
+    print(round(2.0 / 3.0, 5) as string);
+    print(round(-3.5 / 2.0, 5) as string);
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(complex_int_operations_test) {
+    std::string expected_output{"8\n9\n-8\n5\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print((2 + 3 * 4 / 2) as string);         # 2 + 6 = 8
+    print((10 - 3 * 2 + 5) as string);        # 10 - 6 + 5 = 9
+    print(-(8 / 2 + 3 * 2 - 2) as string);     # 4 + 6 - 2 = 8
+    print((7 + 3 * 2 - 8 / 4 - 6) as string); # 7 + 6 - 2 - 6 = 5
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(complex_float_operations_test) {
+    std::string expected_output{"9\n-8.75\n6.75\n4.5\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print((2.5 + 3.0 * 4.0 - 5.5) as string);         # 2.5 + 12.0 - 5.5 = 9.0
+    print(-(10.0 - 3.5 * 2.0 + 5.75) as string);       # 10.0 - 7.0 + 5.75 = 8.75
+    print((8.0 / 4.0 + 3.5 * 2.0 - 2.25) as string);  # 2.0 + 7.0 - 2.25 = 6.75
+    print((7.0 + 3.0 * 2.0 - 8.0 / 4.0 - 6.5) as string); # 7.0 + 6.0 - 2.0 - 6.5 = 4.5
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
 BOOST_AUTO_TEST_CASE(if_condition_true_test) {
     std::string expected_output{"condition met\n"};
     std::string mock_file = R"(
@@ -366,6 +622,41 @@ def main() -> int {
     compare(1, 2);
     compare(8, 7);
     compare(120, 120);
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(if_multiple_elseif_condition_test) {
+    std::string expected_output{"second\nthird\nnone\n"};
+    std::string mock_file = R"(
+def test(x: int) -> none {
+    if (x == 1) {
+        print("first");
+    } else if (x == 2) {
+        print("second");
+    } else if (x == 3) {
+        print("third");
+    } else {
+        print("none");
+    }
+}
+
+def main() -> int {
+    test(2);
+    test(3);
+    test(99);
     return 0;
 }
 )";

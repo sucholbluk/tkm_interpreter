@@ -1,6 +1,7 @@
 #ifndef INTERPRETER_HPP
 #define INTERPRETER_HPP
 
+#include "builtint_functions.hpp"
 #include "call_frame.hpp"
 #include "composed_function.hpp"
 #include "environment.hpp"
@@ -68,6 +69,7 @@ class Interpreter : public Visitor {
 
     friend class GlobalFunction;
     friend class ComposedFunction;
+    friend class BuiltinFunction;
 };
 
 #endif  // INTERPRETER_HPP

@@ -5,7 +5,7 @@
 
 #include "callable.hpp"
 
-using function_impl = std::function<void(Interpreter&, arg_list)>;
+using function_impl = std::function<std::optional<value>(Interpreter&, arg_list)>;
 /**
  * @ingroup interpreter
  * @brief Buit-in print function.
@@ -29,7 +29,7 @@ struct BuiltinFunctionInfo {
 };
 
 namespace Builtins {
-extern const std::array<BuiltinFunctionInfo, 1> builtin_function_infos;
+extern const std::array<BuiltinFunctionInfo, 2> builtin_function_infos;
 }  // namespace Builtins
 
 #endif  // BUILTIN_FUNCTIONS_HPP
