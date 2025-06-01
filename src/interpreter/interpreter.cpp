@@ -31,9 +31,9 @@ void Interpreter::visit(const FunctionCall& func_call) {
     if (not TypeHandler::args_match_params(arguments, func_type_info->param_types)) {
         throw std::runtime_error("arguments dont match required param types");
     }
-    _env.calling_function();
+    _env.calling_function(func_type_info->return_type);
     func->call(*this, arguments);
-    _handle_function_call_end(func_type_info->return_type);
+    _handle_function_call_end();
 }
 
 void Interpreter::visit(const Identifier& var_reference) {
@@ -48,14 +48,14 @@ void Interpreter::visit(const Identifier& var_reference) {
 }
 
 void Interpreter::visit(const CodeBlock& code_block) {
-    _env.entering_block();
+    _env.add_scope();
     for (auto& statment : code_block.statements) {
         statment->accept(*this);
         if (_should_exit_code_block()) {
             break;
         }
     }
-    _env.exiting_block();
+    _env.pop_scope();
 }
 
 void Interpreter::visit(const TypeCastExpression& type_cast_expr) {
@@ -117,7 +117,50 @@ void Interpreter::visit(const ExpressionStatement& expr_stmnt) {
 
 void Interpreter::visit(const ReturnStatement& return_stmnt) {
     if (return_stmnt.expression) return_stmnt.expression->accept(*this);
+
+    if (not TypeHandler::matches_return_type(_tmp_result, _env.get_cur_func_ret_type())) {
+        throw std::runtime_error("return type mismatch");  // TODO
+    }
+
+    // if function returns something make sure for it to be a value not var holder
+    if (not _tmp_result_is_empty()) {
+        _tmp_result = TypeHandler::extract_value(_tmp_result);
+    }
+
     _is_returning = true;
+}
+
+void Interpreter::visit(const ContinueStatement& continue_stmnt) {
+    if (not _inside_loop) {
+        throw std::runtime_error("continue statement outside loop exept");  // TODO
+    }
+    _on_continue = true;
+}
+
+void Interpreter::visit(const BreakStatement& break_stmnt) {
+    if (not _inside_loop) {
+        throw std::runtime_error("break statement outside loop exept");  // TODO
+    }
+    _on_break = true;
+}
+
+void Interpreter::visit(const ForLoop& for_loop) {
+    _enter_loop();
+    for_loop.var_declaration->accept(*this);
+
+    for_loop.condition->accept(*this);
+    _evaluate_condition(for_loop.condition->position);
+
+    while (_condition_met) {
+        _on_continue = false;
+        for_loop.body->accept(*this);
+        if (_on_break or _is_returning) break;
+        for_loop.loop_update->accept(*this);
+
+        for_loop.condition->accept(*this);
+        _evaluate_condition(for_loop.condition->position);
+    }
+    _exit_loop();
 }
 
 void Interpreter::visit(const BinaryExpression& binary_expr) {
@@ -165,11 +208,8 @@ void Interpreter::visit(const BindFront& bind_front_expr) {
 
 void Interpreter::visit(const IfStatement& if_stmnt) {
     if_stmnt.condition->accept(*this);
-    try {
-        _evaluate_condition();
-    } catch (const std::runtime_error& e) {
-        rethrow_with_position(e, if_stmnt.condition->position);
-    }
+    _evaluate_condition(if_stmnt.condition->position);
+
     if (_condition_met) {
         if_stmnt.body->accept(*this);
     } else {
@@ -187,11 +227,7 @@ void Interpreter::visit(const IfStatement& if_stmnt) {
 
 void Interpreter::visit(const ElseIf& else_if) {
     else_if.condition->accept(*this);
-    try {
-        _evaluate_condition();
-    } catch (const std::runtime_error& e) {
-        rethrow_with_position(e, else_if.condition->position);
-    }
+    _evaluate_condition(else_if.condition->position);
 
     if (_condition_met) else_if.body->accept(*this);
 }
@@ -219,9 +255,9 @@ void Interpreter::_execute_main() {
         throw std::runtime_error("invalid main function definition");
     };
 
-    _env.calling_function();
+    _env.calling_function(main->get_type().function_type_info->return_type);
     main->call(*this, {});
-    _handle_function_call_end(main->get_type().function_type_info->return_type);
+    _handle_function_call_end();
 }
 
 arg_list Interpreter::_get_arg_list(const up_expression_vec& arguments) {
@@ -239,15 +275,7 @@ arg_list Interpreter::_get_arg_list(const up_expression_vec& arguments) {
     return args;
 }
 
-void Interpreter::_handle_function_call_end(const std::optional<Type>& ret_type) {
-    if (not TypeHandler::matches_return_type(_tmp_result, ret_type)) {
-        throw std::runtime_error("return type mismatch");  // TODO
-    }
-
-    // if function was returning something make sure for it to be a value not var_holder
-    if (not _tmp_result_is_empty()) {
-        _tmp_result = TypeHandler::extract_value(_tmp_result);
-    }
+void Interpreter::_handle_function_call_end() {
     _is_returning = false;
     _env.exiting_function();
 }
@@ -312,7 +340,7 @@ void Interpreter::_evaluate_unary_expr(const ExprKind& expr_kind, value val) {
     }
 }
 
-void Interpreter::_evaluate_condition() {
+void Interpreter::_evaluate_condition(const Position& condition_pos) {
     if (not TypeHandler::value_type_is<bool>(_tmp_result)) {
         throw std::runtime_error("condition must be bool type");  // TODO
     }
@@ -325,9 +353,23 @@ bool Interpreter::_tmp_result_is_empty() const {
 }
 
 bool Interpreter::_should_exit_code_block() const {
-    return _is_returning;
+    return _is_returning or _on_break or _on_continue;
 }
 
 void Interpreter::_clear_tmp_result() {
     _tmp_result = std::monostate{};
+}
+
+void Interpreter::_enter_loop() {
+    _inside_loop = true;
+    // so the loop variable is visible only within the scope
+    _env.add_scope();
+}
+
+void Interpreter::_exit_loop() {
+    _inside_loop = false;
+    _on_continue = false;
+    _on_break = false;
+    // so the loop var is not visible outside
+    _env.pop_scope();
 }

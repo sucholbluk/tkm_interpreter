@@ -29,19 +29,19 @@ void Environment::declare_variable(std::string identifier, VariableType var_type
     declare_variable(identifier, VariableHolder{var});
 };
 
-void Environment::calling_function() {
-    _call_frames.push(CallFrame{});
+void Environment::calling_function(std::optional<Type> ret_type) {
+    _call_frames.push(CallFrame{ret_type});
 }
 
 void Environment::exiting_function() {
     _call_frames.pop();
 }
 
-void Environment::entering_block() {
+void Environment::add_scope() {
     _call_frames.top().push_scope();
 }
 
-void Environment::exiting_block() {
+void Environment::pop_scope() {
     _call_frames.top().pop_scope();
 }
 
@@ -58,4 +58,8 @@ std::optional<VariableHolder> Environment::get_by_identifier(const std::string& 
 sp_callable Environment::get_global_function(const std::string& identifier) {
     auto it = _functions.find(identifier);
     return it != _functions.end() ? it->second : nullptr;
+}
+
+std::optional<Type> Environment::get_cur_func_ret_type() const {
+    return _call_frames.top().get_ret_type();
 }

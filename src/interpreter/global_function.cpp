@@ -28,7 +28,6 @@ void GlobalFunction::call(Interpreter& inter, arg_list arguments) {
             },
             arguments[i]);
     }
-
     // function body execution
     _function.body->accept(inter);
 }

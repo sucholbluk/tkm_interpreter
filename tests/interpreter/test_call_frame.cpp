@@ -6,7 +6,7 @@
 #include "type_handler.hpp"
 
 BOOST_AUTO_TEST_CASE(add_and_find_variable_test) {
-    CallFrame frame;
+    CallFrame frame{std::make_optional<Type>(TypeKind::INT)};
     auto var = std::make_shared<Variable>(VariableType{TypeHandler::deduce_type(123)}, 123);
     frame.add_variable("x", var);
 
@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_CASE(add_and_find_variable_test) {
 }
 
 BOOST_AUTO_TEST_CASE(find_variable_in_inner_scope_test) {
-    CallFrame frame;
+    CallFrame frame{std::make_optional<Type>(TypeKind::INT)};
     auto var_outer = std::make_shared<Variable>(VariableType{TypeHandler::deduce_type(1)}, 1);
     frame.add_variable("a", var_outer);
 
@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(find_variable_in_inner_scope_test) {
 }
 
 BOOST_AUTO_TEST_CASE(is_in_current_scope_test) {
-    CallFrame frame;
+    CallFrame frame{std::make_optional<Type>(TypeKind::INT)};
     auto var = std::make_shared<Variable>(VariableType{TypeHandler::deduce_type(42)}, 42);
     frame.add_variable("foo", var);
 
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(is_in_current_scope_test) {
 }
 
 BOOST_AUTO_TEST_CASE(modify_variable_value_test) {
-    CallFrame frame;
+    CallFrame frame{std::make_optional<Type>(TypeKind::INT)};
     auto var = std::make_shared<Variable>(VariableType{TypeHandler::deduce_type(7)}, 7);
     frame.add_variable("num", var);
 

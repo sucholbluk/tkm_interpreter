@@ -22,3 +22,7 @@ std::optional<VariableHolder> CallFrame::find_variable(const std::string& identi
 bool CallFrame::is_in_current_scope(const std::string& identifier) {
     return _scopes.front().contains_variable(identifier);
 }
+
+std::optional<Type> CallFrame::get_ret_type() const {
+    return _return_type;
+}

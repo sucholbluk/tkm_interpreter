@@ -14,11 +14,12 @@ class Environment {
     void declare_variable(std::string identifier, VariableHolder var_holder);
     void declare_variable(std::string identifier, VariableType var_type, value var_value);
 
-    void calling_function();
+    void calling_function(std::optional<Type> ret_type);
     void exiting_function();
+    std::optional<Type> get_cur_func_ret_type() const;
 
-    void entering_block();
-    void exiting_block();
+    void add_scope();
+    void pop_scope();
 
     bool var_in_current_scope(const std::string& identifier);
     std::optional<VariableHolder> get_by_identifier(const std::string& identifier);

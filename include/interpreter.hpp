@@ -37,10 +37,10 @@ class Interpreter : public Visitor {
     void visit(const IfStatement& if_stmnt) override;
     void visit(const ElseIf& else_if) override;
     void visit(const BindFront& bind_front_expr) override;
+    void visit(const ContinueStatement& continue_stmnt) override;
+    void visit(const BreakStatement& break_stmnt) override;
 
-    void visit(const ContinueStatement& continue_stmnt) override{};
-    void visit(const BreakStatement& break_stmnt) override{};
-    void visit(const ForLoop& for_loop) override{};
+    void visit(const ForLoop& for_loop) override;
 
     void visit(const FunctionSignature& func_sig) override{};
     void visit(const TypedIdentifier& typed_ident) override{};
@@ -50,16 +50,21 @@ class Interpreter : public Visitor {
     Environment _env;
     bool _is_returning = false;
     bool _condition_met = false;
+    bool _inside_loop = false;
+    bool _on_continue = false;
+    bool _on_break = false;
 
     void _execute_main();
     void _clear_tmp_result();
-    void _handle_function_call_end(const std::optional<Type>& ret_type);
+    void _handle_function_call_end();
     arg_list _get_arg_list(const up_expression_vec& arguments);
     bool _tmp_result_is_empty() const;
     bool _should_exit_code_block() const;
     void _evaluate_binary_expr(const ExprKind& expr_kind, value left, value right);
     void _evaluate_unary_expr(const ExprKind& expr_kind, value val);
-    void _evaluate_condition();
+    void _evaluate_condition(const Position& condition_pos);
+    void _enter_loop();
+    void _exit_loop();
 
     friend class GlobalFunction;
     friend class ComposedFunction;

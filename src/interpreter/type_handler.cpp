@@ -186,10 +186,10 @@ std::optional<value> as_bool(const value& val) {
 }
 
 bool matches_return_type(const mb_var_or_val& ret_val, std::optional<Type> ret_type) {
-    if (not ret_type) {  // returning none
-        return std::holds_alternative<std::monostate>(ret_val);
+    if (std::holds_alternative<std::monostate>(ret_val)) {  // returning none
+        return not ret_type.has_value();
     }
-    return deduce_type(extract_value(ret_val)) == ret_type.value();
+    return ret_type.has_value() and deduce_type(extract_value(ret_val)) == ret_type.value();
 }
 
 bool are_the_same_type(value lhs, value rhs) {
