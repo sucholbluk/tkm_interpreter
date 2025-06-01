@@ -765,6 +765,36 @@ def main() -> int {
     BOOST_CHECK(output == expected_output);
 }
 
+BOOST_AUTO_TEST_CASE(logical_operators_bool_test) {
+    std::string expected_output{"true\nfalse\nfalse\ntrue\nfalse\ntrue\nfalse\ntrue\ntrue\nfalse\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print((true and true) as string);     # true
+    print((true and false) as string);    # false
+    print((false or false) as string);    # false
+    print((true or false) as string);     # true
+    print((not true) as string);          # false
+    print((not false) as string);         # true
+    print(not (true and true) as string);     # false
+    print(not (true and false) as string);    # true 
+    print(not (false or false) as string);    # true
+    print(not (true or false) as string);     # false
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
 BOOST_AUTO_TEST_CASE(if_condition_false_test) {
     std::string expected_output{""};
     std::string mock_file = R"(
