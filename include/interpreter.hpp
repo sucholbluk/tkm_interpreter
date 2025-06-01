@@ -2,10 +2,9 @@
 #define INTERPRETER_HPP
 
 #include "call_frame.hpp"
+#include "composed_function.hpp"
 #include "environment.hpp"
 #include "visitor.hpp"
-
-class PrintFunction;
 
 /**
  * @defgroup interpreter Interpreter
@@ -63,6 +62,7 @@ class Interpreter : public Visitor {
     void _evaluate_condition();
 
     friend class GlobalFunction;
+    friend class ComposedFunction;
 };
 
 #endif  // INTERPRETER_HPP

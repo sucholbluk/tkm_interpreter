@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <limits>
 
+#include "composed_function.hpp"
 #include "type_handler.hpp"
 
 namespace OperHandler {
@@ -22,7 +23,7 @@ value add(value left, value right) {
                 return left + TypeHandler::get_value_as<std::string>(right);
             } else if constexpr (std::same_as<bool, T>) {
                 throw std::runtime_error("cant perform addition on bools");
-            } else if constexpr (std::same_as<std::shared_ptr<Callable>, T>) {
+            } else if constexpr (std::same_as<sp_callable, T>) {
                 throw std::runtime_error("cant perform addition on function types {with types}");
             }
         },
@@ -44,7 +45,7 @@ value subtract(value left, value right) {
                 throw std::runtime_error("cant perform subtraction on strings");
             } else if constexpr (std::same_as<bool, T>) {
                 throw std::runtime_error("cant perform subtraction on bools");
-            } else if constexpr (std::same_as<std::shared_ptr<Callable>, T>) {
+            } else if constexpr (std::same_as<sp_callable, T>) {
                 throw std::runtime_error("cant perform subtraction on functions {with types}");
             }
         },
@@ -66,7 +67,7 @@ value multiply(value left, value right) {
                 throw std::runtime_error("cant perform multiplication on strings");
             } else if constexpr (std::same_as<bool, T>) {
                 throw std::runtime_error("cant perform multiplication on bools");
-            } else if constexpr (std::same_as<std::shared_ptr<Callable>, T>) {
+            } else if constexpr (std::same_as<sp_callable, T>) {
                 throw std::runtime_error("cant perform multiplication on functions {with types}");
             }
         },
@@ -92,7 +93,7 @@ value divide(value left, value right) {
                 throw std::runtime_error("cant perform divistion on strings");
             } else if constexpr (std::same_as<bool, T>) {
                 throw std::runtime_error("cant perform divistion on bools");
-            } else if constexpr (std::same_as<std::shared_ptr<Callable>, T>) {
+            } else if constexpr (std::same_as<sp_callable, T>) {
                 throw std::runtime_error("cant perform divistion on functions {with types}");
             }
         },
@@ -110,7 +111,7 @@ bool check_eq(value left, value right) {
                 return left == TypeHandler::get_value_as<std::string>(right);
             } else if constexpr (std::same_as<bool, T>) {
                 return left == TypeHandler::get_value_as<bool>(right);
-            } else if constexpr (std::same_as<std::shared_ptr<Callable>, T>) {
+            } else if constexpr (std::same_as<sp_callable, T>) {
                 throw std::runtime_error("cant perform comparison operation on functions {with types}");
             }
         },
@@ -132,7 +133,7 @@ bool check_lt(value left, value right) {
                 return left < TypeHandler::get_value_as<std::string>(right);
             } else if constexpr (std::same_as<bool, T>) {
                 return left < TypeHandler::get_value_as<bool>(right);
-            } else if constexpr (std::same_as<std::shared_ptr<Callable>, T>) {
+            } else if constexpr (std::same_as<sp_callable, T>) {
                 throw std::runtime_error("cant perform comparison operation on functions {with types}");
             }
         },
@@ -189,4 +190,10 @@ value unary_minus(value val) {
         val);
 }
 
+sp_callable compose_functions(value left, value right) {
+    Type type{TypeHandler::get_composed_func_type(left, right)};
+    // if it passed through getting type, the values are functions and are correct
+    return std::make_shared<ComposedFunction>(type, TypeHandler::get_value_as<sp_callable>(left),
+                                              TypeHandler::get_value_as<sp_callable>(right));
+}
 }  // namespace OperHandler

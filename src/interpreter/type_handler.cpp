@@ -17,7 +17,7 @@ Type deduce_type(value val) {
                 return Type{TypeKind::BOOL};
             } else if constexpr (std::same_as<std::string, T>) {
                 return Type{TypeKind::STRING};
-            } else if constexpr (std::same_as<std::shared_ptr<Callable>, T>) {
+            } else if constexpr (std::same_as<sp_callable, T>) {
                 return _val->get_type();
             }
         },
@@ -185,22 +185,27 @@ bool are_the_same_type(value lhs, value rhs) {
                       lhs, rhs);
 }
 
-// bool is_none(const mb_var_or_val& maybe_none) {
-//     return std::holds_alternative<std::monostate>(maybe_none);
-// }
+Type get_composed_func_type(value left, value right) {
+    // it was already check if both left and right are the same type
+    if (not std::holds_alternative<sp_callable>(left)) {
+        throw std::runtime_error("Func comp only on functionns -- got ...");  // TODO
+    }
+    auto l_ftype_info{get_value_as<sp_callable>(left)->get_type().function_type_info};
+    auto r_ftype_info{get_value_as<sp_callable>(right)->get_type().function_type_info};
 
-// std::string get_type_str(const mb_var_or_val& mb_val_or_vholder) {
-//     return std::visit(
-//         []<typename T>(const T& mb_val_or_vholder) -> std::string {
-//             if constexpr (std::same_as<std::monostate, T>) {
-//                 return "none";
-//             } else if constexpr (std::same_as<VariableHolder, T>) {
-//                 return mb_val_or_vholder.get_type().to_str();
-//             } else if constexpr (std::same_as<value, T>) {
-//                 return deduce_type(mb_val_or_vholder).to_str();
-//             }
-//         },
-//         mb_val_or_vholder);
-// }
+    bool r_takes_1arg{r_ftype_info->param_types.size() == 1};
+
+    if (not(r_takes_1arg and ret_type_matches_param_type(l_ftype_info->return_type, r_ftype_info->param_types[0]))) {
+        throw std::runtime_error("invalid function types for function compositin {types}");
+    }
+
+    return Type{FunctionTypeInfo{l_ftype_info->param_types, r_ftype_info->return_type}};
+}
+
+bool ret_type_matches_param_type(std::optional<Type> ret_type, VariableType param_type) {
+    if (not ret_type) return false;
+
+    return ret_type.value() == param_type.type;
+}
 
 }  // namespace TypeHandler

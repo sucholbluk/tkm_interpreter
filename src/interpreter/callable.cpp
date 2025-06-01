@@ -5,7 +5,7 @@ std::ostream& operator<<(std::ostream& os, const Callable& callable) {
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const std::shared_ptr<Callable>& ptr) {
+std::ostream& operator<<(std::ostream& os, const sp_callable& ptr) {
     if (ptr)
         os << std::format("[sp to Callable - {}]", ptr->get_type().to_str());
     else

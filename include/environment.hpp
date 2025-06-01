@@ -22,10 +22,10 @@ class Environment {
 
     bool var_in_current_scope(const std::string& identifier);
     std::optional<VariableHolder> get_by_identifier(const std::string& identifier);
-    std::shared_ptr<Callable> get_global_function(const std::string& identifier);
+    sp_callable get_global_function(const std::string& identifier);
 
    private:
-    std::unordered_map<std::string, std::shared_ptr<Callable>> _functions;
+    std::unordered_map<std::string, sp_callable> _functions;
     std::stack<CallFrame> _call_frames;
 };
 #endif  // ENVIRONMENT_HPP

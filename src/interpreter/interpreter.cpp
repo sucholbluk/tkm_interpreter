@@ -20,10 +20,10 @@ void Interpreter::visit(const FunctionDefinition& func_def) {
 void Interpreter::visit(const FunctionCall& func_call) {
     func_call.callee->accept(*this);
 
-    if (not TypeHandler::value_type_is<std::shared_ptr<Callable>>(_tmp_result)) {
+    if (not TypeHandler::value_type_is<sp_callable>(_tmp_result)) {
         throw std::runtime_error("not callable");
     }
-    auto func{TypeHandler::get_value_as<std::shared_ptr<Callable>>(_tmp_result)};
+    auto func{TypeHandler::get_value_as<sp_callable>(_tmp_result)};
     auto func_type_info{func->get_type().function_type_info};
     arg_list arguments{_get_arg_list(func_call.argument_list)};
     _clear_tmp_result();
@@ -279,6 +279,9 @@ void Interpreter::_evaluate_binary_expr(const ExprKind& expr_kind, value left, v
             break;
         case ExprKind::LOGICAL_OR:
             _tmp_result = OperHandler::logical_or(left, right);
+            break;
+        case ExprKind::FUNCTION_COMPOSITION:
+            _tmp_result = OperHandler::compose_functions(left, right);
             break;
         default:
             throw std::logic_error("not implemented");

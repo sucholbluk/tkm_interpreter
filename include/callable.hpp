@@ -14,7 +14,9 @@ class Callable {
     virtual void call(Interpreter& interpreter, arg_list call_args) = 0;
     virtual Type get_type() const = 0;
 };
+using sp_callable = std::shared_ptr<Callable>;
 
 std::ostream& operator<<(std::ostream& os, const Callable& callable);
-std::ostream& operator<<(std::ostream& os, const std::shared_ptr<Callable>& ptr);
+std::ostream& operator<<(std::ostream& os, const sp_callable& ptr);
+
 #endif  // CALLABLE_HPP

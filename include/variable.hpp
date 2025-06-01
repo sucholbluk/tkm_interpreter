@@ -5,7 +5,9 @@
 #include "type.hpp"
 
 class Callable;
-using value = std::variant<int, double, bool, std::string, std::shared_ptr<Callable>>;
+using sp_callable = std::shared_ptr<Callable>;
+
+using value = std::variant<int, double, bool, std::string, sp_callable>;
 
 /**
  * @ingroup interpreter
@@ -54,4 +56,4 @@ std::ostream& operator<<(std::ostream& os, const value& v);
 std::ostream& operator<<(std::ostream& os, const arg& a);
 std::ostream& operator<<(std::ostream& os, const std::vector<arg>& args);
 std::ostream& operator<<(std::ostream& os, const std::vector<VariableType>& v);
-#endif
+#endif  // VARIABLE_HPP

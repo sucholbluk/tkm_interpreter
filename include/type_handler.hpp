@@ -24,7 +24,9 @@ arg maybe_value_to_arg(const mb_var_or_val& maybe_val_or_holder);
 
 value extract_value(const mb_var_or_val& maybe_val_or_holder);
 
-bool is_none(const mb_var_or_val& maybe_val_or_holder);
+Type get_composed_func_type(value left, value right);
+
+bool ret_type_matches_param_type(std::optional<Type> ret_type, VariableType param_type);
 
 std::optional<value> as_type(Type primitive_type_kind, value val);
 

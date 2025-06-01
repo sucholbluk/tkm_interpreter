@@ -26,6 +26,9 @@ bool logical_or(value left, value right);
 value unary_minus(value val);
 bool logical_not(value val);
 
+// Function Composition
+sp_callable compose_functions(value left, value right);
+
 };  // namespace OperHandler
 
 #endif  // OPER_HANDLER_HPP

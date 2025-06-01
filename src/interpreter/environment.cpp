@@ -55,7 +55,7 @@ std::optional<VariableHolder> Environment::get_by_identifier(const std::string& 
     return _call_frames.top().find_variable(identifier);
 }
 
-std::shared_ptr<Callable> Environment::get_global_function(const std::string& identifier) {
+sp_callable Environment::get_global_function(const std::string& identifier) {
     auto it = _functions.find(identifier);
     return it != _functions.end() ? it->second : nullptr;
 }

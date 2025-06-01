@@ -9,6 +9,7 @@ add_library(interpreter STATIC
     variable.cpp
     callable.cpp
     oper_handler.cpp
+    composed_function.cpp
 )
 
 target_link_libraries(interpreter PUBLIC parser)

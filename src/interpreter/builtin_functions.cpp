@@ -12,10 +12,11 @@ Type BuiltinFunction::get_type() const {
 }
 
 namespace Builtins {
-const Type _print_type{FunctionTypeInfo{std::vector<VariableType>{VariableType{Type{TypeKind::STRING}}}, std::nullopt}};
+const Type _print_type{
+    FunctionTypeInfo{std::vector<VariableType>{{VariableType{Type{TypeKind::STRING}}}}, std::nullopt}};
 
 function_impl _print_impl = [](Interpreter& interpreter, arg_list args) {
-    // interpreter will check if arg_list matches taken params - here we have:
+    // interpreter already checked if arg_list matches taken params - here we have:
     // string value or variable holder(values passed as references) of string type
     std::cout << TypeHandler::get_value_as<std::string>(args[0]) << std::endl;
 };
