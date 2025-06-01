@@ -795,6 +795,83 @@ def main() -> int {
     BOOST_CHECK(output == expected_output);
 }
 
+// FUNCTION COMPOSITION, FUNC COMP
+BOOST_AUTO_TEST_CASE(func_comp_single_test) {
+    std::string expected_output{"4\n99\n"};
+    std::string mock_file = R"(
+def int_to_str(a: int) -> string {
+    return a as string;
+}
+
+def main() -> int {
+    let print_int: function<int:none> = int_to_str & print;
+    print_int(4);
+    (int_to_str & print)(99); # wolane dynamicznie tez dziala
+
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(func_comp_chained_test) {
+    std::string expected_output{"8\n2.5\n"};
+    std::string mock_file = R"(
+def mul2_int(a: int) -> int {
+    return a * 2;
+}
+
+def to_flt(a: int) -> float {
+    return a as float;
+}
+
+def div4_flt(f: float) -> float {
+    return f / 4 as float;
+}
+
+def int_to_str(a: int) -> string {
+    return a as string;
+}
+
+def flt_to_str(f: float) -> string {
+    return f as string;
+}
+
+def main() -> int {
+    let print_2mul_int: function<int:none> =  mul2_int & int_to_str & print;
+    print_2mul_int(4);
+
+    let foo: function<int:float> = mul2_int & to_flt & div4_flt;
+
+    (foo & flt_to_str & print)(5);
+
+
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
 BOOST_AUTO_TEST_CASE(if_condition_false_test) {
     std::string expected_output{""};
     std::string mock_file = R"(
