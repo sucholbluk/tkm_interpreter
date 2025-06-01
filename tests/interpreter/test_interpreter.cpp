@@ -1100,3 +1100,214 @@ def main() -> int {
 
     BOOST_CHECK(output == expected_output);
 }
+
+BOOST_AUTO_TEST_CASE(for_loop_simple_test) {
+    std::string expected_output{"0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    for (i: int = 0; i < 10;  i = i+1){
+        print(i as string);
+    }
+
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(for_loop_continue_test) {
+    std::string expected_output{"0\n1\n2\n3\n5\n6\n7\n8\n9\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    let skipped: int = 4;
+    for (i: int = 0; i < 10;  i = i+1){
+        if (i == skipped){
+            continue;
+        }
+        print(i as string);
+    }
+
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(for_loop_break_test) {
+    std::string expected_output{"0\n1\n2\n3\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    let breaking: int = 4;
+    for (i: int = 0; i < 10;  i = i+1){
+        if (i == breaking){
+            break;
+        }
+        print(i as string);
+    }
+
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(for_loop_with_return_no_val_test) {
+    std::string expected_output{"0\n1\n2\n3\n4\n5\n6\nin main\n"};
+    std::string mock_file = R"(
+def foo(a: int) -> none {
+    for (i: int = 0; i < 10;  i = i+1){
+        if (i * 3 > a ){
+            return;
+        }
+        print(i as string);
+    }
+}
+
+
+def main() -> int {
+    foo(20);
+    print("in main");
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(for_loop_with_return_val_test) {
+    std::string expected_output{"0\n1\n2\n3\n4\nval not reached\n0\n1\n2\nval reached\n"};
+    std::string mock_file = R"(
+def foo(a: int) -> string {
+    for (i: int = 0; i < 5;  i = i+1){
+        if ( a == i ){
+            return "val reached";
+        }
+        print(i as string);
+    }
+    return "val not reached";
+}
+
+
+def main() -> int {
+    print(foo(5));
+    print(foo(3));
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(for_loop_shadowing_test) {
+    std::string expected_output{
+        "outside loop i is: 4.5\ninside loop i is: 0\ninside loop i is: 1\noutside loop i is: 4.5\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    let i: float = 4.5;
+    let position: string = "outside loop";
+
+    print(position + " i is: " + i as string);
+
+    for (i: int = 0; i < 2;  i = i+1){
+        let position: string = "inside loop";
+        print(position + " i is: " + i as string);
+    }
+
+    print(position + " i is: " + i as string);
+
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(block_shadowing_test) {
+    std::string expected_output{"outer: 10\ninner: 20\ntrue\nouter: 10\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    let x: int = 10;
+    let access: bool = true;
+
+    print("outer: " + x as string);
+
+    {
+        let x: int = 20;
+        print("inner: " + x as string);
+        print(access as string); # to show that parent scope can be referenced
+    }
+
+    print("outer: " + x as string);
+
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
