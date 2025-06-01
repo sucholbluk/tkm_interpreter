@@ -29,7 +29,7 @@ BOOST_DATA_TEST_CASE(deduce_type_test, bdata::make(deduce_type_test_cases), expe
 
 namespace bdata = boost::unit_test::data;
 
-std::vector<std::tuple<arg, VariableType, bool>> arg_matches_param_cases{
+std::vector<std::tuple<vhold_or_val, VariableType, bool>> arg_matches_param_cases{
     {value{42}, VariableType{Type{TypeKind::INT}, false}, true},
     {value{3.14}, VariableType{Type{TypeKind::FLOAT}, false}, true},
     {value{true}, VariableType{Type{TypeKind::BOOL}, false}, true},
@@ -81,13 +81,13 @@ BOOST_AUTO_TEST_CASE(var_match_type_test) {
 
 BOOST_AUTO_TEST_CASE(value_type_is_for_value) {
     value v_int = 123;
-    mb_var_or_val val1 = v_int;
+    opt_vhold_or_val val1 = v_int;
     BOOST_CHECK(TypeHandler::value_type_is<int>(val1));
     BOOST_CHECK(!TypeHandler::value_type_is<double>(val1));
     BOOST_CHECK_EQUAL(TypeHandler::get_value_as<int>(val1), 123);
 
     value v_str = std::string("abc");
-    mb_var_or_val val2 = v_str;
+    opt_vhold_or_val val2 = v_str;
     BOOST_CHECK(TypeHandler::value_type_is<std::string>(val2));
     BOOST_CHECK(!TypeHandler::value_type_is<int>(val2));
     BOOST_CHECK_EQUAL(TypeHandler::get_value_as<std::string>(val2), "abc");
@@ -96,14 +96,14 @@ BOOST_AUTO_TEST_CASE(value_type_is_for_value) {
 BOOST_AUTO_TEST_CASE(value_type_is_for_variableholder) {
     auto var = std::make_shared<Variable>(VariableType{Type{TypeKind::FLOAT}}, 3.14);
     VariableHolder vh{var};
-    mb_var_or_val val3 = vh;
+    opt_vhold_or_val val3 = vh;
     BOOST_CHECK(TypeHandler::value_type_is<double>(val3));
     BOOST_CHECK(!TypeHandler::value_type_is<int>(val3));
     BOOST_CHECK_CLOSE(TypeHandler::get_value_as<double>(val3), 3.14, 1e-9);
 }
 
 BOOST_AUTO_TEST_CASE(value_type_is_for_monostate) {
-    mb_var_or_val val4 = std::monostate{};
+    opt_vhold_or_val val4 = std::nullopt;
     BOOST_CHECK(!TypeHandler::value_type_is<int>(val4));
     BOOST_CHECK_THROW(TypeHandler::get_value_as<int>(val4), std::logic_error);
 }

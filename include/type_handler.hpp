@@ -18,15 +18,15 @@ Type get_bind_front_func_type(value bind_target, const arg_list& args);
 
 bool are_the_same_type(value lhs, value rhs);
 
-bool matches_return_type(const mb_var_or_val& ret_val, std::optional<Type> ret_type);
+bool matches_return_type(const opt_vhold_or_val& ret_val, std::optional<Type> ret_type);
 
 bool args_match_params(const arg_list& args, std::vector<VariableType> param_types);
 
-bool arg_matches_param(arg argument, VariableType param_type);
+bool arg_matches_param(vhold_or_val argument, VariableType param_type);
 
-arg maybe_value_to_arg(const mb_var_or_val& maybe_val_or_holder);
+vhold_or_val maybe_value_to_arg(const opt_vhold_or_val& maybe_val_or_holder);
 
-value extract_value(const mb_var_or_val& maybe_val_or_holder);
+value extract_value(const opt_vhold_or_val& maybe_val_or_holder);
 
 value extract_value(const std::variant<VariableHolder, value>& val_or_holder);
 
@@ -43,7 +43,7 @@ std::optional<value> as_bool(const value& val);
 std::optional<value> as_string(const value& val);
 
 template <typename T>
-bool value_type_is(const mb_var_or_val& maybe_val_or_holder) {
+bool value_type_is(const vhold_or_val& opt_v_or_vh) {
     return std::visit(
         []<typename U>(const U& v_or_vh) -> bool {
             if constexpr (std::same_as<VariableHolder, U>) {
@@ -51,9 +51,14 @@ bool value_type_is(const mb_var_or_val& maybe_val_or_holder) {
             } else if constexpr (std::same_as<value, U>) {
                 return std::holds_alternative<T>(v_or_vh);
             }
-            return false;
         },
-        maybe_val_or_holder);
+        opt_v_or_vh);
+}
+
+template <typename T>
+bool value_type_is(const opt_vhold_or_val& opt_v_or_vh) {
+    if (not opt_v_or_vh) return false;
+    return value_type_is<T>(opt_v_or_vh.value());
 }
 
 template <typename T>
@@ -65,7 +70,7 @@ T get_value_as(const value& val) {
 }
 
 template <typename T>
-T get_value_as(const std::variant<VariableHolder, value>& argument) {
+T get_value_as(const vhold_or_val& argument) {
     return std::visit(
         []<typename U>(const U& argument) -> T {
             if constexpr (std::same_as<VariableHolder, U>) {
@@ -78,18 +83,11 @@ T get_value_as(const std::variant<VariableHolder, value>& argument) {
 }
 
 template <typename T>
-T get_value_as(mb_var_or_val maybe_val_or_holder) {
-    return std::visit(
-        []<typename U>(const U& v_or_vh) -> T {
-            if constexpr (std::same_as<VariableHolder, U>) {
-                return v_or_vh.template get_value_as<T>();
-            } else if constexpr (std::same_as<value, U>) {
-                return get_value_as<T>(v_or_vh);
-            } else if constexpr (std::same_as<std::monostate, U>) {
-                throw std::logic_error("impl err get value as with monostate");  // TODO: change
-            }
-        },
-        maybe_val_or_holder);
+T get_value_as(opt_vhold_or_val opt_v_or_vh) {
+    if (not opt_v_or_vh) {
+        throw std::logic_error("impl err get value as with monostate");  // TODO: change
+    }
+    return get_value_as<T>(opt_v_or_vh.value());
 }
 
 }  // namespace TypeHandler

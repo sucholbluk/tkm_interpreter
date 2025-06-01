@@ -31,7 +31,7 @@ bool args_match_params(const arg_list& args, std::vector<VariableType> param_typ
                                [&](size_t i) { return arg_matches_param(args[i], param_types[i]); });
 }
 
-bool arg_matches_param(arg argument, VariableType param_type) {
+bool arg_matches_param(vhold_or_val argument, VariableType param_type) {
     return std::visit(
         [param_type]<typename T>(const T& argument) -> bool {
             if constexpr (std::same_as<value, T>) {
@@ -46,35 +46,21 @@ bool arg_matches_param(arg argument, VariableType param_type) {
         argument);
 }
 
-arg maybe_value_to_arg(const mb_var_or_val& maybe_val_or_holder) {
-    return std::visit(
-        []<typename T>(const T& v_or_vh) -> arg {
-            if constexpr (std::same_as<T, VariableHolder>) {
-                return v_or_vh;
-            } else if constexpr (std::same_as<T, value>) {
-                return v_or_vh;
-            } else if constexpr (std::same_as<T, std::monostate>) {
-                throw std::logic_error("impl err - check if not monostate before calling");
-            }
-        },
-        maybe_val_or_holder);
+vhold_or_val maybe_value_to_arg(const opt_vhold_or_val& opt_v_or_vh) {
+    if (not opt_v_or_vh) {
+        throw std::logic_error("impl err - check if not monostate before calling");
+    }
+    return opt_v_or_vh.value();
 }
 
-value extract_value(const mb_var_or_val& maybe_val_or_holder) {
-    return std::visit(
-        []<typename T>(const T& v_or_vh) -> value {
-            if constexpr (std::same_as<T, VariableHolder>) {
-                return v_or_vh.var->var_value;
-            } else if constexpr (std::same_as<T, value>) {
-                return v_or_vh;
-            } else if constexpr (std::same_as<T, std::monostate>) {
-                throw std::logic_error("impl err - should never be called with monostate");
-            }
-        },
-        maybe_val_or_holder);
+value extract_value(const opt_vhold_or_val& opt_v_or_vh) {
+    if (not opt_v_or_vh) {
+        throw std::logic_error("impl err - should never be called with monostate");
+    }
+    return extract_value(opt_v_or_vh.value());
 }
 
-value extract_value(const std::variant<VariableHolder, value>& val_or_holder) {
+value extract_value(const vhold_or_val& v_or_vh) {
     return std::visit(
         []<typename T>(const T& v_or_vh) -> value {
             if constexpr (std::same_as<T, VariableHolder>) {
@@ -83,7 +69,7 @@ value extract_value(const std::variant<VariableHolder, value>& val_or_holder) {
                 return v_or_vh;
             }
         },
-        val_or_holder);
+        v_or_vh);
 }
 
 std::optional<value> as_type(Type type, value val) {
@@ -185,8 +171,8 @@ std::optional<value> as_bool(const value& val) {
         val);
 }
 
-bool matches_return_type(const mb_var_or_val& ret_val, std::optional<Type> ret_type) {
-    if (std::holds_alternative<std::monostate>(ret_val)) {  // returning none
+bool matches_return_type(const opt_vhold_or_val& ret_val, std::optional<Type> ret_type) {
+    if (not ret_val) {  // returning none
         return not ret_type.has_value();
     }
     return ret_type.has_value() and deduce_type(extract_value(ret_val)) == ret_type.value();

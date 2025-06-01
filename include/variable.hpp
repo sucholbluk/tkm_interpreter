@@ -38,10 +38,10 @@ struct VariableHolder {
 
 // to represent variable value
 // argument can be variable reference or rvalue -> to let variables be modified inside other functions
-using arg = std::variant<VariableHolder, value>;
-using arg_list = std::vector<arg>;
+using vhold_or_val = std::variant<VariableHolder, value>;
+using arg_list = std::vector<vhold_or_val>;
 // contains value, reference to variable or nothing
-using mb_var_or_val = std::variant<std::monostate, VariableHolder, value>;
+using opt_vhold_or_val = std::optional<vhold_or_val>;
 
 template <typename T>
 T VariableHolder::get_value_as() const {
@@ -53,7 +53,7 @@ T VariableHolder::get_value_as() const {
 
 std::ostream& operator<<(std::ostream& os, const VariableHolder& var_hold);
 std::ostream& operator<<(std::ostream& os, const value& v);
-std::ostream& operator<<(std::ostream& os, const arg& a);
-std::ostream& operator<<(std::ostream& os, const std::vector<arg>& args);
+std::ostream& operator<<(std::ostream& os, const vhold_or_val& a);
+std::ostream& operator<<(std::ostream& os, const arg_list& args);
 std::ostream& operator<<(std::ostream& os, const std::vector<VariableType>& v);
 #endif  // VARIABLE_HPP

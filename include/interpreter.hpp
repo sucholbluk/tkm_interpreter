@@ -46,7 +46,7 @@ class Interpreter : public Visitor {
     void visit(const TypedIdentifier& typed_ident) override{};
 
    private:
-    mb_var_or_val _tmp_result;
+    opt_vhold_or_val _tmp_result;
     Environment _env;
     bool _is_returning = false;
     bool _condition_met = false;

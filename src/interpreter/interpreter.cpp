@@ -349,7 +349,7 @@ void Interpreter::_evaluate_condition(const Position& condition_pos) {
 }
 
 bool Interpreter::_tmp_result_is_empty() const {
-    return std::holds_alternative<std::monostate>(_tmp_result);
+    return not _tmp_result.has_value();
 }
 
 bool Interpreter::_should_exit_code_block() const {
@@ -357,7 +357,7 @@ bool Interpreter::_should_exit_code_block() const {
 }
 
 void Interpreter::_clear_tmp_result() {
-    _tmp_result = std::monostate{};
+    _tmp_result = std::nullopt;
 }
 
 void Interpreter::_enter_loop() {

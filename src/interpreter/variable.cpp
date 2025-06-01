@@ -18,12 +18,12 @@ std::ostream& operator<<(std::ostream& os, const VariableHolder& var_hold) {
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const arg& a) {
+std::ostream& operator<<(std::ostream& os, const vhold_or_val& a) {
     std::visit([&os](auto&& v) { os << v; }, a);
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const std::vector<arg>& args) {
+std::ostream& operator<<(std::ostream& os, const arg_list& args) {
     os << "[";
     bool first = true;
     for (const auto& a : args) {
