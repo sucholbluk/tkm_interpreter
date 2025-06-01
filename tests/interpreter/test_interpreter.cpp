@@ -534,6 +534,214 @@ def main() -> int {
     BOOST_CHECK(output == expected_output);
 }
 
+BOOST_AUTO_TEST_CASE(equality_and_inequality_int_test) {
+    std::string expected_output{"true\nfalse\nfalse\ntrue\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print((5 == 5) as string);    # true
+    print((5 == 3) as string);    # false
+    print((5 != 5) as string);    # false
+    print((5 != 3) as string);    # true
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(equality_and_inequality_float_test) {
+    std::string expected_output{"true\nfalse\nfalse\ntrue\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print((3.14 == 3.14) as string);    # true
+    print((3.14 == 2.71) as string);    # false
+    print((3.14 != 3.14) as string);    # false
+    print((3.14 != 2.71) as string);    # true
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(equality_and_inequality_string_test) {
+    std::string expected_output{"true\nfalse\nfalse\ntrue\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print(("abc" == "abc") as string);    # true
+    print(("abc" == "def") as string);    # false
+    print(("abc" != "abc") as string);    # false
+    print(("abc" != "def") as string);    # true
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(equality_and_inequality_bool_test) {
+    std::string expected_output{"true\nfalse\nfalse\ntrue\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print((true == true) as string);    # true
+    print((true == false) as string);   # false
+    print((true != true) as string);    # false
+    print((true != false) as string);   # true
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(relational_int_test) {
+    std::string expected_output{"false\ntrue\ntrue\nfalse\ntrue\ntrue\nfalse\nfalse\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print((5 < 5) as string);     # false
+    print((3 < 5) as string);     # true
+    print((5 > 3) as string);     # true
+    print((3 > 5) as string);     # false
+    print((5 <= 5) as string);    # true
+    print((3 <= 5) as string);    # true
+    print((5 >= 7) as string);    # false
+    print((2 >= 3) as string);    # false
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(relational_float_test) {
+    std::string expected_output{"false\ntrue\ntrue\nfalse\ntrue\ntrue\nfalse\nfalse\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print((3.14 < 3.14) as string);     # false
+    print((2.71 < 3.14) as string);     # true
+    print((3.14 > 2.71) as string);     # true
+    print((2.71 > 3.14) as string);     # false
+    print((3.14 <= 3.14) as string);    # true
+    print((2.71 <= 3.14) as string);    # true
+    print((3.14 >= 4.0) as string);     # false
+    print((2.0 >= 3.0) as string);      # false
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(relational_string_test) {
+    std::string expected_output{"false\ntrue\ntrue\nfalse\ntrue\ntrue\nfalse\nfalse\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print(("abc" < "abc") as string);     # false
+    print(("abc" < "def") as string);     # true
+    print(("def" > "abc") as string);     # true
+    print(("abc" > "def") as string);     # false
+    print(("abc" <= "abc") as string);    # true
+    print(("abc" <= "def") as string);    # true
+    print(("def" >= "xyz") as string);    # false
+    print(("abc" >= "def") as string);    # false
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(relational_bool_test) {
+    std::string expected_output{"false\ntrue\ntrue\nfalse\ntrue\ntrue\ntrue\nfalse\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print((true < true) as string);     # false
+    print((false < true) as string);    # true
+    print((true > false) as string);    # true
+    print((false > true) as string);    # false
+    print((true <= true) as string);    # true
+    print((false <= true) as string);   # true
+    print((true >= false) as string);   # true
+    print((false >= true) as string);   # false
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
 BOOST_AUTO_TEST_CASE(if_condition_true_test) {
     std::string expected_output{"condition met\n"};
     std::string mock_file = R"(
