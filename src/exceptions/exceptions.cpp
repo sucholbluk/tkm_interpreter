@@ -1,5 +1,7 @@
 #include "exceptions.hpp"
 
+#include "global_function.hpp"
+
 ImplementationError::ImplementationError(const std::string& message) : std::logic_error(message) {}
 /* -----------------------------------------------------------------------------*
  *                                LEXER ERRORS                                  *
@@ -207,10 +209,12 @@ TooManyArgsToBindException::TooManyArgsToBindException(const std::string& msg) :
 
 BinaryExprTypeMismatchException::BinaryExprTypeMismatchException(const std::string& expr_str,
                                                                  const std::string& lhs_type,
-                                                                 const std::string& rhs_type, const Position& pos)
+                                                                 const std::string& rhs_type)
     : InterpreterException(
-          std::format("{} requires left and right expressions to be the same type. Left type: {}, Right type{} at: {}",
-                      expr_str, lhs_type, rhs_type, pos.get_position_str())) {}
+          std::format("{} requires left and right expressions to be the same type. Left type: {}, Right type: {}",
+                      expr_str, lhs_type, rhs_type)) {}
+
+BinaryExprTypeMismatchException::BinaryExprTypeMismatchException(const std::string& msg) : InterpreterException(msg) {}
 
 CantPerformOperationException::CantPerformOperationException(const std::string& oper_str, const std::string& type_str)
     : InterpreterException(std::format("Cant perform {} on type {}", oper_str, type_str)) {}
@@ -230,3 +234,28 @@ RequiredFunctionException::RequiredFunctionException(const std::string& expr_kin
     : InterpreterException(std::format("{} requires function, got {}", expr_kind_str, type_str)) {}
 
 RequiredFunctionException::RequiredFunctionException(const std::string& msg) : InterpreterException(msg) {}
+
+CantAssignToImmutableException::CantAssignToImmutableException(const std::string& identifier, const Position& pos)
+    : InterpreterException(std::format("Cannot assign to immutable: {} at: {}", identifier, pos.get_position_str())) {}
+
+LoopStmtOutsideLoopException::LoopStmtOutsideLoopException(const std::string& statement_str, const Position& pos)
+    : InterpreterException(std::format("{} statement outside loop at: {}", statement_str, pos.get_position_str())) {}
+
+AlreadyDefinedException::AlreadyDefinedException(const std::string& identifier, const Position& pos)
+    : InterpreterException(std::format("{} is already defined and cannot be redefined here. Redefinition at: {}",
+                                       identifier, pos.get_position_str())) {}
+
+InvalidFucTForCompositionExeption::InvalidFucTForCompositionExeption(const std::string& type1_str,
+                                                                     const std::string& type2_str)
+    : InterpreterException(
+          std::format("Invalid types for function composition left type: {}, right type: {}", type1_str, type2_str)) {}
+
+InvalidFucTForCompositionExeption::InvalidFucTForCompositionExeption(const std::string& msg)
+    : InterpreterException(msg) {}
+
+ConditionMustBeBoolException::ConditionMustBeBoolException(const std::string& got_type, const Position& pos)
+    : InterpreterException(std::format("Condition must be bool, got: {} at: {}", got_type, pos.get_position_str())) {}
+
+InvalidMainFuncException::InvalidMainFuncException(const std::string& got_type)
+    : InterpreterException{
+          std::format("Invalid main function type. Expected: function<none:int>, got type: {}", got_type)} {}

@@ -15,7 +15,7 @@ void safe_exec::run_safe(const std::function<void()>& task) noexcept {
     } catch (const ParserException& e) {
         spdlog::error("SyntaxError: {}", e.what());
     } catch (const InterpreterException& e) {
-        spdlog::error("SyntaxError: {}", e.what());
+        spdlog::error("RuntimeError: {}", e.what());
     } catch (const FileOpenException& e) {
         spdlog::error("FileOpenException: {}", e.what());
     } catch (const std::exception& e) {

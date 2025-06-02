@@ -21,7 +21,7 @@ class Environment {
     void add_scope();
     void pop_scope();
 
-    bool var_in_current_scope(const std::string& identifier);
+    bool can_define(const std::string& identifier);
     std::optional<VariableHolder> get_by_identifier(const std::string& identifier);
     sp_callable get_global_function(const std::string& identifier);
 

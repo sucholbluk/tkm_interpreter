@@ -202,7 +202,8 @@ Type get_composed_func_type(value left, value right) {
     bool r_takes_1arg{r_ftype_info->param_types.size() == 1};
 
     if (not(r_takes_1arg and ret_type_matches_param_type(l_ftype_info->return_type, r_ftype_info->param_types[0]))) {
-        throw std::runtime_error("invalid function types for function compositin {types}");
+        throw InvalidFucTForCompositionExeption(TypeHandler::deduce_type(left).to_str(),
+                                                TypeHandler::deduce_type(right).to_str());
     }
 
     return Type{FunctionTypeInfo{l_ftype_info->param_types, r_ftype_info->return_type}};

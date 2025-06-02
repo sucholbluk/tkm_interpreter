@@ -81,14 +81,18 @@ void Interpreter::visit(const TypeCastExpression& type_cast_expr) {
 }
 
 void Interpreter::visit(const VariableDeclaration& var_decl) {
+    std::string identifier{var_decl.typed_identifier->name};
+    if (not _env.can_define(identifier)) {
+        throw AlreadyDefinedException(identifier, var_decl.position);
+    }
+    auto var_type{var_decl.typed_identifier->type};
+
     var_decl.assigned_expression->accept(*this);
     if (_tmp_result_is_empty())
-        throw AssignTypeMismatchException(var_decl.typed_identifier->type.to_str(),
-                                          TypeHandler::get_type_string(_tmp_result),
+        throw AssignTypeMismatchException(var_type.type.to_str(), TypeHandler::get_type_string(_tmp_result),
                                           var_decl.assigned_expression->position);
 
     auto value_to_assign{TypeHandler::extract_value(_tmp_result)};
-    auto var_type{var_decl.typed_identifier->type};
     if (TypeHandler::deduce_type(value_to_assign) != var_type.type) {
         throw AssignTypeMismatchException(var_type.type.to_str(), TypeHandler::deduce_type(value_to_assign).to_str(),
                                           var_decl.assigned_expression->position);
@@ -105,7 +109,7 @@ void Interpreter::visit(const AssignStatement& asgn_stmnt) {
 
     auto var_holder{opt_var_holder.value()};
     if (not var_holder.can_change_var) {
-        throw std::runtime_error("cannot assign to immutable variable");
+        throw CantAssignToImmutableException(asgn_stmnt.identifier, asgn_stmnt.position);
     }
 
     asgn_stmnt.expr->accept(*this);
@@ -146,14 +150,14 @@ void Interpreter::visit(const ReturnStatement& return_stmnt) {
 
 void Interpreter::visit(const ContinueStatement& continue_stmnt) {
     if (not _inside_loop) {
-        throw std::runtime_error("continue statement outside loop exept");  // TODO
+        throw LoopStmtOutsideLoopException("Continue", continue_stmnt.position);
     }
     _on_continue = true;
 }
 
 void Interpreter::visit(const BreakStatement& break_stmnt) {
     if (not _inside_loop) {
-        throw std::runtime_error("break statement outside loop exept");  // TODO
+        throw LoopStmtOutsideLoopException("Break", break_stmnt.position);
     }
     _on_break = true;
 }
@@ -197,6 +201,10 @@ void Interpreter::visit(const BinaryExpression& binary_expr) {
     } catch (const CantPerformOperationException& e) {
         rethrow_with_position(e, binary_expr.position);
     } catch (const RequiredFunctionException& e) {
+        rethrow_with_position(e, binary_expr.position);
+    } catch (const BinaryExprTypeMismatchException& e) {
+        rethrow_with_position(e, binary_expr.position);
+    } catch (const InvalidFucTForCompositionExeption& e) {
         rethrow_with_position(e, binary_expr.position);
     }
 }
@@ -269,10 +277,10 @@ void Interpreter::visit(const LiteralBool& literal_bool) {
 
 void Interpreter::_execute_main() {
     auto main{_env.get_global_function("main")};
-    if (not main) throw std::runtime_error("No main function to execute");
+    if (not main) throw MissingMainFuncException();
 
     if (not(main->get_type() == MainProperties::type)) {
-        throw std::runtime_error("invalid main function definition");
+        throw InvalidMainFuncException(main->get_type().to_str());
     };
 
     _env.calling_function(main->get_type().function_type_info->return_type);
@@ -286,8 +294,7 @@ arg_list Interpreter::_get_arg_list(const up_expression_vec& arguments) {
         expr->accept(*this);
 
         if (_tmp_result_is_empty()) {
-            // expr->position();
-            throw std::runtime_error("none not accepted as argument");
+            throw ExpectedEvaluableExprException("Argument list", expr->position);
         }
         args.push_back(TypeHandler::opt_value_to_arg(_tmp_result));
     });
@@ -302,7 +309,8 @@ void Interpreter::_handle_function_call_end() {
 
 void Interpreter::_evaluate_binary_expr(const ExprKind& expr_kind, value left, value right) {
     if (not TypeHandler::are_the_same_type(left, right)) {  // values have to be the same type
-        throw std::runtime_error("type mismatch - // with type strings");
+        throw BinaryExprTypeMismatchException(expr_kind_to_str(expr_kind), TypeHandler::deduce_type(left).to_str(),
+                                              TypeHandler::deduce_type(right).to_str());
     }
 
     switch (expr_kind) {
@@ -362,7 +370,7 @@ void Interpreter::_evaluate_unary_expr(const ExprKind& expr_kind, value val) {
 
 void Interpreter::_evaluate_condition(const Position& condition_pos) {
     if (not TypeHandler::value_type_is<bool>(_tmp_result)) {
-        throw std::runtime_error("condition must be bool type");  // TODO
+        throw ConditionMustBeBoolException(TypeHandler::get_type_string(_tmp_result), condition_pos);
     }
     _condition_met = TypeHandler::get_value_as<bool>(_tmp_result);
     _clear_tmp_result();

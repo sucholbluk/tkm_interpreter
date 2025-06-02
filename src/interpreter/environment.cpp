@@ -15,7 +15,7 @@ Environment::Environment() : _call_frames{} {
 void Environment::register_function(const FunctionDefinition& function) {
     std::string identifier{function.signature->identifier};
     if (_functions.contains(identifier)) {
-        throw std::runtime_error("func redefinition");  // TODO - replace
+        throw AlreadyDefinedException(identifier, function.position);
     }
     _functions[identifier] = std::make_shared<GlobalFunction>(function);
 }
@@ -45,8 +45,8 @@ void Environment::pop_scope() {
     _call_frames.top().pop_scope();
 }
 
-bool Environment::var_in_current_scope(const std::string& identifier) {
-    return _call_frames.top().is_in_current_scope(identifier);
+bool Environment::can_define(const std::string& identifier) {
+    return not(_functions.contains(identifier) or _call_frames.top().is_in_current_scope(identifier));
 }
 
 std::optional<VariableHolder> Environment::get_by_identifier(const std::string& identifier) {

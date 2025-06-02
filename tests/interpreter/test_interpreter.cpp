@@ -1660,3 +1660,377 @@ BOOST_DATA_TEST_CASE(required_function_exception_test, bdata::make(required_func
     auto program = get_program(mock_file);
     BOOST_CHECK_THROW(program->accept(interpreter), RequiredFunctionException);
 }
+
+std::vector<std::string> cant_assign_to_immutable_exception_cases = {
+    // Przypisanie do niemutowalnej zmiennej
+    R"(
+def main() -> int {
+    let x: int = 5;
+    x = 10;
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    let y: float = 3.14;
+    y = 2.71;
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    let s: string = "abc";
+    s = "def";
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    let b: bool = true;
+    b = false;
+    return 0;
+}
+    )",
+    R"(
+def foo(a: int) -> none {
+    a = 42;
+}
+def main() -> int {
+    foo(5);
+    return 0;
+}
+    )",
+};
+
+BOOST_DATA_TEST_CASE(cant_assign_to_immutable_exception_test, bdata::make(cant_assign_to_immutable_exception_cases),
+                     mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+    BOOST_CHECK_THROW(program->accept(interpreter), CantAssignToImmutableException);
+}
+
+std::vector<std::string> loop_stmt_outside_loop_exception_cases = {
+    // break poza pętlą
+    R"(
+def main() -> int {
+    break;
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    continue;
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    if (true) {
+        break;
+    }
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    if (1 == 1) {
+        continue;
+    }
+    return 0;
+}
+    )",
+    R"(
+def foo() -> none {
+    break;
+}
+def main() -> int {
+    foo();
+    return 0;
+}
+    )",
+    R"(
+def bar() -> none {
+    continue;
+}
+def main() -> int {
+    bar();
+    return 0;
+}
+    )",
+};
+
+BOOST_DATA_TEST_CASE(loop_stmt_outside_loop_exception_test, bdata::make(loop_stmt_outside_loop_exception_cases),
+                     mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+    BOOST_CHECK_THROW(program->accept(interpreter), LoopStmtOutsideLoopException);
+}
+
+std::vector<std::string> expected_evaluable_expr_exception_cases = {
+    R"(
+def foo() -> none { }
+def main() -> int {
+    print(foo() + 5);
+    return 0;
+}
+    )",
+    R"(
+def foo() -> none { }
+def main() -> int {
+    print(-foo());
+    return 0;
+}
+    )",
+    R"(
+def foo() -> none { }
+def bar(a: int) -> int { return a; }
+def main() -> int {
+    bar(foo());
+    return 0;
+}
+    )",
+    R"(
+def foo() -> none { }
+def bar(a: int, b: int) -> int { return a + b; }
+def main() -> int {
+    bar(1, foo());
+    return 0;
+}
+    )",
+    R"(
+def foo() -> none { }
+def bar() -> none { }
+def main() -> int {
+    print(foo() + bar());
+    return 0;
+}
+    )",
+    R"(
+def foo() -> none { }
+def main() -> int {
+    print(not foo());
+    return 0;
+}
+    )",
+};
+
+BOOST_DATA_TEST_CASE(expected_evaluable_expr_exception_test, bdata::make(expected_evaluable_expr_exception_cases),
+                     mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+    BOOST_CHECK_THROW(program->accept(interpreter), ExpectedEvaluableExprException);
+}
+
+std::vector<std::string> binary_expr_type_mismatch_exception_cases = {
+    R"(
+def main() -> int {
+    print(5 + 3.14);
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    print(2.71 - 2);
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    print("abc" * 3);
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    print(true + "abc");
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    print(42 == "42");
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    print(3.14 < false);
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    print("abc" > 5);
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    print(true != 1.0);
+    return 0;
+}
+    )",
+};
+
+BOOST_DATA_TEST_CASE(binary_expr_type_mismatch_exception_test, bdata::make(binary_expr_type_mismatch_exception_cases),
+                     mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+    BOOST_CHECK_THROW(program->accept(interpreter), BinaryExprTypeMismatchException);
+}
+
+std::vector<std::string> already_defined_exception_cases = {
+    // Dwie zmienne o tej samej nazwie w tym samym bloku
+    R"(
+def main() -> int {
+    let x: int = 5;
+    let x: int = 10;
+    return 0;
+}
+    )",
+    // Dwie zmienne o tej samej nazwie w tym samym bloku (różne typy)
+    R"(
+def main() -> int {
+    let y: int = 1;
+    let y: string = "abc";
+    return 0;
+}
+    )",
+    // Dwie funkcje o tej samej nazwie
+    R"(
+def foo() -> int { return 1; }
+def foo() -> int { return 2; }
+def main() -> int { return foo(); }
+    )",
+    R"(
+def bar() -> int { return 1; }
+def main() -> int {
+    let bar: int = 5;
+    return bar;
+}
+    )",
+    R"(
+def main() -> int {
+    let z: int = 1;
+    {
+        let z: int = 2; # ok
+        let z: int = 3; # err
+    }
+    return 0;
+}
+    )",
+};
+
+BOOST_DATA_TEST_CASE(already_defined_exception_test, bdata::make(already_defined_exception_cases), mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+    BOOST_CHECK_THROW(program->accept(interpreter), AlreadyDefinedException);
+}
+
+std::vector<std::string> invalid_func_t_for_composition_exception_cases = {
+    R"(
+def f1(a: int) -> int { return a + 1; }
+def f2() -> int { return 42; }
+def main() -> int {
+    let comp: function<int:int> = f1 & f2;
+    return 0;
+}
+    )",
+    R"(
+def f1(a: int) -> int { return a + 1; }
+def f2(a: int, b: int) -> int { return a + b; }
+def main() -> int {
+    let comp: function<int:int> = f1 & f2;
+    return 0;
+}
+    )",
+    R"(
+def f1(a: int) -> string { return a as string; }
+def f2(a: int) -> int { return a + 1; }
+def main() -> int {
+    let comp: function<string:int> = f1 & f2;
+    return 0;
+}
+    )",
+    R"(
+def f1(a: int) -> int { return a + 1; }
+def f2(a: string) -> int { return 42; }
+def main() -> int {
+    let comp: function<int:string> = f1 & f2;
+    return 0;
+}
+    )",
+    R"(
+def f1(a: int) -> int { return a + 1; }
+def f2() -> string { return "foo"; }
+def main() -> int {
+    let comp: function<int: string> = f1 & f2;
+    return 0;
+}
+    )",
+    R"(
+def f1(a: int) -> int { return a + 1; }
+def f2(a: int, b: string) -> string { return b; }
+def main() -> int {
+    let comp: function<int:string> = f1 & f2;
+    return 0;
+}
+    )",
+};
+
+BOOST_DATA_TEST_CASE(invalid_func_t_for_composition_exception_test,
+                     bdata::make(invalid_func_t_for_composition_exception_cases), mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+    BOOST_CHECK_THROW(program->accept(interpreter), InvalidFucTForCompositionExeption);
+}
+
+std::vector<std::string> condition_must_be_bool_exception_cases = {
+    R"(
+def main() -> int {
+    if (5) {
+        print("should not work");
+    }
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    if ("abc") {
+        print("should not work");
+    }
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    if (3.14) {
+        print("should not work");
+    }
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    for (i: int = 0; 1; i = i+1) {
+        print(i as string);
+    }
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    for (i: int = 0; "abc"; i = i+1) {
+        print(i as string);
+    }
+    return 0;
+}
+    )",
+};
+
+BOOST_DATA_TEST_CASE(condition_must_be_bool_exception_test, bdata::make(condition_must_be_bool_exception_cases),
+                     mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+    BOOST_CHECK_THROW(program->accept(interpreter), ConditionMustBeBoolException);
+}

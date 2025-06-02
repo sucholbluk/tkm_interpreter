@@ -335,7 +335,8 @@ class TooManyArgsToBindException : public InterpreterException {
 class BinaryExprTypeMismatchException : public InterpreterException {
    public:
     explicit BinaryExprTypeMismatchException(const std::string& expr_str, const std::string& lhs_type,
-                                             const std::string& rhs_type, const Position& pos);
+                                             const std::string& rhs_type);
+    explicit BinaryExprTypeMismatchException(const std::string& msg);
 };
 
 class CantPerformOperationException : public InterpreterException {
@@ -351,9 +352,46 @@ class ExpectedEvaluableExprException : public InterpreterException {
 
 class RequiredFunctionException : public InterpreterException {
    public:
-    RequiredFunctionException(const std::string& expr_kind_str, const Position& pos, const std::string& type_str);
-    RequiredFunctionException(const std::string& expr_kind_str, const std::string& type_str);
-    RequiredFunctionException(const std::string& msg);
+    explicit RequiredFunctionException(const std::string& expr_kind_str, const Position& pos,
+                                       const std::string& type_str);
+    explicit RequiredFunctionException(const std::string& expr_kind_str, const std::string& type_str);
+    explicit RequiredFunctionException(const std::string& msg);
+};
+
+class CantAssignToImmutableException : public InterpreterException {
+   public:
+    explicit CantAssignToImmutableException(const std::string& identifier, const Position& pos);
+};
+
+class LoopStmtOutsideLoopException : public InterpreterException {
+   public:
+    explicit LoopStmtOutsideLoopException(const std::string& statement_str, const Position& pos);
+};
+
+class AlreadyDefinedException : public InterpreterException {
+   public:
+    explicit AlreadyDefinedException(const std::string& identifier, const Position& pos);
+};
+
+class InvalidFucTForCompositionExeption : public InterpreterException {
+   public:
+    explicit InvalidFucTForCompositionExeption(const std::string& type1_str, const std::string& type2_str);
+    explicit InvalidFucTForCompositionExeption(const std::string& msg);
+};
+
+class ConditionMustBeBoolException : public InterpreterException {
+   public:
+    explicit ConditionMustBeBoolException(const std::string& got_type, const Position& pos);
+};
+
+class MissingMainFuncException : public InterpreterException {
+   public:
+    explicit MissingMainFuncException() : InterpreterException{"Program requires main function to run"} {}
+};
+
+class InvalidMainFuncException : public InterpreterException {
+   public:
+    explicit InvalidMainFuncException(const std::string& got_type);
 };
 
 template <typename ExceptionT>
