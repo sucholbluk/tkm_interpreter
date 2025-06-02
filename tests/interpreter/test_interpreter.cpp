@@ -1407,3 +1407,211 @@ BOOST_DATA_TEST_CASE(cannot_cast_exception_test, bdata::make(cannot_cast_excepti
     auto program = get_program(mock_file);
     BOOST_CHECK_THROW(program->accept(interpreter), CannotCastException);
 }
+
+std::vector<std::string> unknown_identifier_exception_cases = {
+    R"(def main() -> int { print(x); return 0; })",
+    R"(def main() -> int { let a: int = 5; print(b); return 0; })",
+    R"(def main() -> int { x = 5; return 0; })",
+    R"(def main() -> int { let a: int = y + 2; return 0; })",
+    R"(
+def foo() -> int {
+    return z;
+}
+def main() -> int {
+    foo();
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    if (true) {
+        print(y);
+    }
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    for (i: int = 0; i < 1; i = i+1) {
+        print(j);
+    }
+    return 0;
+}
+    )",
+};
+
+BOOST_DATA_TEST_CASE(unknown_identifier_exception_test, bdata::make(unknown_identifier_exception_cases), mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+    BOOST_CHECK_THROW(program->accept(interpreter), UnknownIdentifierException);
+}
+
+std::vector<std::string> arg_types_not_matching_exception_cases = {
+    R"(
+def foo(a: int) -> int { return a; }
+def main() -> int { foo(); return 0; }
+    )",
+    R"(
+def foo(a: int) -> int { return a; }
+def main() -> int { foo("abc"); return 0; }
+    )",
+    R"(
+def foo(a: int, b: float) -> int { return a; }
+def main() -> int { foo(1); return 0; }
+    )",
+    R"(
+def foo(a: int, b: float) -> int { return a; }
+def main() -> int { foo(1, "abc"); return 0; }
+    )",
+    R"(
+def foo(a: int) -> int { return a; }
+def main() -> int { foo(1, 2); return 0; }
+    )",
+    R"(
+def bar(a: string, b: bool) -> int { return 0; }
+def main() -> int { bar(123, 456); return 0; }
+    )",
+    R"(
+def bar(a: string, b: bool) -> int { return 0; }
+def main() -> int { bar(); return 0; }
+    )",
+    R"(
+def bar(a: string, b: bool) -> int { return 0; }
+def main() -> int { bar("ok"); return 0; }
+    )",
+    R"(
+def main() -> int {((4) >> print)(); return 0;} 
+    )",
+};
+
+BOOST_DATA_TEST_CASE(arg_types_not_matching_exception_test, bdata::make(arg_types_not_matching_exception_cases),
+                     mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+    BOOST_CHECK_THROW(program->accept(interpreter), ArgTypesNotMatchingException);
+}
+
+std::vector<std::string> too_many_args_to_bind_exception_cases = {
+    R"(
+def add(a: int, b: int) -> int { return a + b; }
+def main() -> int {
+    let add5: function<none:int> = (5, 6, 7) >> add; # add przyjmuje tylko 2 argumenty
+    return 0;
+}
+    )",
+    R"(
+def foo(a: int) -> int { return a; }
+def main() -> int {
+    let f : function<none:int> = (1, 2) >> foo;
+    return 0;
+}
+    )",
+    R"(
+def bar(a: int, b: int) -> int { return a + b; }
+def main() -> int {
+    let f: function<none:int> = (1, 2, 3, 4) >> bar;
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    let f: function<none:none> = (1, 2, 3) >> print;
+    return 0;
+}
+    )",
+};
+
+BOOST_DATA_TEST_CASE(too_many_args_to_bind_exception_test, bdata::make(too_many_args_to_bind_exception_cases),
+                     mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+    BOOST_CHECK_THROW(program->accept(interpreter), TooManyArgsToBindException);
+}
+
+std::vector<std::string> cant_perform_operation_exception_cases = {
+    R"(
+def main() -> int {
+    (true + false);
+    return 0;
+}
+    )",
+    R"(
+def add1(a:int, b:int) -> int {return a + b;}
+def sub1(a:int, b:int) -> int {return a - b;}
+
+def main() -> int {
+    (add1 + sub1);
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    ("abc" - "def");
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    (true - false);
+    return 0;
+}
+    )",
+    R"(
+def add1(a:int, b:int) -> int {return a + b;}
+def sub1(a:int, b:int) -> int {return a - b;}
+
+def main() -> int {
+    (add1 - sub1);
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    ("abc" / "def");
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    (true / true);
+    return 0;
+}
+    )",
+    R"(
+def add1(a:int, b:int) -> int {return a + b;}
+def sub1(a:int, b:int) -> int {return a - b;}
+
+def main() -> int {
+    (add1 / sub1);
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    ("abc" / "def");
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    (true * true);
+    return 0;
+}
+    )",
+    R"(
+def add1(a:int, b:int) -> int {return a + b;}
+def sub1(a:int, b:int) -> int {return a - b;}
+
+def main() -> int {
+    (add1 * sub1);
+    return 0;
+}
+    )",
+};
+
+BOOST_DATA_TEST_CASE(cant_perform_operation_exception_test, bdata::make(cant_perform_operation_exception_cases),
+                     mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+    BOOST_CHECK_THROW(program->accept(interpreter), CantPerformOperationException);
+}

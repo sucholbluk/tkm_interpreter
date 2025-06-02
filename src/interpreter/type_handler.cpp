@@ -4,6 +4,7 @@
 #include <ranges>
 
 #include "callable.hpp"
+#include "exceptions.hpp"
 
 namespace TypeHandler {
 Type deduce_type(value val) {
@@ -48,14 +49,14 @@ bool arg_matches_param(vhold_or_val argument, VariableType param_type) {
 
 vhold_or_val opt_value_to_arg(const opt_vhold_or_val& opt_v_or_vh) {
     if (not opt_v_or_vh) {
-        throw std::logic_error("impl err - check if not monostate before calling");
+        throw ImplementationError("opt_value_to_arg should never be called before value check");
     }
     return opt_v_or_vh.value();
 }
 
 value extract_value(const opt_vhold_or_val& opt_v_or_vh) {
     if (not opt_v_or_vh) {
-        throw std::logic_error("impl err - should never be called with monostate");
+        throw ImplementationError("opt_value_to_arg should never be called before value check");
     }
     return extract_value(opt_v_or_vh.value());
 }
@@ -206,21 +207,17 @@ Type get_composed_func_type(value left, value right) {
     return Type{FunctionTypeInfo{l_ftype_info->param_types, r_ftype_info->return_type}};
 }
 
-Type get_bind_front_func_type(value bind_target, const arg_list& args) {
-    if (not std::holds_alternative<sp_callable>(bind_target)) {
-        throw std::runtime_error("Func comp only on functionns -- got ...");  // TODO
-    }
-
-    auto ftype_info{get_value_as<sp_callable>(bind_target)->get_type().function_type_info};
+Type get_bind_front_func_type(sp_callable bind_target, const arg_list& args) {
+    auto ftype_info{bind_target->get_type().function_type_info};
     auto param_types{ftype_info->param_types};
 
     if (args.size() > param_types.size()) {
-        throw std::runtime_error("Got to many arguments to bind");  // TODO
+        throw TooManyArgsToBindException(args.size(), param_types.size());
     }
     auto bound_params{std::vector<VariableType>(param_types.begin(), param_types.begin() + args.size())};
 
     if (not args_match_params(args, bound_params)) {
-        throw std::runtime_error("bind front arguments dont match function params ");  // TODO
+        throw ArgTypesNotMatchingException("Bind front", get_types_string(args), get_types_string(bound_params));
     }
     std::vector<VariableType> new_params{};
     if (args.size() < param_types.size()) {
@@ -246,4 +243,39 @@ std::string get_type_string(const opt_vhold_or_val& opt_v_or_vh) {
 
     return deduce_type(extract_value(opt_v_or_vh)).to_str();
 }
+
+std::string get_type_string(const vhold_or_val& v_or_vh) {
+    return std::visit(
+        []<typename T>(const T& v_or_vh) -> std::string {
+            if constexpr (std::same_as<VariableHolder, T>) {
+                return std::string{v_or_vh.can_change_var ? "mut" : ""} + v_or_vh.get_type().to_str();
+            } else if constexpr (std::same_as<value, T>) {
+                return get_type_string(deduce_type(v_or_vh));
+            }
+        },
+        v_or_vh);
+}
+
+std::string get_types_string(const arg_list& args) {
+    std::string types_str{"("};
+    bool first = true;
+    for (const auto& arg : args) {
+        if (!first) types_str += ", ";
+        types_str += get_type_string(arg);
+        first = false;
+    }
+    return types_str + ")";
+}
+
+std::string get_types_string(const std::vector<VariableType> params) {
+    std::string types_str{"("};
+    bool first = true;
+    for (const auto& param : params) {
+        if (!first) types_str += ", ";
+        types_str += param.to_str();
+        first = false;
+    }
+    return types_str + ")";
+}
+
 }  // namespace TypeHandler

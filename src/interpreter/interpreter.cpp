@@ -21,7 +21,8 @@ void Interpreter::visit(const FunctionCall& func_call) {
     func_call.callee->accept(*this);
 
     if (not TypeHandler::value_type_is<sp_callable>(_tmp_result)) {
-        throw std::runtime_error("not callable");
+        throw RequiredFunctionException(expr_kind_to_str(func_call.kind), func_call.callee->position,
+                                        TypeHandler::get_type_string(_tmp_result));
     }
     auto func{TypeHandler::get_value_as<sp_callable>(_tmp_result)};
     auto func_type_info{func->get_type().function_type_info};
@@ -29,7 +30,9 @@ void Interpreter::visit(const FunctionCall& func_call) {
     _clear_tmp_result();
 
     if (not TypeHandler::args_match_params(arguments, func_type_info->param_types)) {
-        throw std::runtime_error("arguments dont match required param types");
+        throw ArgTypesNotMatchingException(expr_kind_to_str(func_call.kind), TypeHandler::get_types_string(arguments),
+                                           TypeHandler::get_types_string(func_type_info->param_types),
+                                           func_call.position);
     }
     _env.calling_function(func_type_info->return_type);
     func->call(*this, arguments);
@@ -43,7 +46,7 @@ void Interpreter::visit(const Identifier& var_reference) {
     } else if (auto opt_var_holder = _env.get_by_identifier(var_reference.name)) {
         _tmp_result = opt_var_holder.value();
     } else {
-        throw std::runtime_error("xxxx is undefined");  // TODO
+        throw UnknownIdentifierException(var_reference.name, var_reference.position);
     }
 }
 
@@ -97,7 +100,7 @@ void Interpreter::visit(const VariableDeclaration& var_decl) {
 void Interpreter::visit(const AssignStatement& asgn_stmnt) {
     auto opt_var_holder{_env.get_by_identifier(asgn_stmnt.identifier)};
     if (not opt_var_holder) {
-        throw std::runtime_error("reference to non-existant var");  // TODO
+        throw UnknownIdentifierException(asgn_stmnt.identifier, asgn_stmnt.position);
     }
 
     auto var_holder{opt_var_holder.value()};
@@ -177,20 +180,21 @@ void Interpreter::visit(const ForLoop& for_loop) {
 void Interpreter::visit(const BinaryExpression& binary_expr) {
     binary_expr.left->accept(*this);
     if (_tmp_result_is_empty()) {
-        throw std::runtime_error("expected evaluable expression in binary expression, got none");  // with left position
+        throw ExpectedEvaluableExprException(expr_kind_to_str(binary_expr.kind), binary_expr.left->position);
     }
     auto left{TypeHandler::extract_value(_tmp_result)};
     _clear_tmp_result();
 
     binary_expr.right->accept(*this);
     if (_tmp_result_is_empty()) {
-        throw std::runtime_error("expected evaluable expression in binary expression, got none");  // with right pos
+        throw ExpectedEvaluableExprException(expr_kind_to_str(binary_expr.kind), binary_expr.right->position);
     }
     auto right{TypeHandler::extract_value(_tmp_result)};
     _clear_tmp_result();
+
     try {
         _evaluate_binary_expr(binary_expr.kind, left, right);
-    } catch (const std::runtime_error& e) {
+    } catch (const CantPerformOperationException& e) {
         rethrow_with_position(e, binary_expr.position);
     }
 }
@@ -198,7 +202,7 @@ void Interpreter::visit(const BinaryExpression& binary_expr) {
 void Interpreter::visit(const UnaryExpression& unary_expr) {
     unary_expr.expr->accept(*this);
     if (_tmp_result_is_empty()) {
-        throw std::runtime_error("expected evaluable expression in unary expression, got none");  // with right pos
+        throw ExpectedEvaluableExprException(expr_kind_to_str(unary_expr.kind), unary_expr.expr->position);
     }
     _evaluate_unary_expr(unary_expr.kind, TypeHandler::extract_value(_tmp_result));
 }
@@ -207,12 +211,15 @@ void Interpreter::visit(const BindFront& bind_front_expr) {
     auto args{_get_arg_list(bind_front_expr.argument_list)};
     bind_front_expr.target->accept(*this);
 
-    if (_tmp_result_is_empty()) {
-        throw std::runtime_error("expected evaluable expression in unary expression, got none");  // with right pos
+    if (not TypeHandler::value_type_is<sp_callable>(_tmp_result)) {
+        throw RequiredFunctionException(expr_kind_to_str(bind_front_expr.kind), bind_front_expr.target->position,
+                                        TypeHandler::get_type_string(_tmp_result));
     }
     try {
-        _tmp_result = OperHandler::bind_front_function(TypeHandler::extract_value(_tmp_result), args);
-    } catch (const std::runtime_error& e) {
+        _tmp_result = OperHandler::bind_front_function(TypeHandler::get_value_as<sp_callable>(_tmp_result), args);
+    } catch (const ArgTypesNotMatchingException& e) {
+        rethrow_with_position(e, bind_front_expr.position);
+    } catch (const TooManyArgsToBindException& e) {
         rethrow_with_position(e, bind_front_expr.position);
     }
 }
@@ -337,7 +344,7 @@ void Interpreter::_evaluate_binary_expr(const ExprKind& expr_kind, value left, v
             _tmp_result = OperHandler::compose_functions(left, right);
             break;
         default:
-            throw std::logic_error("not implemented");
+            throw ImplementationError("evaluate_binary_expr - in deafault, should never get here");
     }
 }
 
@@ -347,7 +354,7 @@ void Interpreter::_evaluate_unary_expr(const ExprKind& expr_kind, value val) {
     } else if (expr_kind == ExprKind::UNARY_MINUS) {
         _tmp_result = OperHandler::unary_minus(val);
     } else {
-        throw std::logic_error("invalid expr kind passed to evaluate_unary_expr");
+        throw ImplementationError("invalid expr kind passed to evaluate_unary_expr");
     }
 }
 

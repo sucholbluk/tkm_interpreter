@@ -2,6 +2,7 @@
 #define VARIABLE_HPP
 #include <variant>
 
+#include "exceptions.hpp"
 #include "type.hpp"
 
 class Callable;
@@ -48,7 +49,7 @@ T VariableHolder::get_value_as() const {
     if (auto value = std::get_if<T>(&var->var_value)) {
         return *value;
     }
-    throw std::logic_error("impl err");  // TODO: change
+    throw ImplementationError("get value method as should never be called before checking");
 }
 
 std::ostream& operator<<(std::ostream& os, const VariableHolder& var_hold);

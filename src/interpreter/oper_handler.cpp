@@ -5,6 +5,7 @@
 
 #include "bind_front_function.hpp"
 #include "composed_function.hpp"
+#include "exceptions.hpp"
 #include "type_handler.hpp"
 
 namespace OperHandler {
@@ -22,10 +23,9 @@ value add(value left, value right) {
                 return left + TypeHandler::get_value_as<double>(right);
             } else if constexpr (std::same_as<std::string, T>) {
                 return left + TypeHandler::get_value_as<std::string>(right);
-            } else if constexpr (std::same_as<bool, T>) {
-                throw std::runtime_error("cant perform addition on bools");
-            } else if constexpr (std::same_as<sp_callable, T>) {
-                throw std::runtime_error("cant perform addition on function types {with types}");
+            } else {
+                throw CantPerformOperationException(expr_kind_to_str(ExprKind::ADDITION),
+                                                    TypeHandler::deduce_type(left).to_str());
             }
         },
         left);
@@ -42,12 +42,9 @@ value subtract(value left, value right) {
                 return left - rhs;
             } else if constexpr (std::same_as<double, T>) {
                 return left - TypeHandler::get_value_as<double>(right);
-            } else if constexpr (std::same_as<std::string, T>) {
-                throw std::runtime_error("cant perform subtraction on strings");
-            } else if constexpr (std::same_as<bool, T>) {
-                throw std::runtime_error("cant perform subtraction on bools");
-            } else if constexpr (std::same_as<sp_callable, T>) {
-                throw std::runtime_error("cant perform subtraction on functions {with types}");
+            } else {
+                throw CantPerformOperationException(expr_kind_to_str(ExprKind::SUBTRACTION),
+                                                    TypeHandler::deduce_type(left).to_str());
             }
         },
         left);
@@ -64,12 +61,9 @@ value multiply(value left, value right) {
                 return left * rhs;
             } else if constexpr (std::same_as<double, T>) {
                 return left * TypeHandler::get_value_as<double>(right);
-            } else if constexpr (std::same_as<std::string, T>) {
-                throw std::runtime_error("cant perform multiplication on strings");
-            } else if constexpr (std::same_as<bool, T>) {
-                throw std::runtime_error("cant perform multiplication on bools");
-            } else if constexpr (std::same_as<sp_callable, T>) {
-                throw std::runtime_error("cant perform multiplication on functions {with types}");
+            } else {
+                throw CantPerformOperationException(expr_kind_to_str(ExprKind::MULTIPICATION),
+                                                    TypeHandler::deduce_type(left).to_str());
             }
         },
         left);
@@ -90,12 +84,9 @@ value divide(value left, value right) {
                     throw std::runtime_error("divistion by zero err");
                 }
                 return left / rhs;
-            } else if constexpr (std::same_as<std::string, T>) {
-                throw std::runtime_error("cant perform divistion on strings");
-            } else if constexpr (std::same_as<bool, T>) {
-                throw std::runtime_error("cant perform divistion on bools");
-            } else if constexpr (std::same_as<sp_callable, T>) {
-                throw std::runtime_error("cant perform divistion on functions {with types}");
+            } else {
+                throw CantPerformOperationException(expr_kind_to_str(ExprKind::DIVISION),
+                                                    TypeHandler::deduce_type(left).to_str());
             }
         },
         left);
@@ -112,8 +103,9 @@ bool check_eq(value left, value right) {
                 return left == TypeHandler::get_value_as<std::string>(right);
             } else if constexpr (std::same_as<bool, T>) {
                 return left == TypeHandler::get_value_as<bool>(right);
-            } else if constexpr (std::same_as<sp_callable, T>) {
-                throw std::runtime_error("cant perform comparison operation on functions {with types}");
+            } else {  // all comparison operators are implemented usind == and < - so the debug info is limited
+                // could havae also be done with just < operator, but i decided not to
+                throw CantPerformOperationException("Comparison", TypeHandler::deduce_type(left).to_str());
             }
         },
         left);
@@ -134,8 +126,8 @@ bool check_lt(value left, value right) {
                 return left < TypeHandler::get_value_as<std::string>(right);
             } else if constexpr (std::same_as<bool, T>) {
                 return left < TypeHandler::get_value_as<bool>(right);
-            } else if constexpr (std::same_as<sp_callable, T>) {
-                throw std::runtime_error("cant perform comparison operation on functions {with types}");
+            } else {
+                throw CantPerformOperationException("Comparison", TypeHandler::deduce_type(left).to_str());
             }
         },
         left);
@@ -157,14 +149,16 @@ bool logical_and(value left, value right) {
     if (auto lhs = std::get_if<bool>(&left)) {
         return *lhs and std::get<bool>(right);
     }
-    throw std::runtime_error("logical and cannot operate on {type}");
+    throw CantPerformOperationException(expr_kind_to_str(ExprKind::LOGICAL_AND),
+                                        TypeHandler::deduce_type(left).to_str());
 }
 
 bool logical_or(value left, value right) {
     if (auto lhs = std::get_if<bool>(&left)) {
         return *lhs or std::get<bool>(right);
     }
-    throw std::runtime_error("logical or cannot operate on {type}");
+    throw CantPerformOperationException(expr_kind_to_str(ExprKind::LOGICAL_OR),
+                                        TypeHandler::deduce_type(left).to_str());
 }
 
 // UNARY
@@ -173,7 +167,8 @@ bool logical_not(value val) {
     if (auto bool_val = std::get_if<bool>(&val)) {
         return not *bool_val;
     }
-    throw std::runtime_error(std::string("cant call logical not with: ") + TypeHandler::deduce_type(val).to_str());
+    throw CantPerformOperationException(expr_kind_to_str(ExprKind::LOGICAL_NOT),
+                                        TypeHandler::deduce_type(val).to_str());
 }
 
 value unary_minus(value val) {
@@ -184,8 +179,8 @@ value unary_minus(value val) {
             } else if constexpr (std::same_as<double, T>) {
                 return -val;
             } else {
-                throw std::runtime_error(std::string{"unary minus doestn operate on: "} +
-                                         TypeHandler::deduce_type(val).to_str());
+                throw CantPerformOperationException(expr_kind_to_str(ExprKind::LOGICAL_NOT),
+                                                    TypeHandler::deduce_type(val).to_str());
             }
         },
         val);
@@ -198,12 +193,11 @@ sp_callable compose_functions(value left, value right) {
                                               TypeHandler::get_value_as<sp_callable>(right));
 }
 
-sp_callable bind_front_function(value bind_target, arg_list args) {
+sp_callable bind_front_function(sp_callable bind_target, arg_list args) {
     // save vars passed by reference as their values
     arg_list value_args{};
     std::ranges::for_each(args, [&](auto argument) { value_args.push_back(TypeHandler::extract_value(argument)); });
     Type bfront_type{TypeHandler::get_bind_front_func_type(bind_target, args)};
-    return std::make_shared<BindFrontFunction>(bfront_type, TypeHandler::get_value_as<sp_callable>(bind_target),
-                                               value_args);
+    return std::make_shared<BindFrontFunction>(bfront_type, bind_target, value_args);
 }
 }  // namespace OperHandler

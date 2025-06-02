@@ -312,9 +312,53 @@ class CannotCastException : public InterpreterException {
                                  const Position& pos);
 };
 
+class UnknownIdentifierException : public InterpreterException {
+   public:
+    explicit UnknownIdentifierException(const std::string& identifier, const Position& pos);
+};
+
+class ArgTypesNotMatchingException : public InterpreterException {
+   public:
+    explicit ArgTypesNotMatchingException(const std::string& expr_name, const std::string& args_str,
+                                          const std::string& params_str, const Position& pos);
+    explicit ArgTypesNotMatchingException(const std::string& expr_name, const std::string& args_str,
+                                          const std::string& params_str);
+    explicit ArgTypesNotMatchingException(const std::string& msg);
+};
+
+class TooManyArgsToBindException : public InterpreterException {
+   public:
+    explicit TooManyArgsToBindException(int args_size, int params_size);
+    explicit TooManyArgsToBindException(const std::string& msg);
+};
+
+class BinaryExprTypeMismatchException : public InterpreterException {
+   public:
+    explicit BinaryExprTypeMismatchException(const std::string& expr_str, const std::string& lhs_type,
+                                             const std::string& rhs_type, const Position& pos);
+};
+
+class CantPerformOperationException : public InterpreterException {
+   public:
+    explicit CantPerformOperationException(const std::string& oper_str, const std::string& type_str);
+    explicit CantPerformOperationException(const std::string& msg);
+};
+
+class ExpectedEvaluableExprException : public InterpreterException {
+   public:
+    explicit ExpectedEvaluableExprException(const std::string& requires_val, const Position& pos);
+};
+
+class RequiredFunctionException : public InterpreterException {
+   public:
+    RequiredFunctionException(const std::string& expr_kind_str, const Position& pos,
+                              const std::string& type_str = "none");
+};
+
 template <typename ExceptionT>
 [[noreturn]] void rethrow_with_position(const ExceptionT& e, const Position& position) {
     throw ExceptionT(std::string(e.what()) + " at: " + position.get_position_str());
 }
+
 /** @} */
 #endif  // EXCEPTIONS_HPP

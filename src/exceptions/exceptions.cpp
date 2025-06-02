@@ -180,3 +180,48 @@ CannotCastException::CannotCastException(const std::string& source_type_str, con
                                          const Position& pos)
     : InterpreterException(std::format("Cannot perform type cast from: {} to: {} at: {}", source_type_str,
                                        dest_type_str, pos.get_position_str())) {}
+
+UnknownIdentifierException::UnknownIdentifierException(const std::string& identifier, const Position& pos)
+    : InterpreterException(std::format("Not a reference to known function or variable. Identifier: '{}' at: {}",
+                                       identifier, pos.get_position_str())) {}
+
+ArgTypesNotMatchingException::ArgTypesNotMatchingException(const std::string& expr_name, const std::string& args_str,
+                                                           const std::string& params_str, const Position& pos)
+    : InterpreterException(
+          std::format("{} argument types do not match param types. Arguments types: {}, Param types: {} at: {}",
+                      expr_name, args_str, params_str, pos.get_position_str())) {}
+
+ArgTypesNotMatchingException::ArgTypesNotMatchingException(const std::string& expr_name, const std::string& args_str,
+                                                           const std::string& params_str)
+    : InterpreterException(
+          std::format("{} argument types do not match param types. Arguments types: {}, Param types: {}", expr_name,
+                      args_str, params_str)) {}
+
+ArgTypesNotMatchingException::ArgTypesNotMatchingException(const std::string& msg) : InterpreterException(msg) {}
+
+TooManyArgsToBindException::TooManyArgsToBindException(int args_size, int params_size)
+    : InterpreterException(
+          std::format("Too many arguments for bind front. Got: {}, expected max: {}", args_size, params_size)) {}
+
+TooManyArgsToBindException::TooManyArgsToBindException(const std::string& msg) : InterpreterException(msg) {}
+
+BinaryExprTypeMismatchException::BinaryExprTypeMismatchException(const std::string& expr_str,
+                                                                 const std::string& lhs_type,
+                                                                 const std::string& rhs_type, const Position& pos)
+    : InterpreterException(
+          std::format("{} requires left and right expressions to be the same type. Left type: {}, Right type{} at: {}",
+                      expr_str, lhs_type, rhs_type, pos.get_position_str())) {}
+
+CantPerformOperationException::CantPerformOperationException(const std::string& oper_str, const std::string& type_str)
+    : InterpreterException(std::format("Cant perform {} on type {}", oper_str, type_str)) {}
+
+CantPerformOperationException::CantPerformOperationException(const std::string& msg) : InterpreterException(msg) {}
+
+ExpectedEvaluableExprException::ExpectedEvaluableExprException(const std::string& requires_val, const Position& pos)
+    : InterpreterException(
+          std::format("{} expected evaluable expression, got none at: {}", requires_val, pos.get_position_str())) {}
+
+RequiredFunctionException::RequiredFunctionException(const std::string& expr_kind_str, const Position& pos,
+                                                     const std::string& type_str)
+    : InterpreterException(
+          std::format("{} requres function, got {} at: {}", expr_kind_str, type_str, pos.get_position_str())) {}
