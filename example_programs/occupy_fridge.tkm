@@ -1,0 +1,36 @@
+def occupy_fridge() -> none {
+    let mut slices_left: int = 15;
+    let mut option: string = "brak wyboru";
+
+    print("Otwierasz lodowke i zastanawiasz sie co zjesc");
+    print("Zauwazasz ze masz tylko ser");
+
+
+    for (i: int = 0; i < 20; i = i + 1) {
+        if (slices_left < 5) {
+            print("siostra: no wez tez cos dla mnie zostaw!");
+            break;
+        }
+        print("\n\n\n");
+        print("W lodowce jest " + slices_left as string + " plastrow sera");
+        print("Stoisz tu " + i as string + " minut");
+        print("Wybor:\n-zjedz\n-czekaj\n-odejdz");
+        option = input();
+
+        if (option == "zjedz") {
+            print("*jesz ser*");
+            slices_left = slices_left - 1;
+        } else if (option == "odejdz") {
+            break;
+        } else {
+            print("czekasz, a domownicy się denerwują");
+        }
+    }
+
+    print("odchodzisz i zamykasz za soba lodowke");
+}
+
+def main () -> int {
+    occupy_fridge();
+    return 0;
+}

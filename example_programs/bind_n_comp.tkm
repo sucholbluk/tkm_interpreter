@@ -1,0 +1,15 @@
+def add(a: int, b: int) -> int {
+    return a + b;
+}
+
+def half(a: int) -> float {
+    return a as float / 2.0 ;
+}
+
+def main() -> int {
+    let composed: function<int:float> = (4) >> add & half;
+
+    print(composed(7) as string);
+
+    return 0;
+}

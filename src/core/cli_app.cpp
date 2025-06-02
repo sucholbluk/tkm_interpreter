@@ -12,15 +12,14 @@
 
 namespace p_opt = boost::program_options;
 
-CLIApp::CLIApp(int argc, char* const argv[]) : _use_stdin{false}, _verbose{false} {
+CLIApp::CLIApp(int argc, char* const argv[]) : _use_stdin{false}, _verbose{false}, _interpreter{} {
     _parse_args(argc, argv);
     _initialize_components();
 }
 
 void CLIApp::run() {
     std::unique_ptr<Program> program = _parser->parse_program();
-    Interpreter inter{};
-    program->accept(inter);
+    program->accept(_interpreter);
 }
 
 void CLIApp::_parse_args(int argc, char* const argv[]) {
@@ -32,7 +31,6 @@ void CLIApp::_parse_args(int argc, char* const argv[]) {
         ("help,h", "display help info")
         ("stdin,s", p_opt::bool_switch(&_use_stdin), "read data from standard input")
         ("verbose,v", p_opt::bool_switch(&_verbose), "enable verbosity")
-        ("output,o", p_opt::value<std::string>(&_output_filename), "output filename") // jeszcze nie obslugiwana
         ("input", p_opt::value<std::string>(&_input_filename), "input filename");  // clang-format on
 
     p.add("input", 1);
@@ -42,14 +40,13 @@ void CLIApp::_parse_args(int argc, char* const argv[]) {
     p_opt::notify(vm);
 
     if (vm.count("help") or (_input_filename.empty() and not _use_stdin)) {
-        std::cout << "usage: ./TKM_Compiler [file] [options]\n" << desc << "\n";
+        std::cout << "usage: ./tkm_interpreter [file] [options]\n" << desc << "\n";
         exit(0);
     }
 }
 
 void CLIApp::_initialize_components() {
     std::unique_ptr<std::istream> input_stream;
-    // tymczasowe rozwiązanie - potem naprawie ten syf
     if (_use_stdin) {
         input_stream = std::make_unique<std::istream>(std::cin.rdbuf());
     } else {

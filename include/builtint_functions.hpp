@@ -29,7 +29,7 @@ struct BuiltinFunctionInfo {
 };
 
 namespace Builtins {
-extern const std::array<BuiltinFunctionInfo, 2> builtin_function_infos;
+extern const std::array<BuiltinFunctionInfo, 3> builtin_function_infos;
 }  // namespace Builtins
 
 #endif  // BUILTIN_FUNCTIONS_HPP

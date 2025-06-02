@@ -1,0 +1,17 @@
+def increment_counter(mut counter: int) -> none {
+    counter = counter + 1;
+}
+
+def main() -> int {
+    let mut counter: int = 0;
+    
+    {
+        let mut counter: int = 10;
+        increment_counter(counter); # counter called with shadowed value
+        print("In child scope: " + counter as string);
+    }
+    
+    print("In parent scope: " + counter as string); # counter = 0
+
+    return 0;
+}
