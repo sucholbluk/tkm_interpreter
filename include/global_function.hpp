@@ -19,6 +19,7 @@ class GlobalFunction : public Callable {
 
 namespace MainProperties {
 extern const Type type;
-}
+extern const std::string main_identifier;
+}  // namespace MainProperties
 
 #endif  // GLOBAL_FUNCTION_HPP

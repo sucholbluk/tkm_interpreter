@@ -50,7 +50,6 @@ bool Environment::can_define(const std::string& identifier) {
 }
 
 std::optional<VariableHolder> Environment::get_by_identifier(const std::string& identifier) {
-    if (_call_frames.empty()) return std::nullopt;
     std::optional<VariableHolder> var_hold{std::nullopt};
     return _call_frames.top().find_variable(identifier);
 }

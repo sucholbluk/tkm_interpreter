@@ -172,6 +172,7 @@ void Interpreter::visit(const ForLoop& for_loop) {
     while (_condition_met) {
         _on_continue = false;
         for_loop.body->accept(*this);
+
         if (_on_break or _is_returning) break;
         for_loop.loop_update->accept(*this);
 
@@ -280,7 +281,7 @@ void Interpreter::visit(const LiteralBool& literal_bool) {
 }
 
 void Interpreter::_execute_main() {
-    auto main{_env.get_global_function("main")};
+    auto main{_env.get_global_function(MainProperties::main_identifier)};
     if (not main) throw MissingMainFuncException();
 
     if (not(main->get_type() == MainProperties::type)) {

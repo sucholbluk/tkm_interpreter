@@ -34,4 +34,5 @@ void GlobalFunction::call(Interpreter& inter, arg_list arguments) {
 
 namespace MainProperties {
 const Type type = Type{FunctionTypeInfo({}, Type{TypeKind::INT})};
-}
+const std::string main_identifier = "main";
+}  // namespace MainProperties
