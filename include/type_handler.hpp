@@ -32,6 +32,10 @@ value extract_value(const vhold_or_val& val_or_holder);
 
 bool ret_type_matches_param_type(std::optional<Type> ret_type, VariableType param_type);
 
+std::string get_type_string(std::optional<Type> opt_type);
+
+std::string get_type_string(const opt_vhold_or_val& opt_v_or_vh);
+
 std::optional<value> as_type(Type type, value val);
 
 std::optional<value> as_int(const value& val);

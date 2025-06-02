@@ -160,3 +160,23 @@ ExpectedGreaterException::ExpectedGreaterException(const Position& position)
 
 ExpectedIdentifierException::ExpectedIdentifierException(const Position& position)
     : ParserException(std::format("Expected identifier at: {}", position.get_position_str())) {}
+
+/* -----------------------------------------------------------------------------*
+ *                             INTERPRETER ERRORS                               *
+ *------------------------------------------------------------------------------*/
+InterpreterException::InterpreterException(const std::string& msg) : std::runtime_error(msg) {}
+
+ReturnTypeMismatchException::ReturnTypeMismatchException(const std::string& expected_type_str,
+                                                         const std::string& got_type_str, const Position& pos)
+    : InterpreterException(std::format("Return type mismatch. Expected type: {}, got: {} at: {}", expected_type_str,
+                                       got_type_str, pos.get_position_str())) {}
+
+AssignTypeMismatchException::AssignTypeMismatchException(const std::string& expected_type_str,
+                                                         const std::string& got_type_str, const Position& pos)
+    : InterpreterException(std::format("Type mismatch trying to assign a value. Expected type: {}, got: {} at: {}",
+                                       expected_type_str, got_type_str, pos.get_position_str())) {}
+
+CannotCastException::CannotCastException(const std::string& source_type_str, const std::string& dest_type_str,
+                                         const Position& pos)
+    : InterpreterException(std::format("Cannot perform type cast from: {} to: {} at: {}", source_type_str,
+                                       dest_type_str, pos.get_position_str())) {}

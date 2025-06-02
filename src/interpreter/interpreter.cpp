@@ -60,29 +60,35 @@ void Interpreter::visit(const CodeBlock& code_block) {
 
 void Interpreter::visit(const TypeCastExpression& type_cast_expr) {
     type_cast_expr.expr->accept(*this);
+    Type target_type{type_cast_expr.target_type};
+
     if (_tmp_result_is_empty()) {
-        throw std::runtime_error("expr evaluates to nothing - cannot be converted");
+        throw CannotCastException(TypeHandler::get_type_string(_tmp_result), target_type.to_str(),
+                                  type_cast_expr.position);
     }
 
     value unwraped_value{TypeHandler::extract_value(_tmp_result)};
-    Type target_type{type_cast_expr.target_type};
-
     if (auto opt_casted = TypeHandler::as_type(target_type, unwraped_value)) {
         _tmp_result = opt_casted.value();
         return;
     }
 
-    throw std::runtime_error("cant convert from source type to target");
+    throw CannotCastException(TypeHandler::deduce_type(unwraped_value).to_str(), target_type.to_str(),
+                              type_cast_expr.position);
 }
 
 void Interpreter::visit(const VariableDeclaration& var_decl) {
     var_decl.assigned_expression->accept(*this);
-    if (_tmp_result_is_empty()) throw std::runtime_error("nothing to assign");  // TODO
+    if (_tmp_result_is_empty())
+        throw AssignTypeMismatchException(var_decl.typed_identifier->type.to_str(),
+                                          TypeHandler::get_type_string(_tmp_result),
+                                          var_decl.assigned_expression->position);
 
     auto value_to_assign{TypeHandler::extract_value(_tmp_result)};
     auto var_type{var_decl.typed_identifier->type};
     if (TypeHandler::deduce_type(value_to_assign) != var_type.type) {
-        throw std::runtime_error("in var delcaration - type mismatch");  // TOOD
+        throw AssignTypeMismatchException(var_type.type.to_str(), TypeHandler::deduce_type(value_to_assign).to_str(),
+                                          var_decl.assigned_expression->position);
     }
     _env.declare_variable(var_decl.typed_identifier->name, var_type, value_to_assign);
     _clear_tmp_result();
@@ -100,11 +106,15 @@ void Interpreter::visit(const AssignStatement& asgn_stmnt) {
     }
 
     asgn_stmnt.expr->accept(*this);
-    if (_tmp_result_is_empty()) throw std::runtime_error("nothing to assign");  // TODO
+    if (_tmp_result_is_empty())
+        throw AssignTypeMismatchException(var_holder.get_type().to_str(), TypeHandler::get_type_string(_tmp_result),
+                                          asgn_stmnt.expr->position);
 
     auto value_to_assign{TypeHandler::extract_value(_tmp_result)};
     if (TypeHandler::deduce_type(value_to_assign) != var_holder.get_type()) {
-        throw std::runtime_error("in assigning - type mismatch");  // TOOD
+        throw AssignTypeMismatchException(var_holder.get_type().to_str(),
+                                          TypeHandler::deduce_type(value_to_assign).to_str(),
+                                          asgn_stmnt.expr->position);
     }
     var_holder.var->var_value = value_to_assign;
     _clear_tmp_result();
@@ -119,7 +129,8 @@ void Interpreter::visit(const ReturnStatement& return_stmnt) {
     if (return_stmnt.expression) return_stmnt.expression->accept(*this);
 
     if (not TypeHandler::matches_return_type(_tmp_result, _env.get_cur_func_ret_type())) {
-        throw std::runtime_error("return type mismatch");  // TODO
+        throw ReturnTypeMismatchException{TypeHandler::get_type_string(_env.get_cur_func_ret_type()),
+                                          TypeHandler::get_type_string(_tmp_result), return_stmnt.position};
     }
 
     // if function returns something make sure for it to be a value not var holder

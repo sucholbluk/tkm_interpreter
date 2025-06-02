@@ -436,7 +436,6 @@ def main() -> int {
     std::string output = buffer.str();
     std::cout.rdbuf(old);
 
-    std::cout << output;
     BOOST_CHECK(output == expected_output);
 }
 
@@ -1310,4 +1309,101 @@ def main() -> int {
     std::cout.rdbuf(old);
 
     BOOST_CHECK(output == expected_output);
+}
+
+// EXCEPTION TESTS
+
+namespace bdata = boost::unit_test::data;
+
+std::vector<std::string> return_type_mismatch_exception_cases = {
+    R"(def main() -> int { return -0.4; })",
+    R"(def main() -> int { return true; })",
+    R"(def main() -> int { return "fdfdf"; })",
+    R"(def main() -> int { return; })",
+    R"(def main() -> int { return print; })",
+    R"(
+def to_string(i: int) -> string {return;}
+
+def main() -> int{
+    to_string(4);
+    return 0;
+}
+    )",
+};
+BOOST_DATA_TEST_CASE(return_type_mismatch_exception_test, bdata::make(return_type_mismatch_exception_cases),
+                     mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+
+    BOOST_CHECK_THROW(program->accept(interpreter), ReturnTypeMismatchException);
+}
+
+std::vector<std::string> assign_type_mismatch_exception_cases = {
+    R"(def main() -> int { let x: int = 3.14; return 0; })",
+    R"(def main() -> int { let x: int = "abc"; return 0; })",
+    R"(def main() -> int { let x: int = true; return 0; })",
+    R"(def main() -> int { let x: float = "abc"; return 0; })",
+    R"(def main() -> int { let x: bool = 123; return 0; })",
+    R"(def main() -> int { let x: string = 3.14; return 0; })",
+    R"(def main() -> int { let x: string = false; return 0; })",
+    R"(def main() -> int { let x: int = print; return 0; })",
+    R"(def main() -> int { let x: int = print(4 as string); return 0; })",
+    R"(
+def foo() -> int { return 1; }
+def main() -> int { let x: string = foo(); return 0; }
+    )",
+    R"(
+def main() -> int {
+    let mut x: int = 5;
+    x = "abc";
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    let mut x: float = 1.5;
+    x = false;
+    return 0;
+}
+    )",
+};
+
+BOOST_DATA_TEST_CASE(assign_type_mismatch_exception_test, bdata::make(assign_type_mismatch_exception_cases),
+                     mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+    BOOST_CHECK_THROW(program->accept(interpreter), AssignTypeMismatchException);
+}
+
+std::vector<std::string> cannot_cast_exception_cases = {
+    R"(def main() -> int { let x: int = "abc" as int; return 0; })",
+    R"(def main() -> int { let x: int = "" as int; return 0; })",
+    R"(def main() -> int { let x: int = "12.3.4" as int; return 0; })",
+    R"(def main() -> int { let x: float = "abc" as float; return 0; })",
+    R"(def main() -> int { let x: float = "" as float; return 0; })",
+    R"(def main() -> int { let x: float = "12.3.4" as float; return 0; })",
+    R"(def main() -> int { let x: int = print as function<none:none>; return 0; })",
+    R"(def main() -> int { let x: float = print as float; return 0; })",
+    R"(def main() -> int { let x: bool = print as bool; return 0; })",
+    R"(def main() -> int { let x: string = print as string; return 0; })",
+    R"(
+def main() -> int {
+    let mut x: int = 0;
+    x = "true" as int;
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    let mut x: float = 3.4;
+    x = "false" as float;
+    return 0;
+}
+    )",
+};
+
+BOOST_DATA_TEST_CASE(cannot_cast_exception_test, bdata::make(cannot_cast_exception_cases), mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+    BOOST_CHECK_THROW(program->accept(interpreter), CannotCastException);
 }

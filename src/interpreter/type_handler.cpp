@@ -116,7 +116,10 @@ std::optional<value> as_int(const value& val) {
                 return (int)val;
             } else if constexpr (std::same_as<std::string, T>) {
                 try {
-                    return std::stoi(val);
+                    size_t idx;
+                    int i = std::stoi(val, &idx);
+                    if (idx != val.length()) return std::nullopt;
+                    return i;
                 } catch (const std::invalid_argument&) {
                     return std::nullopt;
                 } catch (const std::out_of_range&) {
@@ -140,7 +143,10 @@ std::optional<value> as_float(const value& val) {
                 return (double)val;
             } else if constexpr (std::same_as<std::string, T>) {
                 try {
-                    return std::stod(val);
+                    size_t idx;
+                    double d = std::stod(val, &idx);
+                    if (idx != val.length()) return std::nullopt;
+                    return d;
                 } catch (const std::invalid_argument&) {
                     return std::nullopt;
                 } catch (const std::out_of_range&) {
@@ -229,4 +235,15 @@ bool ret_type_matches_param_type(std::optional<Type> ret_type, VariableType para
     return ret_type.value() == param_type.type;
 }
 
+std::string get_type_string(std::optional<Type> opt_type) {
+    if (not opt_type) return "none";
+
+    return opt_type.value().to_str();
+}
+
+std::string get_type_string(const opt_vhold_or_val& opt_v_or_vh) {
+    if (not opt_v_or_vh) return "none";
+
+    return deduce_type(extract_value(opt_v_or_vh)).to_str();
+}
 }  // namespace TypeHandler

@@ -26,7 +26,7 @@ class ImplementationError : public std::logic_error {
  *------------------------------------------------------------------------------*/
 
 /*
- * @brief Base for errors in checked code.
+ * @brief Base for lexical errors in checked code.
  */
 class LexerException : public std::runtime_error {
    public:
@@ -286,10 +286,35 @@ class ExpectedIdentifierException : public ParserException {
     explicit ExpectedIdentifierException(const Position& position);
 };
 
+/* -----------------------------------------------------------------------------*
+ *                             INTERPRETER ERRORS                               *
+ *------------------------------------------------------------------------------*/
+class InterpreterException : public std::runtime_error {
+   public:
+    explicit InterpreterException(const std::string& message);
+};
+
+class ReturnTypeMismatchException : public InterpreterException {
+   public:
+    explicit ReturnTypeMismatchException(const std::string& got_type_str, const std::string& expected_type_str,
+                                         const Position& pos);
+};
+
+class AssignTypeMismatchException : public InterpreterException {
+   public:
+    explicit AssignTypeMismatchException(const std::string& got_type_str, const std::string& expected_type_str,
+                                         const Position& pos);
+};
+
+class CannotCastException : public InterpreterException {
+   public:
+    explicit CannotCastException(const std::string& source_type_str, const std::string& dest_type_str,
+                                 const Position& pos);
+};
+
 template <typename ExceptionT>
 [[noreturn]] void rethrow_with_position(const ExceptionT& e, const Position& position) {
     throw ExceptionT(std::string(e.what()) + " at: " + position.get_position_str());
 }
-
 /** @} */
 #endif  // EXCEPTIONS_HPP
