@@ -196,6 +196,8 @@ void Interpreter::visit(const BinaryExpression& binary_expr) {
         _evaluate_binary_expr(binary_expr.kind, left, right);
     } catch (const CantPerformOperationException& e) {
         rethrow_with_position(e, binary_expr.position);
+    } catch (const RequiredFunctionException& e) {
+        rethrow_with_position(e, binary_expr.position);
     }
 }
 

@@ -224,4 +224,9 @@ ExpectedEvaluableExprException::ExpectedEvaluableExprException(const std::string
 RequiredFunctionException::RequiredFunctionException(const std::string& expr_kind_str, const Position& pos,
                                                      const std::string& type_str)
     : InterpreterException(
-          std::format("{} requres function, got {} at: {}", expr_kind_str, type_str, pos.get_position_str())) {}
+          std::format("{} requires function, got {} at: {}", expr_kind_str, type_str, pos.get_position_str())) {}
+
+RequiredFunctionException::RequiredFunctionException(const std::string& expr_kind_str, const std::string& type_str)
+    : InterpreterException(std::format("{} requires function, got {}", expr_kind_str, type_str)) {}
+
+RequiredFunctionException::RequiredFunctionException(const std::string& msg) : InterpreterException(msg) {}

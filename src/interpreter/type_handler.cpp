@@ -193,7 +193,8 @@ bool are_the_same_type(value lhs, value rhs) {
 Type get_composed_func_type(value left, value right) {
     // it was already check if both left and right are the same type
     if (not std::holds_alternative<sp_callable>(left)) {
-        throw std::runtime_error("Func comp only on functionns -- got ...");  // TODO
+        throw RequiredFunctionException(expr_kind_to_str(ExprKind::FUNCTION_COMPOSITION),
+                                        TypeHandler::get_type_string(TypeHandler::deduce_type(right)));
     }
     auto l_ftype_info{get_value_as<sp_callable>(left)->get_type().function_type_info};
     auto r_ftype_info{get_value_as<sp_callable>(right)->get_type().function_type_info};

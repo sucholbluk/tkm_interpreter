@@ -1615,3 +1615,48 @@ BOOST_DATA_TEST_CASE(cant_perform_operation_exception_test, bdata::make(cant_per
     auto program = get_program(mock_file);
     BOOST_CHECK_THROW(program->accept(interpreter), CantPerformOperationException);
 }
+
+std::vector<std::string> required_function_exception_cases = {
+    R"(
+def main() -> int {
+    4();
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    "abc"();
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    4.5 & 9.0;
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    "foo" & "bar";
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    (4) >> (4+3);
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    ("foo") >> ("bar");
+    return 0;
+}
+    )",
+};
+
+BOOST_DATA_TEST_CASE(required_function_exception_test, bdata::make(required_function_exception_cases), mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+    BOOST_CHECK_THROW(program->accept(interpreter), RequiredFunctionException);
+}

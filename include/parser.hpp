@@ -71,6 +71,7 @@ class Parser : public IParser {
     up_expression _try_parse_primary();
     up_expression _try_parse_literal();
     up_expression _try_parse_identifier();
+    up_expression _try_parse_paren_expr();  // used only for after bind fron
     std::optional<up_expression_vec> _try_parse_argument_list();
 
     up_typed_identifier _try_parse_typed_identifier();

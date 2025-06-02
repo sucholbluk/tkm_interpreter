@@ -455,16 +455,14 @@ up_expression Parser::_try_parse_function_call(up_expression primary) {
 }
 
 up_expression Parser::_try_parse_primary() {
-    up_expression primary_expr{_try_parse_literal()};
+    up_expression primary_expr{_try_parse_paren_expr()};
+    if (primary_expr) return primary_expr;
 
-    if (not primary_expr) {
-        primary_expr = _try_parse_identifier();
-        if (not primary_expr) {
-            return nullptr;
-        }
-    }
+    primary_expr = _try_parse_literal();
 
-    return primary_expr;
+    if (primary_expr) return primary_expr;
+
+    return _try_parse_identifier();
 }
 
 up_expression Parser::_try_parse_literal() {
@@ -510,6 +508,21 @@ up_expression Parser::_try_parse_assigned_expression() {
         throw ExpectedExprException(_token.get_position());
     }
     return assigned_expr;
+}
+
+up_expression Parser::_try_parse_paren_expr() {
+    if (not _token_type_is(TokenType::T_L_PAREN)) {
+        return nullptr;
+    }
+    Position position(_get_position_and_digest_token());
+
+    up_expression expr = _try_parse_expression();
+    if (not expr) {
+        throw ExpectedExprException(_token.get_position());
+    }
+
+    _advance_on_required_token<ExpectedRParenException>(TokenType::T_R_PAREN);
+    return expr;
 }
 
 /* -----------------------------------------------------------------------------*

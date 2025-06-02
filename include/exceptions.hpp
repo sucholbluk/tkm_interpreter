@@ -351,8 +351,9 @@ class ExpectedEvaluableExprException : public InterpreterException {
 
 class RequiredFunctionException : public InterpreterException {
    public:
-    RequiredFunctionException(const std::string& expr_kind_str, const Position& pos,
-                              const std::string& type_str = "none");
+    RequiredFunctionException(const std::string& expr_kind_str, const Position& pos, const std::string& type_str);
+    RequiredFunctionException(const std::string& expr_kind_str, const std::string& type_str);
+    RequiredFunctionException(const std::string& msg);
 };
 
 template <typename ExceptionT>
