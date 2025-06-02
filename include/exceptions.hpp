@@ -394,6 +394,18 @@ class InvalidMainFuncException : public InterpreterException {
     explicit InvalidMainFuncException(const std::string& got_type);
 };
 
+class IntOverflowException : public InterpreterException {
+   public:
+    explicit IntOverflowException() : InterpreterException("Integer overflow") {}
+    explicit IntOverflowException(const std::string& msg) : InterpreterException(msg) {}
+};
+
+class DivByZeroException : public InterpreterException {
+   public:
+    explicit DivByZeroException() : DivByZeroException("Division by zero") {}
+    explicit DivByZeroException(const std::string& msg) : InterpreterException(msg) {}
+};
+
 template <typename ExceptionT>
 [[noreturn]] void rethrow_with_position(const ExceptionT& e, const Position& position) {
     throw ExceptionT(std::string(e.what()) + " at: " + position.get_position_str());

@@ -2034,3 +2034,64 @@ BOOST_DATA_TEST_CASE(condition_must_be_bool_exception_test, bdata::make(conditio
     auto program = get_program(mock_file);
     BOOST_CHECK_THROW(program->accept(interpreter), ConditionMustBeBoolException);
 }
+
+std::vector<std::string> int_overflow_exception_cases = {
+    R"(
+def main() -> int {
+    let x: int = 2147483647;
+    let y: int = x + 1;
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    let x: int = 1073741824;
+    let y: int = x * 4;
+    return 0;
+}
+    )",
+    R"(
+def main() -> int {
+    let x: int = -2147483648;
+    let y: int = x - 1;
+    return 0;
+}
+    )",
+};
+
+BOOST_DATA_TEST_CASE(int_overflow_exception_test, bdata::make(int_overflow_exception_cases), mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+    BOOST_CHECK_THROW(program->accept(interpreter), IntOverflowException);
+}
+
+std::vector<std::string> div_by_zero_exception_cases = {
+    // Dzielenie int przez zero
+    R"(
+def main() -> int {
+    let x: int = 5 / 0;
+    return 0;
+}
+    )",
+    // Dzielenie float przez zero
+    R"(
+def main() -> int {
+    let x: float = 3.14 / 0.0;
+    return 0;
+}
+    )",
+    // Dzielenie zmiennej przez zero
+    R"(
+def main() -> int {
+    let y: int = 0;
+    let x: int = 10 / y;
+    return 0;
+}
+    )",
+};
+
+BOOST_DATA_TEST_CASE(div_by_zero_exception_test, bdata::make(div_by_zero_exception_cases), mock_file) {
+    Interpreter interpreter{};
+    auto program = get_program(mock_file);
+    BOOST_CHECK_THROW(program->accept(interpreter), DivByZeroException);
+}

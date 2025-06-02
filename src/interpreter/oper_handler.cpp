@@ -16,7 +16,7 @@ value add(value left, value right) {
             if constexpr (std::same_as<int, T>) {
                 int rhs = TypeHandler::get_value_as<int>(right);
                 if (std::abs((double)left + (double)rhs) > std::numeric_limits<int>::max()) {
-                    throw std::runtime_error("int overflow");
+                    throw IntOverflowException();
                 }
                 return left + rhs;
             } else if constexpr (std::same_as<double, T>) {
@@ -37,7 +37,7 @@ value subtract(value left, value right) {
             if constexpr (std::same_as<int, T>) {
                 int rhs = TypeHandler::get_value_as<int>(right);
                 if (std::abs((double)left - (double)rhs) > std::numeric_limits<int>::max()) {
-                    throw std::runtime_error("int overflow");
+                    throw IntOverflowException();
                 }
                 return left - rhs;
             } else if constexpr (std::same_as<double, T>) {
@@ -56,7 +56,7 @@ value multiply(value left, value right) {
             if constexpr (std::same_as<int, T>) {
                 int rhs = TypeHandler::get_value_as<int>(right);
                 if (std::abs((double)left * (double)rhs) > std::numeric_limits<int>::max()) {
-                    throw std::runtime_error("int overflow");
+                    throw IntOverflowException();
                 }
                 return left * rhs;
             } else if constexpr (std::same_as<double, T>) {
@@ -75,13 +75,13 @@ value divide(value left, value right) {
             if constexpr (std::same_as<int, T>) {
                 int rhs = TypeHandler::get_value_as<int>(right);
                 if (rhs == 0) {
-                    throw std::runtime_error("division by zero err");
+                    throw DivByZeroException();
                 }
                 return left / rhs;
             } else if constexpr (std::same_as<double, T>) {
                 auto rhs{TypeHandler::get_value_as<double>(right)};
                 if (rhs == 0) {
-                    throw std::runtime_error("divistion by zero err");
+                    throw DivByZeroException();
                 }
                 return left / rhs;
             } else {

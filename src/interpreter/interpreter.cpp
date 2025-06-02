@@ -206,6 +206,10 @@ void Interpreter::visit(const BinaryExpression& binary_expr) {
         rethrow_with_position(e, binary_expr.position);
     } catch (const InvalidFucTForCompositionExeption& e) {
         rethrow_with_position(e, binary_expr.position);
+    } catch (const IntOverflowException& e) {
+        rethrow_with_position(e, binary_expr.position);
+    } catch (const DivByZeroException& e) {
+        rethrow_with_position(e, binary_expr.position);
     }
 }
 
