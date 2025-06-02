@@ -51,8 +51,61 @@ function_impl _input_impl = [](Interpreter& interpreter, arg_list args) -> std::
     std::getline(std::cin, line);
     return line;
 };
+const Type _is_int_type{FunctionTypeInfo{std::vector<VariableType>{
+                                             {VariableType{Type{TypeKind::STRING}}},
+                                         },
+                                         Type{TypeKind::BOOL}}};
 
-const std::array<BuiltinFunctionInfo, 3> builtin_function_infos{
+function_impl _is_int_impl = [](Interpreter& interpreter, arg_list args) -> std::optional<value> {
+    return TypeHandler::as_int(TypeHandler::extract_value(args[0])).has_value();
+};
+
+const Type _is_float_type{FunctionTypeInfo{std::vector<VariableType>{
+                                               {VariableType{Type{TypeKind::STRING}}},
+                                           },
+                                           Type{TypeKind::BOOL}}};
+
+function_impl _is_float_impl = [](Interpreter& interpreter, arg_list args) -> std::optional<value> {
+    return TypeHandler::as_float(TypeHandler::extract_value(args[0])).has_value();
+};
+
+const Type _lower_type{FunctionTypeInfo{std::vector<VariableType>{
+                                            {VariableType{Type{TypeKind::STRING}}},
+                                        },
+                                        Type{TypeKind::STRING}}};
+
+function_impl _lower_impl = [](Interpreter& interpreter, arg_list args) -> std::optional<value> {
+    std::string s = TypeHandler::get_value_as<std::string>(args[0]);
+    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
+    return s;
+};
+
+const Type _upper_type{FunctionTypeInfo{std::vector<VariableType>{
+                                            {VariableType{Type{TypeKind::STRING}}},
+                                        },
+                                        Type{TypeKind::STRING}}};
+
+function_impl _upper_impl = [](Interpreter& interpreter, arg_list args) -> std::optional<value> {
+    std::string s = TypeHandler::get_value_as<std::string>(args[0]);
+    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::toupper(c); });
+    return s;
+};
+
+const Type _capitalized_type{FunctionTypeInfo{std::vector<VariableType>{
+                                                  {VariableType{Type{TypeKind::STRING}}},
+                                              },
+                                              Type{TypeKind::STRING}}};
+
+function_impl _capitalized_impl = [](Interpreter& interpreter, arg_list args) -> std::optional<value> {
+    std::string s = TypeHandler::get_value_as<std::string>(args[0]);
+    if (!s.empty()) {
+        s[0] = std::toupper(static_cast<unsigned char>(s[0]));
+        std::transform(s.begin() + 1, s.end(), s.begin() + 1, [](unsigned char c) { return std::tolower(c); });
+    }
+    return s;
+};
+
+const std::array<BuiltinFunctionInfo, 8> builtin_function_infos{
     BuiltinFunctionInfo{
         "print",
         _print_type,
@@ -67,6 +120,31 @@ const std::array<BuiltinFunctionInfo, 3> builtin_function_infos{
         "input",
         _input_type,
         _input_impl,
+    },
+    BuiltinFunctionInfo{
+        "is_int",
+        _is_int_type,
+        _is_int_impl,
+    },
+    BuiltinFunctionInfo{
+        "is_float",
+        _is_float_type,
+        _is_float_impl,
+    },
+    BuiltinFunctionInfo{
+        "lower",
+        _lower_type,
+        _lower_impl,
+    },
+    BuiltinFunctionInfo{
+        "upper",
+        _upper_type,
+        _upper_impl,
+    },
+    BuiltinFunctionInfo{
+        "capitalized",
+        _capitalized_type,
+        _capitalized_impl,
     },
 };
 }  // namespace Builtins
