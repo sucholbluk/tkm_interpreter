@@ -46,7 +46,7 @@ bool arg_matches_param(vhold_or_val argument, VariableType param_type) {
         argument);
 }
 
-vhold_or_val maybe_value_to_arg(const opt_vhold_or_val& opt_v_or_vh) {
+vhold_or_val opt_value_to_arg(const opt_vhold_or_val& opt_v_or_vh) {
     if (not opt_v_or_vh) {
         throw std::logic_error("impl err - check if not monostate before calling");
     }

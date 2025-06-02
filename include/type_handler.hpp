@@ -24,15 +24,15 @@ bool args_match_params(const arg_list& args, std::vector<VariableType> param_typ
 
 bool arg_matches_param(vhold_or_val argument, VariableType param_type);
 
-vhold_or_val maybe_value_to_arg(const opt_vhold_or_val& maybe_val_or_holder);
+vhold_or_val opt_value_to_arg(const opt_vhold_or_val& maybe_val_or_holder);
 
 value extract_value(const opt_vhold_or_val& maybe_val_or_holder);
 
-value extract_value(const std::variant<VariableHolder, value>& val_or_holder);
+value extract_value(const vhold_or_val& val_or_holder);
 
 bool ret_type_matches_param_type(std::optional<Type> ret_type, VariableType param_type);
 
-std::optional<value> as_type(Type primitive_type_kind, value val);
+std::optional<value> as_type(Type type, value val);
 
 std::optional<value> as_int(const value& val);
 

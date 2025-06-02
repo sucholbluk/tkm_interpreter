@@ -269,7 +269,7 @@ arg_list Interpreter::_get_arg_list(const up_expression_vec& arguments) {
             // expr->position();
             throw std::runtime_error("none not accepted as argument");
         }
-        args.push_back(TypeHandler::maybe_value_to_arg(_tmp_result));
+        args.push_back(TypeHandler::opt_value_to_arg(_tmp_result));
     });
 
     return args;

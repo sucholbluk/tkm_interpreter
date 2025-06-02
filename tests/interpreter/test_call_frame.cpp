@@ -68,3 +68,10 @@ BOOST_AUTO_TEST_CASE(modify_variable_value_test) {
     BOOST_CHECK(found3);
     BOOST_CHECK(found3.value().get_value_as<int>() == 99);
 }
+
+BOOST_AUTO_TEST_CASE(get_return_value_test) {
+    auto type{std::make_optional<Type>(TypeKind::INT)};
+    CallFrame frame{type};
+
+    BOOST_CHECK(frame.get_ret_type() == type);
+}
