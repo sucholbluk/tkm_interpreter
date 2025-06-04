@@ -1,0 +1,64 @@
+#include "environment.hpp"
+
+#include "builtint_functions.hpp"
+#include "global_function.hpp"
+#include "statement.hpp"
+
+Environment::Environment() : _call_frames{} {
+    // Initialize built-in functions
+    std::ranges::for_each(Builtins::builtin_function_infos, [this](auto& builtin_info) {
+        this->_functions[builtin_info.identifier] =
+            std::make_shared<BuiltinFunction>(builtin_info.type, builtin_info.impl);
+    });
+}
+
+void Environment::register_function(const FunctionDefinition& function) {
+    std::string identifier{function.signature->identifier};
+    if (_functions.contains(identifier)) {
+        throw AlreadyDefinedException(identifier, function.position);
+    }
+    _functions[identifier] = std::make_shared<GlobalFunction>(function);
+}
+
+void Environment::declare_variable(std::string identifier, VariableHolder var_holder) {
+    _call_frames.top().add_variable(identifier, var_holder);
+}
+
+void Environment::declare_variable(std::string identifier, VariableType var_type, value var_value) {
+    sp_variable var = std::make_shared<Variable>(var_type, var_value);
+    declare_variable(identifier, VariableHolder{var});
+};
+
+void Environment::calling_function(std::optional<Type> ret_type) {
+    _call_frames.push(CallFrame{ret_type});
+}
+
+void Environment::exiting_function() {
+    _call_frames.pop();
+}
+
+void Environment::add_scope() {
+    _call_frames.top().push_scope();
+}
+
+void Environment::pop_scope() {
+    _call_frames.top().pop_scope();
+}
+
+bool Environment::can_define(const std::string& identifier) {
+    return not(_functions.contains(identifier) or _call_frames.top().is_in_current_scope(identifier));
+}
+
+std::optional<VariableHolder> Environment::get_by_identifier(const std::string& identifier) {
+    std::optional<VariableHolder> var_hold{std::nullopt};
+    return _call_frames.top().find_variable(identifier);
+}
+
+sp_callable Environment::get_global_function(const std::string& identifier) {
+    auto it = _functions.find(identifier);
+    return it != _functions.end() ? it->second : nullptr;
+}
+
+std::optional<Type> Environment::get_cur_func_ret_type() const {
+    return _call_frames.top().get_ret_type();
+}

@@ -7,14 +7,9 @@ const std::string LoggingLexer::_log_prefix{"[LEXER]"};
 LoggingLexer::LoggingLexer(std::unique_ptr<ILexer> inner) : _inner{std::move(inner)} {}
 
 Token LoggingLexer::get_next_token() {
-    try {
-        Token token{_inner->get_next_token()};
-        _log_token_creation(token);
-        return token;
-    } catch (const std::exception& e) {
-        _log_encountered_error(e);
-        throw e;  // just log and propagate to error handling object
-    }
+    Token token{_inner->get_next_token()};
+    _log_token_creation(token);
+    return token;
 }
 
 void LoggingLexer::_log_token_creation(const Token& token) {

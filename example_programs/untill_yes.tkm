@@ -1,0 +1,23 @@
+def main() -> int {
+    let mut cont: bool = true;
+    let mut postfix: string = "st";
+
+    # dla przykladu, ze warunek nie musi zawierac i
+    for (i: int = 1; cont; i = i + 1) {
+        if (i == 2) {
+            postfix = "nd";
+        } else if ( i == 3) {
+            postfix = "rd";
+        } else if (i == 4) {
+            postfix = "th";
+        }
+        print("asking " + i as string + postfix + " time");
+        print("yes or no?");
+
+        if (input() == "yes") {
+            cont = false;
+        }
+    }
+
+    return 0;
+}

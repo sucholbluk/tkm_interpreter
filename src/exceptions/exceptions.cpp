@@ -1,5 +1,7 @@
 #include "exceptions.hpp"
 
+#include "global_function.hpp"
+
 ImplementationError::ImplementationError(const std::string& message) : std::logic_error(message) {}
 /* -----------------------------------------------------------------------------*
  *                                LEXER ERRORS                                  *
@@ -160,3 +162,100 @@ ExpectedGreaterException::ExpectedGreaterException(const Position& position)
 
 ExpectedIdentifierException::ExpectedIdentifierException(const Position& position)
     : ParserException(std::format("Expected identifier at: {}", position.get_position_str())) {}
+
+/* -----------------------------------------------------------------------------*
+ *                             INTERPRETER ERRORS                               *
+ *------------------------------------------------------------------------------*/
+InterpreterException::InterpreterException(const std::string& msg) : std::runtime_error(msg) {}
+
+ReturnTypeMismatchException::ReturnTypeMismatchException(const std::string& expected_type_str,
+                                                         const std::string& got_type_str, const Position& pos)
+    : InterpreterException(std::format("Return type mismatch. Expected type: {}, got: {} at: {}", expected_type_str,
+                                       got_type_str, pos.get_position_str())) {}
+
+AssignTypeMismatchException::AssignTypeMismatchException(const std::string& expected_type_str,
+                                                         const std::string& got_type_str, const Position& pos)
+    : InterpreterException(std::format("Type mismatch trying to assign a value. Expected type: {}, got: {} at: {}",
+                                       expected_type_str, got_type_str, pos.get_position_str())) {}
+
+CannotCastException::CannotCastException(const std::string& source_type_str, const std::string& dest_type_str,
+                                         const Position& pos)
+    : InterpreterException(std::format("Cannot perform type cast from: {} to: {} at: {}", source_type_str,
+                                       dest_type_str, pos.get_position_str())) {}
+
+UnknownIdentifierException::UnknownIdentifierException(const std::string& identifier, const Position& pos)
+    : InterpreterException(std::format("Not a reference to known function or variable. Identifier: '{}' at: {}",
+                                       identifier, pos.get_position_str())) {}
+
+ArgTypesNotMatchingException::ArgTypesNotMatchingException(const std::string& expr_name, const std::string& args_str,
+                                                           const std::string& params_str, const Position& pos)
+    : InterpreterException(
+          std::format("{} argument types do not match param types. Arguments types: {}, Param types: {} at: {}",
+                      expr_name, args_str, params_str, pos.get_position_str())) {}
+
+ArgTypesNotMatchingException::ArgTypesNotMatchingException(const std::string& expr_name, const std::string& args_str,
+                                                           const std::string& params_str)
+    : InterpreterException(
+          std::format("{} argument types do not match param types. Arguments types: {}, Param types: {}", expr_name,
+                      args_str, params_str)) {}
+
+ArgTypesNotMatchingException::ArgTypesNotMatchingException(const std::string& msg) : InterpreterException(msg) {}
+
+TooManyArgsToBindException::TooManyArgsToBindException(int args_size, int params_size)
+    : InterpreterException(
+          std::format("Too many arguments for bind front. Got: {}, expected max: {}", args_size, params_size)) {}
+
+TooManyArgsToBindException::TooManyArgsToBindException(const std::string& msg) : InterpreterException(msg) {}
+
+BinaryExprTypeMismatchException::BinaryExprTypeMismatchException(const std::string& expr_str,
+                                                                 const std::string& lhs_type,
+                                                                 const std::string& rhs_type)
+    : InterpreterException(
+          std::format("{} requires left and right expressions to be the same type. Left type: {}, Right type: {}",
+                      expr_str, lhs_type, rhs_type)) {}
+
+BinaryExprTypeMismatchException::BinaryExprTypeMismatchException(const std::string& msg) : InterpreterException(msg) {}
+
+CantPerformOperationException::CantPerformOperationException(const std::string& oper_str, const std::string& type_str)
+    : InterpreterException(std::format("Cant perform {} on type {}", oper_str, type_str)) {}
+
+CantPerformOperationException::CantPerformOperationException(const std::string& msg) : InterpreterException(msg) {}
+
+ExpectedEvaluableExprException::ExpectedEvaluableExprException(const std::string& requires_val, const Position& pos)
+    : InterpreterException(
+          std::format("{} expected evaluable expression, got none at: {}", requires_val, pos.get_position_str())) {}
+
+RequiredFunctionException::RequiredFunctionException(const std::string& expr_kind_str, const Position& pos,
+                                                     const std::string& type_str)
+    : InterpreterException(
+          std::format("{} requires function, got {} at: {}", expr_kind_str, type_str, pos.get_position_str())) {}
+
+RequiredFunctionException::RequiredFunctionException(const std::string& expr_kind_str, const std::string& type_str)
+    : InterpreterException(std::format("{} requires function, got {}", expr_kind_str, type_str)) {}
+
+RequiredFunctionException::RequiredFunctionException(const std::string& msg) : InterpreterException(msg) {}
+
+CantAssignToImmutableException::CantAssignToImmutableException(const std::string& identifier, const Position& pos)
+    : InterpreterException(std::format("Cannot assign to immutable: {} at: {}", identifier, pos.get_position_str())) {}
+
+LoopStmtOutsideLoopException::LoopStmtOutsideLoopException(const std::string& statement_str, const Position& pos)
+    : InterpreterException(std::format("{} statement outside loop at: {}", statement_str, pos.get_position_str())) {}
+
+AlreadyDefinedException::AlreadyDefinedException(const std::string& identifier, const Position& pos)
+    : InterpreterException(std::format("{} is already defined and cannot be redefined here. Redefinition at: {}",
+                                       identifier, pos.get_position_str())) {}
+
+InvalidFucTForCompositionExeption::InvalidFucTForCompositionExeption(const std::string& type1_str,
+                                                                     const std::string& type2_str)
+    : InterpreterException(
+          std::format("Invalid types for function composition left type: {}, right type: {}", type1_str, type2_str)) {}
+
+InvalidFucTForCompositionExeption::InvalidFucTForCompositionExeption(const std::string& msg)
+    : InterpreterException(msg) {}
+
+ConditionMustBeBoolException::ConditionMustBeBoolException(const std::string& got_type, const Position& pos)
+    : InterpreterException(std::format("Condition must be bool, got: {} at: {}", got_type, pos.get_position_str())) {}
+
+InvalidMainFuncException::InvalidMainFuncException(const std::string& got_type)
+    : InterpreterException{
+          std::format("Invalid main function type. Expected: function<none:int>, got type: {}", got_type)} {}

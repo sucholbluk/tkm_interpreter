@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "ilexer.hpp"
+#include "interpreter.hpp"
 #include "iparser.hpp"
 
 /**
@@ -24,11 +25,11 @@ class CLIApp {  // nazwa tymczasowa - potem moze do zmiany
 
    private:
     std::unique_ptr<IParser> _parser;
+    Interpreter _interpreter;
     // TODO: make struct for options
     bool _verbose;
     bool _use_stdin;
     std::string _input_filename;
-    std::string _output_filename;
 
     void _parse_args(int argc, char* const argv[]);
     void _initialize_components();

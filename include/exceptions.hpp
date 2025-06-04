@@ -26,7 +26,7 @@ class ImplementationError : public std::logic_error {
  *------------------------------------------------------------------------------*/
 
 /*
- * @brief Base for errors in checked code.
+ * @brief Base for lexical errors in checked code.
  */
 class LexerException : public std::runtime_error {
    public:
@@ -285,5 +285,131 @@ class ExpectedIdentifierException : public ParserException {
    public:
     explicit ExpectedIdentifierException(const Position& position);
 };
+
+/* -----------------------------------------------------------------------------*
+ *                             INTERPRETER ERRORS                               *
+ *------------------------------------------------------------------------------*/
+class InterpreterException : public std::runtime_error {
+   public:
+    explicit InterpreterException(const std::string& message);
+};
+
+class ReturnTypeMismatchException : public InterpreterException {
+   public:
+    explicit ReturnTypeMismatchException(const std::string& got_type_str, const std::string& expected_type_str,
+                                         const Position& pos);
+};
+
+class AssignTypeMismatchException : public InterpreterException {
+   public:
+    explicit AssignTypeMismatchException(const std::string& got_type_str, const std::string& expected_type_str,
+                                         const Position& pos);
+};
+
+class CannotCastException : public InterpreterException {
+   public:
+    explicit CannotCastException(const std::string& source_type_str, const std::string& dest_type_str,
+                                 const Position& pos);
+};
+
+class UnknownIdentifierException : public InterpreterException {
+   public:
+    explicit UnknownIdentifierException(const std::string& identifier, const Position& pos);
+};
+
+class ArgTypesNotMatchingException : public InterpreterException {
+   public:
+    explicit ArgTypesNotMatchingException(const std::string& expr_name, const std::string& args_str,
+                                          const std::string& params_str, const Position& pos);
+    explicit ArgTypesNotMatchingException(const std::string& expr_name, const std::string& args_str,
+                                          const std::string& params_str);
+    explicit ArgTypesNotMatchingException(const std::string& msg);
+};
+
+class TooManyArgsToBindException : public InterpreterException {
+   public:
+    explicit TooManyArgsToBindException(int args_size, int params_size);
+    explicit TooManyArgsToBindException(const std::string& msg);
+};
+
+class BinaryExprTypeMismatchException : public InterpreterException {
+   public:
+    explicit BinaryExprTypeMismatchException(const std::string& expr_str, const std::string& lhs_type,
+                                             const std::string& rhs_type);
+    explicit BinaryExprTypeMismatchException(const std::string& msg);
+};
+
+class CantPerformOperationException : public InterpreterException {
+   public:
+    explicit CantPerformOperationException(const std::string& oper_str, const std::string& type_str);
+    explicit CantPerformOperationException(const std::string& msg);
+};
+
+class ExpectedEvaluableExprException : public InterpreterException {
+   public:
+    explicit ExpectedEvaluableExprException(const std::string& requires_val, const Position& pos);
+};
+
+class RequiredFunctionException : public InterpreterException {
+   public:
+    explicit RequiredFunctionException(const std::string& expr_kind_str, const Position& pos,
+                                       const std::string& type_str);
+    explicit RequiredFunctionException(const std::string& expr_kind_str, const std::string& type_str);
+    explicit RequiredFunctionException(const std::string& msg);
+};
+
+class CantAssignToImmutableException : public InterpreterException {
+   public:
+    explicit CantAssignToImmutableException(const std::string& identifier, const Position& pos);
+};
+
+class LoopStmtOutsideLoopException : public InterpreterException {
+   public:
+    explicit LoopStmtOutsideLoopException(const std::string& statement_str, const Position& pos);
+};
+
+class AlreadyDefinedException : public InterpreterException {
+   public:
+    explicit AlreadyDefinedException(const std::string& identifier, const Position& pos);
+};
+
+class InvalidFucTForCompositionExeption : public InterpreterException {
+   public:
+    explicit InvalidFucTForCompositionExeption(const std::string& type1_str, const std::string& type2_str);
+    explicit InvalidFucTForCompositionExeption(const std::string& msg);
+};
+
+class ConditionMustBeBoolException : public InterpreterException {
+   public:
+    explicit ConditionMustBeBoolException(const std::string& got_type, const Position& pos);
+};
+
+class MissingMainFuncException : public InterpreterException {
+   public:
+    explicit MissingMainFuncException() : InterpreterException{"Program requires main function to run"} {}
+};
+
+class InvalidMainFuncException : public InterpreterException {
+   public:
+    explicit InvalidMainFuncException(const std::string& got_type);
+};
+
+class IntOverflowException : public InterpreterException {
+   public:
+    explicit IntOverflowException() : InterpreterException("Integer overflow") {}
+    explicit IntOverflowException(const std::string& msg) : InterpreterException(msg) {}
+};
+
+class DivByZeroException : public InterpreterException {
+   public:
+    explicit DivByZeroException() : DivByZeroException("Division by zero") {}
+    explicit DivByZeroException(const std::string& msg) : InterpreterException(msg) {}
+};
+
+template <typename ExceptionT>
+[[noreturn]] void rethrow_with_position(const ExceptionT& e, const Position& position) {
+    throw ExceptionT(std::string(e.what()) + " at: " + position.get_position_str());
+}
+
 /** @} */
 #endif  // EXCEPTIONS_HPP
