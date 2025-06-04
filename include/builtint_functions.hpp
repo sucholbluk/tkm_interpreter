@@ -8,7 +8,7 @@
 using function_impl = std::function<std::optional<value>(Interpreter&, arg_list)>;
 /**
  * @ingroup interpreter
- * @brief Buit-in print function.
+ * @brief Builtin function representation
  */
 class BuiltinFunction : public Callable {
    public:
