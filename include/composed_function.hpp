@@ -9,11 +9,11 @@ class ComposedFunction : public Callable {
     Type get_type() const override;
     void call(Interpreter& interpreter, arg_list call_args) override;
 
-    ~ComposedFunction() = default;
+    virtual ~ComposedFunction() = default;
 
    private:
+    Type _type;
     sp_callable _first_func;
     sp_callable _second_func;
-    Type _type;
 };
 #endif  // COMPOSED_FUNCTION_HPP

@@ -15,7 +15,7 @@ class BuiltinFunction : public Callable {
     BuiltinFunction(Type type, function_impl impl);
     void call(Interpreter& interpreter, arg_list call_args) override;
     Type get_type() const override;
-    ~BuiltinFunction() = default;
+    virtual ~BuiltinFunction() = default;
 
    private:
     Type _type;

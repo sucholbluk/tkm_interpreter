@@ -8,11 +8,11 @@ class BindFrontFunction : public Callable {
     Type get_type() const override;
     void call(Interpreter& interpreter, arg_list call_args) override;
 
-    ~BindFrontFunction() = default;
+    virtual ~BindFrontFunction() = default;
 
    private:
     Type _type;
-    arg_list _bound_args;
     sp_callable _target_func;
+    arg_list _bound_args;
 };
 #endif  // BIND_FRONT_FUNCTION_HPP

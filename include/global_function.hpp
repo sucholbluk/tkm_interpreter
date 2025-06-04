@@ -11,7 +11,7 @@ class GlobalFunction : public Callable {
     GlobalFunction(const FunctionDefinition& function);
     void call(Interpreter& interpreter, arg_list call_args) override;
     Type get_type() const override;
-    ~GlobalFunction() = default;
+    virtual ~GlobalFunction() = default;
 
    private:
     const FunctionDefinition& _function;

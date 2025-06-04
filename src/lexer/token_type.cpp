@@ -98,6 +98,8 @@ std::string type_to_str(const TokenType& token_type) {
             return "TokenType::T_COMMENT";
         case TokenType::T_EOF:
             return "TokenType::T_EOF";
+        default:
+            return "UNKNOWN";
     }
 }
 
