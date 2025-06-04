@@ -4,8 +4,7 @@ project(tkm_interpreter)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# add_compile_options(-stdlib=libc++)
-# add_link_options(-stdlib=libc++ -lc++abi)
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     add_compile_options(-stdlib=libc++)
     add_link_options(-stdlib=libc++ -lc++abi)

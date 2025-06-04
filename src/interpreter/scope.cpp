@@ -1,5 +1,7 @@
 #include "scope.hpp"
 
+#include <unordered_map>
+
 std::optional<VariableHolder> Scope::get_variable(const std::string& identifier) {
     auto it = _variables.find(identifier);
     return it != _variables.end() ? std::make_optional(it->second) : std::nullopt;

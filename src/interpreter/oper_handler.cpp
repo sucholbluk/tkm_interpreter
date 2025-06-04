@@ -1,5 +1,6 @@
 #include "oper_handler.hpp"
 
+#include <algorithm>
 #include <cstdlib>
 #include <limits>
 
@@ -196,7 +197,9 @@ sp_callable compose_functions(value left, value right) {
 sp_callable bind_front_function(sp_callable bind_target, arg_list args) {
     // save vars passed by reference as their values
     arg_list value_args{};
-    std::ranges::for_each(args, [&](auto argument) { value_args.push_back(TypeHandler::extract_value(argument)); });
+    std::for_each(args.begin(), args.end(),
+                  [&](auto argument) { value_args.push_back(TypeHandler::extract_value(argument)); });
+
     Type bfront_type{TypeHandler::get_bind_front_func_type(bind_target, args)};
     return std::make_shared<BindFrontFunction>(bfront_type, bind_target, value_args);
 }

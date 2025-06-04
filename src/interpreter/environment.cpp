@@ -1,15 +1,18 @@
 #include "environment.hpp"
 
+#include <algorithm>
+
 #include "builtint_functions.hpp"
 #include "global_function.hpp"
 #include "statement.hpp"
 
 Environment::Environment() : _call_frames{} {
     // Initialize built-in functions
-    std::ranges::for_each(Builtins::builtin_function_infos, [this](auto& builtin_info) {
-        this->_functions[builtin_info.identifier] =
-            std::make_shared<BuiltinFunction>(builtin_info.type, builtin_info.impl);
-    });
+    std::for_each(Builtins::builtin_function_infos.begin(), Builtins::builtin_function_infos.end(),
+                  [this](auto& builtin_info) {
+                      this->_functions[builtin_info.identifier] =
+                          std::make_shared<BuiltinFunction>(builtin_info.type, builtin_info.impl);
+                  });
 }
 
 void Environment::register_function(const FunctionDefinition& function) {
