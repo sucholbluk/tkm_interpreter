@@ -5,6 +5,7 @@
  * @ingroup lexer
  * @brief Class to represent token types
  */
+namespace tkm {
 enum class TokenType {
     T_IDENTIFIER,
 
@@ -67,5 +68,7 @@ enum class TokenType {
 
 std::string type_to_str(const TokenType& token_type);
 
-std::ostream& operator<<(std::ostream& os, const TokenType& token_type);
+std::ostream& operator<<(std::ostream& os, const tkm::TokenType& token_type);
+
+}  // namespace tkm
 #endif  // TOKEN_TYPE_HPP

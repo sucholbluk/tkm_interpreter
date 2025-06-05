@@ -1,7 +1,7 @@
 #define BOOST_TEST_MODULE INTERPRETER_TESTS
 #include <boost/test/data/monomorphic.hpp>
 #include <boost/test/data/test_case.hpp>
-#include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 
 #include "interpreter.hpp"
 #include "lexer.hpp"

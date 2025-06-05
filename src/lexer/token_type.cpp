@@ -1,5 +1,7 @@
 #include "token_type.hpp"
+#include <ostream>
 
+namespace tkm {
 std::string type_to_str(const TokenType& token_type) {
     switch (token_type) {
         case TokenType::T_IDENTIFIER:
@@ -107,3 +109,4 @@ std::ostream& operator<<(std::ostream& os, const TokenType& token_type) {
     os << type_to_str(token_type);
     return os;
 };
+}  // namespace tkm

@@ -4,6 +4,7 @@
 #include <set>
 #include <typeindex>
 
+using namespace tkm;
 Token::Token(TokenType type, Position position) : Token(type, position, std::monostate{}) {}
 
 Token::Token(TokenType type, Position position, optional_token_value value) {

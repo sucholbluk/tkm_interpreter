@@ -8,6 +8,8 @@
 #include "statement.hpp"
 #include "type_handler.hpp"
 
+#include <algorithm>
+
 void Interpreter::visit(const Program& program) {
     std::for_each(program.function_definitions.begin(), program.function_definitions.end(),
                   [this](const auto& func_def) { func_def->accept(*this); });

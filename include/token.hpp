@@ -2,6 +2,7 @@
 #define TOKEN_HPP
 
 #include <variant>
+#include <string>
 
 #include "exceptions.hpp"
 #include "position.hpp"
@@ -21,6 +22,7 @@ using optional_token_value = std::variant<std::monostate, int, double, bool, std
  * - T_COMMENT - std::string
  * - T_IDENTIFIER - std::string
  */
+using namespace tkm;
 class Token {
    public:
     Token(TokenType type, Position position);

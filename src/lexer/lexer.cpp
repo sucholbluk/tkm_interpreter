@@ -129,8 +129,8 @@ std::optional<Token> Lexer::_try_build_literal_int_or_float() {
         throw UnexpectedCharacterException(_position, _character);
     }
 
-    unsigned long fraction_value{0};
-    int fraction_digits{1};
+    uint64_t fraction_value{0};
+    uint64_t fraction_digits{1};
     digit = _character - '0';
     fraction_value += digit;
 
@@ -138,7 +138,7 @@ std::optional<Token> Lexer::_try_build_literal_int_or_float() {
     while (std::isdigit(_character)) {
         digit = _character - '0';
 
-        if (fraction_value > (std::numeric_limits<unsigned long>::max() - digit) / 10) {
+        if (fraction_value > (std::numeric_limits<uint64_t>::max() - digit) / 10) {
             throw ParseFractionRangeExceededException(position);
         }
         fraction_value = fraction_value * 10 + digit;

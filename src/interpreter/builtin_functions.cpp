@@ -1,4 +1,6 @@
 #include <cmath>
+#include <algorithm>
+#include <cctype>
 
 #include "builtint_functions.hpp"
 #include "interpreter.hpp"

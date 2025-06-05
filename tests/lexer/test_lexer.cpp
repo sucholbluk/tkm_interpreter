@@ -1,13 +1,14 @@
 #define BOOST_TEST_MODULE LEXER_TESTS
 #include <boost/test/data/monomorphic.hpp>
 #include <boost/test/data/test_case.hpp>
-#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test.hpp>
+#include <vector>
 
 #include "lexer.hpp"
+#include "token_type.hpp"
 
 namespace bdata = boost::unit_test::data;
-
+using namespace tkm;
 BOOST_AUTO_TEST_CASE(constructor_test) {
     std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>("+");
     auto handler = std::make_unique<SourceHandler>(std::move(source));
@@ -299,7 +300,7 @@ BOOST_AUTO_TEST_CASE(to_large_int_test) {
 }
 
 BOOST_AUTO_TEST_CASE(to_many_fraction_nums) {
-    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>("1.18446744073709551616");
+    std::unique_ptr<std::istream> source = std::make_unique<std::stringstream>("1.999999999999999999999");
     auto handler = std::make_unique<SourceHandler>(std::move(source));
     Lexer lexer{std::move(handler)};
 

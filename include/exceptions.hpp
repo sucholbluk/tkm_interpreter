@@ -43,7 +43,7 @@ class FileOpenException : public std::runtime_error {
  */
 class InvalidTokenValueError : public ImplementationError {
    public:
-    explicit InvalidTokenValueError(const TokenType& type);
+    explicit InvalidTokenValueError(const tkm::TokenType& type);
 };
 
 /*

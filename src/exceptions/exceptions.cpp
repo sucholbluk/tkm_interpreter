@@ -2,6 +2,8 @@
 
 #include "global_function.hpp"
 
+using namespace tkm;
+
 ImplementationError::ImplementationError(const std::string& message) : std::logic_error(message) {}
 /* -----------------------------------------------------------------------------*
  *                                LEXER ERRORS                                  *

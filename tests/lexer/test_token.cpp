@@ -2,10 +2,13 @@
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/unit_test.hpp>
 #include <tuple>
+#include <vector>
 
 #include "token.hpp"
+#include "token_type.hpp"
 
 namespace bdata = boost::unit_test::data;
+using namespace tkm;
 
 std::vector<std::tuple<TokenType, Position>> non_value_tokens_test_cases{
     {TokenType::T_AND, Position{1, 1}},
