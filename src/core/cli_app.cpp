@@ -50,7 +50,7 @@ void CLIApp::_initialize_components() {
     if (_use_stdin) {
         input_stream = std::make_unique<std::istream>(std::cin.rdbuf());
     } else {
-        auto file_stream = std::make_unique<std::ifstream>(_input_filename);
+        auto file_stream = std::make_unique<std::ifstream>(_input_filename, std::ios::in);
         if (!file_stream->is_open()) throw FileOpenException(_input_filename);
 
         input_stream = std::move(file_stream);

@@ -60,12 +60,9 @@ BOOST_DATA_TEST_CASE(equality_operator_test, bdata::make(equal_test_cases), posi
 }
 
 std::vector<std::tuple<Position, Position>> not_equal_test_cases{
-    {Position{}, Position{9, 9}},
-    {Position{84, 78}, Position{80, 78}},
-    {Position{11, 20}, Position{10, 20}},
-    {Position{190, 200}, Position{100, 200}},
-    {Position{50, 51}, Position{50, 50}},
-    {Position{999, 1}, Position{999, 999}},
+    {Position{}, Position{9, 9}},         {Position{84, 78}, Position{80, 78}},
+    {Position{11, 20}, Position{10, 20}}, {Position{190, 200}, Position{100, 200}},
+    {Position{50, 51}, Position{50, 50}}, {Position{999, 1}, Position{999, 999}},
 };
 
 BOOST_DATA_TEST_CASE(inequality_operator_test, bdata::make(not_equal_test_cases), position1, position2) {
@@ -73,16 +70,11 @@ BOOST_DATA_TEST_CASE(inequality_operator_test, bdata::make(not_equal_test_cases)
 }
 
 std::vector<std::tuple<Position, std::string>> print_test_cases{
-    {Position{}, "[1:1]"},
-    {Position{4, 9}, "[4:9]"},
-    {Position{10, 20}, "[10:20]"},
-    {Position{100, 200}, "[100:200]"},
-    {Position{50, 50}, "[50:50]"},
-    {Position{999, 999}, "[999:999]"},
-    {Position{1, 1000}, "[1:1000]"},
-    {Position{123, 456}, "[123:456]"},
-    {Position{19, 4}, "[19:4]"},
-    {Position{500, 1}, "[500:1]"},
+    {Position{}, "[1:1]"},           {Position{4, 9}, "[4:9]"},
+    {Position{10, 20}, "[10:20]"},   {Position{100, 200}, "[100:200]"},
+    {Position{50, 50}, "[50:50]"},   {Position{999, 999}, "[999:999]"},
+    {Position{1, 1000}, "[1:1000]"}, {Position{123, 456}, "[123:456]"},
+    {Position{19, 4}, "[19:4]"},     {Position{500, 1}, "[500:1]"},
 };
 
 BOOST_DATA_TEST_CASE(print_test, bdata::make(print_test_cases), position, expected_output) {

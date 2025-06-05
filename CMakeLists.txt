@@ -5,6 +5,7 @@ project(tkm_interpreter)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_compile_options(-Wall)
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
