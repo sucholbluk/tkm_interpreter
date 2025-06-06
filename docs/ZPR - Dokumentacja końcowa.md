@@ -57,7 +57,9 @@ Kolejną zmianą jest brak rozdzielenia analizy semantycznej i interpretacji w w
 ---
 ### Napotkane problemy w trakcie projektu i wnioski
 W trakcie projektu główny problem stanowiła dla mnie **implementacja modułu Parsera**. Wprowadziła u mnie spore opóźnienie w stosunku do przewidywanego harmonogramu i spowodowała nawarstwienie opóźnienia przy kolejnym etapie - interpreterze.
+
 Kolejnym problemem była dla mnie **kompatybilność kodu pod windowsem i linuxem oraz zarządzanie zależnościami**. Przez większość czasu projektu korzystałem z clanga w wersji 19.7.1 i z `-stdlib=libc++`, co dawało mi dostęp do `std::ranges::for_each`. Aby program był kompilowalny przez `g++` oraz w `Visual studio` pod windowsem w finalnej wersji projektu przeszedłem na `std::for_each` z biblioteki standardowej. Tak na prawdę mogłem od początku "nie wydziwiać" i pracować pod `g++`.
+
 Jeszcze innym problemem była **reprezentacja wartości w interpreterze**: wartość/odwołanie do zmiennej. Szczególnie zamieszanie wprowadziło zapewnienie tego, że funkcja przyjmująca argument niemutowalny może przyjąć referencję do zmiennej mutowalnej, ale wewnątrz tej funkcji zawartość nie może być zmodyfikowana. Rozwiązałem to wprowadzając obiekt `VariableHolder`, który trzyma wskaźnik do zmiennej(obiektu `Variable`) oraz informację, czy dany holder zezwala na modyfikację zmiennej. Pomimo, że efekt osiągnięty przez to jest fajny i działa poprawnie uważam, że moje rozwiązanie jest mało finezyjne i skomplikowało znacznie zarządzanie zmiennymi i wartościami - wprowadziło sporo dodatkowego kodu - uważam, że można było to zrobić lepiej.
 
 Projekt był zdecydowanie najbardziej pracochłonnym projektem na całych studiach, ale też najbardziej satysfakcjonującym. 
@@ -77,7 +79,8 @@ Projekt był zdecydowanie najbardziej pracochłonnym projektem na całych studia
 		- modułu exceptions posiadającego tylko konstruktory błędów
 	- Line coverage: `96.5%`
 	- Function coverage: `94.8%` 
-![[Pasted image 20250607004507.png]]
+	
+![LCOV report](../img/lcov-report.png)
 ### Testy
 #### Analizator leksykalny
 Testy budowania pojedynczych tokenów, oraz budowanie tokenów dla przykładowego programu wraz ze sprawdzaniem zgodności pozycji zbudowanych tokenów
