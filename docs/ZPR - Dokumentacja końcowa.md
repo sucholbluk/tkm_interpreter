@@ -66,7 +66,7 @@ Projekt był zdecydowanie najbardziej pracochłonnym projektem na całych studia
 
 ---
 ### Statystyki
-- Liczba linii kodu w całym projekcie (włącznie z komentarzami): `11564`, z czego:
+- Liczba linii w całym projekcie (włącznie z komentarzami i przerwami): `11564`, z czego:
 	- w plikach nagłówkowych(`.hpp`) - zawierają docstringi: `2660`
 	- w plikach implementacji (`.cpp`): `3782`
 	- w testach: `5122`
@@ -79,8 +79,10 @@ Projekt był zdecydowanie najbardziej pracochłonnym projektem na całych studia
 		- modułu exceptions posiadającego tylko konstruktory błędów
 	- Line coverage: `96.5%`
 	- Function coverage: `94.8%` 
-	
+
 ![LCOV report](../img/lcov-report.png)
+
+---
 ### Testy
 #### Analizator leksykalny
 Testy budowania pojedynczych tokenów, oraz budowanie tokenów dla przykładowego programu wraz ze sprawdzaniem zgodności pozycji zbudowanych tokenów
@@ -90,6 +92,7 @@ Testy z wykorzystaniem udawanego leksera z weryfikacją, czy zbudowana struktura
 Testy interpretacji programu na podstawie tekstowego strumienia imitującego źródło przy wykorzystaniu `Lexera` oraz `Parsera`. Weryfikacja poprawności wyniku programu oraz przebadanie, czy sytuacje błędne skutkują rzuceniem odpowiednich wyjątków (Testy na około 2000 linii). 
 Testy poszczególnych metod wykorzystywanych przez interpreter.
 
+---
 ### Czynności projektowe przy użyciu `just`
 #### Budowanie projektu
 W katalogu głównym repozytorium należy uruchomić:
@@ -104,9 +107,9 @@ Możliwe są dwie metody:
 
 1. Z użyciem `just`
 ```
-just tkm_interpreter [nazwa_pliku]
+just tkm_interpreter [file]
 # lub z dodatkowymi opcjami
-just tkm_interpreter "-v [nazwa_pliku]"
+just tkm_interpreter "-v [file]"
 ```
 Przykład:
 ```
@@ -115,17 +118,31 @@ just tkm_interpreter "-v ./example_programs/counter.tkm"
 
 2. Ręcznie z katalogu `build/`
 ```
-./tkm_interpreter [nazwa_pliku] [opcje]
+./tkm_interpreter [file] [options]
 ```
 ##### Dostępne opcje
 ```
-Użycie: ./tkm_interpreter [plik] [opcje]
-Dostępne opcje:
-  -h [ --help ]         wyświetlenie pomocy
-  -s [ --stdin ]        wczytanie danych ze standardowego wejścia
-  -v [ --verbose ]      tryb szczegółowy (verbose)
-  --input arg           ścieżka do pliku wejściowego
+usage: ./tkm_interpreter [file] [options]
+available options::
+  -h [ --help ]         display help info
+  -s [ --stdin ]        read data from standard input
+  -v [ --verbose ]      enable verbosity
+  --input arg           input filename
 ```
+
+#### Uruchamianie testów
+Żeby uruchomić testy:
+```
+just test [target]
+```
+Możliwe targety:
+- all - (default) - wszyskie testy
+- source_handler
+- position
+- lexer
+- parser
+- interpreter
+
 
 #### Generowanie raportu pokrycia testami
 Aby wygenerować raport pokrycia kodu:
