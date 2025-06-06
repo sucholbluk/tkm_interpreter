@@ -4,9 +4,9 @@ build:
     cmake -DCMAKE_CXX_COMPILER=g++-13 -B build -S .
     cmake --build build
 
-tkm_interpreter tkm_program="":
+tkm_interpreter tkm_program_and_opts="":
     if [ ! -f ./build/tkm_interpreter ]; then just build; fi
-    ./build/tkm_interpreter {{tkm_program}}
+    ./build/tkm_interpreter {{tkm_program_and_opts}}
 
 # possible targets:
 # - all
@@ -39,4 +39,5 @@ docgen:
     just open_doc
 
 open_doc:
+    if [ ! -f ./doxydoc/html/index.html ]; then just docgen; fi
     xdg-open doxydoc/html/index.html
