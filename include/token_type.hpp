@@ -3,9 +3,13 @@
 #include <string>
 /**
  * @ingroup lexer
- * @brief Class to represent token types
+ * @brief To differ from defined in windows TokenType which i had an issue with.
  */
 namespace tkm {
+/**
+ * @ingroup lexer
+ * @brief Class to represent token types
+ */
 enum class TokenType {
     T_IDENTIFIER,
 

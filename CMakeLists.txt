@@ -16,6 +16,15 @@ include(CTest)
 enable_testing()
 set(CMAKE_CTEST_COMMAND ctest)
 
+option(COVERAGE "Enable coverage flags" OFF)
+
+
+if(COVERAGE)
+    message(STATUS "Building with coverage flags")
+    add_compile_options(--coverage -O0 -g)
+    add_link_options(--coverage)
+endif()
+
 add_subdirectory(src)
 add_subdirectory(tests)
 

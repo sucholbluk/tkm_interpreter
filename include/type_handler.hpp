@@ -7,7 +7,7 @@
 
 /**
  * @ingroup interpreter
- * @brief Modules of function for type handling.
+ * @brief Modules of functions for type handling used by the interpreter
  */
 namespace TypeHandler {
 
