@@ -14,8 +14,7 @@ The project's goal consisted of 2 main parts:
 #### Tools used in this project:
 - **C++20** standard
 	- with libraries:
-		- Boost (v1.88
-		- or newer; required: program options and test)
+		- Boost (v1.88 or newer; required: program options and test)
 		- spdlog
 		- fmt
 - **clang-format** - for file formatting (configuration in file `.clang-format`)
