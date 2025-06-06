@@ -18,7 +18,7 @@ tkm_interpreter tkm_program="":
 test target="all": build
     cd build && if [ "{{target}}" = "all" ]; then ctest; else ctest -R "{{target}}_tests"; fi
 
-coverage: clean
+gen_coverage: clean
     cmake -DCMAKE_CXX_COMPILER=g++-13 -DCOVERAGE=ON -B build -S .
     cmake --build build
     cd build && ctest
