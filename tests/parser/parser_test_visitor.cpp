@@ -1,5 +1,7 @@
 #include "parser_test_visitor.hpp"
 
+#include <algorithm>
+
 #include "program.hpp"
 #include "statement.hpp"
 #include "typed_identifier.hpp"
@@ -7,7 +9,8 @@
 void ParserTestVisitor::visit(const Program& program) {
     elements.emplace_back(_get_name_position_str(program, "Program"), _nest_level);
     _NestGuard guard{_nest_level};
-    std::ranges::for_each(program.function_definitions, [this](const auto& fun_def) { fun_def->accept(*this); });
+    std::for_each(program.function_definitions.begin(), program.function_definitions.end(),
+                  [this](const auto& fun_def) { fun_def->accept(*this); });
 }
 
 void ParserTestVisitor::visit(const ContinueStatement& continue_stmnt) {

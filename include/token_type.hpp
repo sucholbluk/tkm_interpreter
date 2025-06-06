@@ -3,6 +3,11 @@
 #include <string>
 /**
  * @ingroup lexer
+ * @brief To differ from defined in windows TokenType which i had an issue with.
+ */
+namespace tkm {
+/**
+ * @ingroup lexer
  * @brief Class to represent token types
  */
 enum class TokenType {
@@ -67,5 +72,7 @@ enum class TokenType {
 
 std::string type_to_str(const TokenType& token_type);
 
-std::ostream& operator<<(std::ostream& os, const TokenType& token_type);
+std::ostream& operator<<(std::ostream& os, const tkm::TokenType& token_type);
+
+}  // namespace tkm
 #endif  // TOKEN_TYPE_HPP

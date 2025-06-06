@@ -1,4 +1,5 @@
 #include "variable.hpp"
+#include <iostream>
 
 VariableHolder::VariableHolder(sp_variable var) : var{var}, can_change_var{var->type.is_mutable} {}
 

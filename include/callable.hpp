@@ -11,7 +11,16 @@ class Interpreter;
 class Callable {
    public:
     ~Callable() = default;
+    /**
+     * @brief Calls the callable object with the given interpreter and arguments.
+     * @param interpreter Reference to the interpreter executing the call.
+     * @param call_args List of arguments passed to the callable - can be variables or values.
+     */
     virtual void call(Interpreter& interpreter, arg_list call_args) = 0;
+    /**
+     * @brief Returns the type of the callable object.
+     * @return The type of the callable.
+     */
     virtual Type get_type() const = 0;
 };
 using sp_callable = std::shared_ptr<Callable>;

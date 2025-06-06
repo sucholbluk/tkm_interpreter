@@ -1,5 +1,7 @@
 #include "type.hpp"
 
+#include "exceptions.hpp"
+
 /* -----------------------------------------------------------------------------*
  *                                      TYPE                                    *
  *------------------------------------------------------------------------------*/
@@ -128,6 +130,8 @@ std::string type_kind_to_string(const TypeKind& type_kind) {
             return "string";
         case TypeKind::FUNCTION:
             return "function";
+        default:
+            throw ImplementationError("TypeKind didnt match???");
     }
 }
 

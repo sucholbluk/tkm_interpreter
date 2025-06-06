@@ -8,8 +8,11 @@
 #include "statement.hpp"
 #include "type_handler.hpp"
 
+#include <algorithm>
+
 void Interpreter::visit(const Program& program) {
-    std::ranges::for_each(program.function_definitions, [this](const auto& func_def) { func_def->accept(*this); });
+    std::for_each(program.function_definitions.begin(), program.function_definitions.end(),
+                  [this](const auto& func_def) { func_def->accept(*this); });
     _execute_main();
 }
 
@@ -295,7 +298,8 @@ void Interpreter::_execute_main() {
 
 arg_list Interpreter::_get_arg_list(const up_expression_vec& arguments) {
     arg_list args{};
-    std::ranges::for_each(arguments, [&](const up_expression& expr) {
+
+    std::for_each(arguments.begin(), arguments.end(), [&](const up_expression& expr) {
         expr->accept(*this);
 
         if (_tmp_result_is_empty()) {

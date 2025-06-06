@@ -54,3 +54,8 @@ build/**/*
 lib/*
 bin/*
 test/test_runner
+out/**/*
+.vs*
+CMakeSettings.json
+
+coverage*

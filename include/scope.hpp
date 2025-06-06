@@ -1,5 +1,7 @@
 #ifndef SCOPE_HPP
 #define SCOPE_HPP
+#include <unordered_map>
+
 #include "variable.hpp"
 
 /**

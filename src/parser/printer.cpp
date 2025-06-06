@@ -1,8 +1,8 @@
 #include "printer.hpp"
 
+#include <algorithm>
 #include <format>
 #include <iostream>
-#include <ranges>
 
 #include "expression.hpp"
 #include "program.hpp"
@@ -30,7 +30,8 @@ void Printer::_print_header(std::string type_str, const Node& node, std::string 
 void Printer::visit(const Program& program) {
     _print_header("Program", program);
     _IndentGuard guard(_indent_level);
-    std::ranges::for_each(program.function_definitions, [this](const auto& statement) { statement->accept(*this); });
+    std::for_each(program.function_definitions.begin(), program.function_definitions.end(),
+                  [this](const auto& statement) { statement->accept(*this); });
 }
 
 void Printer::visit(const ContinueStatement& continue_stmnt) {
@@ -66,8 +67,8 @@ void Printer::visit(const CodeBlock& code_block) {
     _print_header("CodeBlock", code_block);
     {
         _IndentGuard guard{_indent_level};
-        std::ranges::for_each(code_block.statements,
-                              [this](const up_statement& statement) { statement->accept(*this); });
+        std::for_each(code_block.statements.begin(), code_block.statements.end(),
+                      [this](const up_statement& statement) { statement->accept(*this); });
     }
 }
 
@@ -93,7 +94,8 @@ void Printer::visit(const IfStatement& if_stmnt) {
             _print_indent();
             std::cout << "Else Ifs:" << std::endl;
             _IndentGuard else_ifs_guard{_indent_level};
-            std::ranges::for_each(if_stmnt.else_ifs, [this](const up_else_if& else_if) { else_if->accept(*this); });
+            std::for_each(if_stmnt.else_ifs.begin(), if_stmnt.else_ifs.end(),
+                          [this](const up_else_if& else_if) { else_if->accept(*this); });
         }
 
         if (if_stmnt.else_body) {
@@ -151,7 +153,8 @@ void Printer::visit(const FunctionSignature& func_sig) {
                   std::format(" identifier: {}, type: {}", func_sig.identifier, func_sig.type.to_str()));
     _IndentGuard guard{_indent_level};
 
-    std::ranges::for_each(func_sig.params, [this](const up_typed_identifier& param) { param->accept(*this); });
+    std::for_each(func_sig.params.begin(), func_sig.params.end(),
+                  [this](const up_typed_identifier& param) { param->accept(*this); });
 }
 
 void Printer::visit(const ForLoop& for_loop) {
@@ -225,8 +228,8 @@ void Printer::visit(const FunctionCall& func_call_expr) {
     } else {
         std::cout << std::endl;
         _IndentGuard arguments_guard{_indent_level};
-        std::ranges::for_each(func_call_expr.argument_list,
-                              [this](const up_expression& argument) { argument->accept(*this); });
+        std::for_each(func_call_expr.argument_list.begin(), func_call_expr.argument_list.end(),
+                      [this](const up_expression& argument) { argument->accept(*this); });
     }
 }
 
@@ -238,8 +241,8 @@ void Printer::visit(const BindFront& bind_front_expr) {
     std::cout << "Arguments:" << std::endl;
     {
         _IndentGuard arguments_guard{_indent_level};
-        std::ranges::for_each(bind_front_expr.argument_list,
-                              [this](const up_expression& argument) { argument->accept(*this); });
+        std::for_each(bind_front_expr.argument_list.begin(), bind_front_expr.argument_list.end(),
+                      [this](const up_expression& argument) { argument->accept(*this); });
     }
 
     _print_indent();

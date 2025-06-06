@@ -1,7 +1,7 @@
 #define BOOST_TEST_MODULE INTERPRETER_TESTS
 #include <boost/test/data/monomorphic.hpp>
 #include <boost/test/data/test_case.hpp>
-#include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 
 #include "interpreter.hpp"
 #include "lexer.hpp"
@@ -120,7 +120,7 @@ def main() -> int {
 }
 
 BOOST_AUTO_TEST_CASE(to_bool_type_cast_test) {
-    std::string expected_output{"false\ntrue\nfalse\ntrue\nfalse\ntrue\n"};
+    std::string expected_output{"false\ntrue\nfalse\ntrue\nfalse\ntrue\nfalse\ntrue\n"};
     std::string mock_file = R"(
 def print_bool(a: bool) -> none {
     print(a as string);
@@ -135,6 +135,9 @@ def main() -> int {
 
     print_bool(0.0 as bool); # false
     print_bool(0.12 as bool); # true
+
+    print_bool(false as bool); # false
+    print_bool(true as bool); # true
     return 0;
 }
 
@@ -1311,6 +1314,124 @@ def main() -> int {
     BOOST_CHECK(output == expected_output);
 }
 
+BOOST_AUTO_TEST_CASE(is_int_builtin_test) {
+    std::string expected_output{"true\nfalse\ntrue\nfalse\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print(is_int("123") as string);      # true
+    print(is_int("12.3") as string);     # false
+    print(is_int("-42") as string);      # true
+    print(is_int("abc") as string);      # false
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(is_float_builtin_test) {
+    std::string expected_output{"true\ntrue\ntrue\nfalse\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print(is_float("12.3") as string);   # true
+    print(is_float("-42.0") as string);  # true
+    print(is_float("123") as string);    # true - int value can be read as float
+    print(is_float("abc") as string);    # false
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(lower_builtin_test) {
+    std::string expected_output{"abc\nabc123\nabc def\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print(lower("ABC"));
+    print(lower("AbC123"));
+    print(lower("ABC DEF"));
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(upper_builtin_test) {
+    std::string expected_output{"ABC\nABC123\nABC DEF\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print(upper("abc"));
+    print(upper("AbC123"));
+    print(upper("abc def"));
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
+BOOST_AUTO_TEST_CASE(capitalized_builtin_test) {
+    std::string expected_output{"Abc\nA\nA\nAbc def\n"};
+    std::string mock_file = R"(
+def main() -> int {
+    print(capitalized("abc"));
+    print(capitalized("A"));
+    print(capitalized("a"));
+    print(capitalized("abc DEF"));
+    return 0;
+}
+)";
+    Interpreter interpreter{};
+    auto program{get_program(mock_file)};
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+
+    program->accept(interpreter);
+
+    std::string output = buffer.str();
+    std::cout.rdbuf(old);
+
+    BOOST_CHECK(output == expected_output);
+}
+
 // EXCEPTION TESTS
 
 namespace bdata = boost::unit_test::data;
@@ -1379,9 +1500,12 @@ std::vector<std::string> cannot_cast_exception_cases = {
     R"(def main() -> int { let x: int = "abc" as int; return 0; })",
     R"(def main() -> int { let x: int = "" as int; return 0; })",
     R"(def main() -> int { let x: int = "12.3.4" as int; return 0; })",
+    R"(def main() -> int { let x: int = "99999999999999999999" as int; return 0; })",
+    R"(def main() -> int { let x: int = print as int; return 0; })",
     R"(def main() -> int { let x: float = "abc" as float; return 0; })",
     R"(def main() -> int { let x: float = "" as float; return 0; })",
     R"(def main() -> int { let x: float = "12.3.4" as float; return 0; })",
+    R"(def main() -> int { let x: float = upper as float; return 0; })",
     R"(def main() -> int { let x: int = print as function<none:none>; return 0; })",
     R"(def main() -> int { let x: float = print as float; return 0; })",
     R"(def main() -> int { let x: bool = print as bool; return 0; })",
@@ -1529,6 +1653,16 @@ BOOST_DATA_TEST_CASE(too_many_args_to_bind_exception_test, bdata::make(too_many_
 }
 
 std::vector<std::string> cant_perform_operation_exception_cases = {
+    R"(def main() -> int { print + upper; return 0; })",
+    R"(def main() -> int { print - upper; return 0; })",
+    R"(def main() -> int { lower * upper; return 0; })",
+    R"(def main() -> int { round / main; return 0; })",
+    R"(def main() -> int { round and main; return 0; })",
+    R"(def main() -> int { round or main; return 0; })",
+    R"(def main() -> int { round == main; return 0; })",
+    R"(def main() -> int { round < main; return 0; })",
+    R"(def main() -> int { not input; return 0; })",
+    R"(def main() -> int { -print; return 0; })",
     R"(
 def main() -> int {
     (true + false);

@@ -1,6 +1,6 @@
 #include "source_handler.hpp"
 
-SourceHandler::SourceHandler(std::unique_ptr<std::istream> source) : _source{std::move(source)}, _position{} {}
+SourceHandler::SourceHandler(std::unique_ptr<std::istream> source) : _position{}, _source{std::move(source)} {}
 
 std::pair<char, Position> SourceHandler::get_char_and_position() {
     char current_char = _get_char();

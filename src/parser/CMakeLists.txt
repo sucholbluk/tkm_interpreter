@@ -14,4 +14,4 @@ target_link_libraries(parser PUBLIC lexer)
 
 target_include_directories(parser PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
-target_link_libraries(parser PRIVATE spdlog fmt)
+target_link_libraries(parser PRIVATE spdlog::spdlog fmt::fmt)

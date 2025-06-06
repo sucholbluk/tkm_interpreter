@@ -523,7 +523,7 @@ up_expression Parser::_try_parse_paren_expr() {
 
     up_expression expr = _try_parse_expression();
     if (not expr) {
-        throw ExpectedExprException(_token.get_position());
+        throw ExpectedExprException(position);
     }
 
     _advance_on_required_token<ExpectedRParenException>(TokenType::T_R_PAREN);
@@ -585,7 +585,7 @@ std::optional<up_expression_vec> Parser::_try_parse_argument_list() {
         return std::nullopt;
     }
     up_expression_vec arguments{};
-    Position position(_get_position_and_digest_token());
+    _get_next_token();
 
     up_expression argument = _try_parse_expression();
     if (not argument) {

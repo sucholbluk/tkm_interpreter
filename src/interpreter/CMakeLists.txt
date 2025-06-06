@@ -13,6 +13,6 @@ add_library(interpreter STATIC
     bind_front_function.cpp
 )
 
-target_link_libraries(interpreter PUBLIC parser)
+target_link_libraries(interpreter PUBLIC parser exceptions)
 
 target_include_directories(interpreter PUBLIC ${CMAKE_SOURCE_DIR}/include)

@@ -1,5 +1,7 @@
 #include "expression.hpp"
 
+#include "exceptions.hpp"
+
 /* -----------------------------------------------------------------------------*
  *                               BASE - EXPRESSION                              *
  *------------------------------------------------------------------------------*/
@@ -172,5 +174,7 @@ std::string expr_kind_to_str(const ExprKind& kind) {
             return "Identifier";
         case ExprKind::LITERAL:
             return "Literal";
+        default:
+            throw ImplementationError("ExprKind didnt match?");
     }
 }

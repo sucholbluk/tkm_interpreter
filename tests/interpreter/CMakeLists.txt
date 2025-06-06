@@ -11,5 +11,5 @@ target_link_libraries(interpreter_tests
     Boost::unit_test_framework
     interpreter
 )
-target_include_directories(lexer_tests PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(interpreter_tests PRIVATE ${CMAKE_SOURCE_DIR}/include)
 add_test(NAME interpreter_tests COMMAND interpreter_tests)
